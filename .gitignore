@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Rendered output — never commit pixels (PNG/mp4) or raw pixel-buffer dumps
+**/out/
+**/*.png
+**/*.mp4
+**/*.mov
+**/*.webm
+**/*.raw
+**/_diag-crops/
+**/critic-crops/
+**/_pick-crops/
+.tmp_crops/
+
+# Remotion / bundler scratch
+.remotion/
+
+# Strip manifests are tiny JSON but live beside output dirs; keep them out too
+**/strip-manifest.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log

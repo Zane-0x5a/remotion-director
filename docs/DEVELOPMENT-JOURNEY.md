@@ -1,0 +1,63 @@
+# Development journey
+
+How remotion-director arrived at its architecture — including the two dead ends it walked through first, why each design choice is shaped the way it is, the experimental discipline that kept it honest, and where human judgment did the load-bearing work.
+
+> This is not vibe-coding. Every architectural turn below was forced by an observed phenomenon in a controlled experiment, and recorded as "phenomenon → conclusion" in a ground-truth registry. The `L`/`C` tags point into that registry.
+
+## Three generations
+
+### 1. The Dogma Engine — *compile only prohibitions* (dead)
+
+The first architecture treated design quality as something you could **blacklist your way into**: the engine compiled a list of bans (don't center everything, don't use the slop gradient, …) and **never looked at the rendered image**.
+
+**Why it died:** across every model it converged to *the same ugliness*. Ruling out the bad is not the same as producing the good — the objective function had no "beauty" dimension, only "absence of named sins." This is the project's first hard lesson, and it is *why* the current architecture gives design knowledge as **positive equipment** rather than negative constraints. (Registry: the negative-space-attractor finding — a bans-only engine converges cross-model to one ugliness.)
+
+### 2. The MVC pipeline — *heavyweight deterministic compile* (dead)
+
+The second architecture split the work into Model → Controller → View: a "design brain" emitted **discrete intent** (a strict `SceneDraft`: narrative beats + per-beat composition/color/tempo intents + a global aesthetic vector, **never** coordinates or numbers); a deterministic Controller compiled every continuous value (OKLCH colors, frame timelines, spring params, pixel boxes); the View rendered it verbatim; and a feedback loop judged the real frames (geometry + pixel-CV + conceit).
+
+It was real engineering — fully unit-tested, schema-validated. **Why it died:** two reasons. The deterministic-compile layer was enormously heavy. And splitting design from construction into isolated Model/View stages manufactured **translation loss** — the conversation went well, but intent was lost crossing the layer boundary ("HTML preview ≠ final render"). A single agent that *designs and builds in one continuous context* turned out to be simpler **and** stronger: it could actually reach in and fix the design at the execution layer, which the layered pipeline could not.
+
+The MVC code is sealed and archived. The new plugin carries **none** of it — no `SceneDraft`, no Controller, no deterministic compile, no MVC feedback-loop judges. (Carrying any of that under a 甲乙环 label would silently re-import the dead architecture's semantics — a thing we explicitly guard against.)
+
+### 3. The 甲乙环 (critic loop) — *one design+build agent, one design-blind critic* (current)
+
+The current architecture. Born from a dialectic experiment (the first time the asymmetric 甲↔乙 arbitration was tested on real frames), then validated across a chain of experiments (T1, T2, T3, T3b2/T3b3, T4, T5a/T5b). **乙** designs and builds in one continuous context; **甲** is a design-blind aesthetic critic; the orchestrator ferries verdicts verbatim; the user's eyes are the final gate. This is what the plugin packages.
+
+## Why the 甲乙环 is shaped the way it is
+
+Every part of it is a response to a specific failure that the experiments surfaced.
+
+- **乙 is one continuous context (not a layered handoff).** Because the MVC layer boundary lost intent in translation, the builder must be a *single* agent that holds the design and the code together — and, in the critic loop, it must be the *same* live instance that continues across rounds (it has real memory of its own conceit, trade-offs, and code). A fresh agent reading back DESIGN.md + code is only a *degraded rescue form*, never the product form.
+
+- **The 3-step process, with the order as a hard rule.** Narrative → texture → engine plan. The first step (narrative → `§A`) happens **before the texture knowledge is even readable**, and `§A` must land on disk first — because if the designer knows the texture techniques while choosing the conceit, the conceit's protagonist drifts from a *concrete thing or event* to a *light effect*. (This is the `§1` conceit rule: the protagonist is a wall of ivy, an empty chair, the fate of a word — never a glow. Light may be the *mechanism*, never the *subject*.) Keeping texture isolated until `§A` is committed is audited against the tool-call timeline.
+
+- **The `§4` self-check persona was rewritten — from "QA inspector" to "the designer who refuses to settle."** This is the single most-tuned piece of text in the project, and the reason is a precise diagnosis: in the first round a model designs with passion, but the moment it enters self-check it turns into *a clerk filling in a KPI checklist* — it writes "acceptable residue, ship it" and grants itself a pass. The old self-check opening ("this step is not a design judgment, it is construction honesty") had *exiled design ambition from the self-check*, leaving the designer with nothing to do there but tick off promises. The rewrite puts the designer **back** in the self-check — same standards, same refusal to settle, daring to change the *design itself* if the pixels demand it, and explicitly forbidding the "acceptable residue" cop-out. The persona is behavioral: it only binds the builder if the *literal text* is in its context — which is why the product never lets the orchestrator paraphrase it.
+
+- **Blind selection over N draws.** Equipment buys the floor; the ceiling is in the right tail of several independent attempts. Selecting for *potential* (highest ceiling after refinement), not fewest current flaws, is itself a discipline — a bold base with a few fixable nits beats a clean, safe, mediocre one, because the loop fixes nits but cannot fix mediocrity.
+
+- **甲 is design-blind, persistent, and reports phenomena only.** Blind because a model's read of an image is directionally polluted by any design context it holds (it defends the doc). Persistent because a *fresh, memoryless* critic produces false convergence — it forgets what it already flagged, so "converged" degrades into a meaningless verdict. Phenomena-only (severity, not prescriptions; no defect-type labels) because whether a phenomenon is an objective failure, an unrealized intent, or a defensible choice is the *builder's* call — the critic that prescribes fixes oversteps its blindness.
+
+- **The orchestrator ferries verbatim and never judges.** The critic must never see the design, so 甲 and 乙 never talk directly; a neutral relay passes only *phenomena* (critic → builder) and *pixel-grounded rebuttals* (builder → critic). That relay is the isolation that keeps the critic unbiased. In the product it is **automatic** (deterministic forwarding baked into the orchestrator), not a human pasting text by hand.
+
+- **The user's eyes are the final gate.** The blind selector and 甲 are VLM-perspective reference judgments — useful, not ground truth. The human's eyes outrank every machine judge. (The project's ground-truth registry only admits a finding once the *user's own eyes* confirm it.)
+
+## The experimental discipline that kept it honest
+
+The architecture is trustworthy only because the process around it was disciplined:
+
+- **A ground-truth whitelist.** Exactly one document is ground truth — the "phenomenon → conclusion" registry — and a finding is admitted only after the *user's eyes* confirm it. Memory, pre-registrations, and session conclusions are hypotheses, not truth, until they clear that bar.
+- **Pre-registered judging criteria.** Each experiment fixed its endpoints and its judging criteria *before* the run, so the read-out could only reconcile against the pre-registration — never move the goalposts to fit the result.
+- **Blind evaluation everywhere it matters.** Selection and critique are blind to provenance and (for the critic) to the design — the same structural reason the architecture itself needs a blind critic.
+- **The user's eyes outrank every VLM.** A VLM's `CONVERGED: YES` is a necessary signal, never a sufficient one; the human eyeball is the terminal gate.
+
+## Where human judgment did the load-bearing work
+
+The contribution here is not the lines of prompt — those are the execution surface. It is the **judgment, the directional insight, and the discipline** that an AI executing at the end of the loop does not supply:
+
+- **Insisting on first principles.** Refusing the cheap fix of `MUST`/`MANDATORY`-clamping the model into compliance — the bet that a model which *understands the division of labor* will do the right thing for the right reason — and cutting the over-fitted guardrails (the discrete defect-label taxonomy, the "no-realism-drift" hard ban) that were just "checklist transcribed into the judging spine," the same disease as the slop they were meant to prevent.
+- **The foundational insight, and building the architecture around it.** Naming the directional-pollution gap — that a model defends the design doc it holds, so only a design-blind judge catches the real flaw — and making the blind review the *spine* of the architecture rather than an optional check.
+- **Catching the AI's own errors, repeatedly.** Correcting a mislabeled defect (a CSS concentric-ring light wrongly called a "floating orb"); forcing a distinction the AI had blurred (a 3D-lighting regression vs. a crude CSS simulation — *go read the source and prove which*); puncturing an over-stated constraint (the claim that the builder *couldn't* be a continuous-context agent). Each correction pulled the work back from a wrong direction.
+- **Reading the pixels to know when a "fix" was a regression.** The discipline that a fix re-renders and re-scans the *whole* frame — because a repair in one place opens a tear in another exactly where the eye, fixed on the patched spot, won't look.
+
+What a token grant amplifies is precisely this: a method in which **one person's design judgment drives an AI's execution bandwidth** to produce quality the AI cannot reach alone. More compute means more draws, more refinement rounds, more of the right-tail quality a single shot never reaches — the same human insight, exercised at scale.

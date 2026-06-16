@@ -1,0 +1,9 @@
+{
+  "name": "remotion-director",
+  "version": "0.1.0",
+  "description": "Design and build a finished 1080×1920 vertical motion piece from a brief through the 甲乙环 (critic-loop) pipeline: a unified design+build agent (乙) drafts a design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames across ≤2 rounds; the user's own eyes are the final gate. Equipment, not constraints — the engine is unleashed.",
+  "author": {
+    "name": "Zane"
+  },
+  "keywords": ["remotion", "animation", "video", "design", "motion-graphics", "critic-loop", "design-blind-review", "vertical-video"]
+}
