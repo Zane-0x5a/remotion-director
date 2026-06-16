@@ -17,7 +17,14 @@ You give it a brief — audience, takeaway, tone. It returns a rendered vertical
 
 ## Install
 
-This is a Claude Code plugin. Install it from your marketplace / plugin source, then invoke the `create` skill.
+This is a Claude Code plugin. Install it directly from this GitHub repo — no manual clone or local-marketplace setup needed. In Claude Code:
+
+```
+/plugin marketplace add <your-github-owner>/remotion-director
+/plugin install remotion-director@remotion-director
+```
+
+(The repo is its own marketplace: `.claude-plugin/marketplace.json` at the root lists this plugin with `source: "."`.) Then invoke the `create` skill.
 
 ### Prerequisites (the `create` skill checks these for you in Step 0)
 
