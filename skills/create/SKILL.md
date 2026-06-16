@@ -1,13 +1,13 @@
 ---
 name: create
-description: Design and build a finished vertical (1080×1920) motion piece from a brief through the 甲乙环 (critic-loop) pipeline — a unified design+build agent (乙) drafts a design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames across ≤2 rounds; the user's own eyes are the final gate. Use when the user wants to generate, design, or build a short motion piece, text animation, or vertical social video from a brief.
+description: Design and build a finished motion piece (default vertical 1080×1920; landscape/square also supported) from a brief through the 甲乙环 (critic-loop) pipeline — a unified design+build agent (乙) drafts a design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames across ≤2 rounds; the user's own eyes are the final gate. Use when the user wants to generate, design, or build a short motion piece, text animation, or social video from a brief.
 version: 0.1.0
 user-invocable: true
 ---
 
 # create
 
-Turn a brief into a finished 1080×1920 vertical motion piece through the **甲乙环 (critic-loop) pipeline**. Quality is produced by a unified design-and-build agent working in one continuous context with real design knowledge — judged on its **actual rendered frames**, blind-selected and critic-refined, with the **user's eyes as the final gate**.
+Turn a brief into a finished motion piece (default **1080×1920 vertical**; landscape/square also available) through the **甲乙环 (critic-loop) pipeline**. Quality is produced by a unified design-and-build agent working in one continuous context with real design knowledge — judged on its **actual rendered frames**, blind-selected and critic-refined, with the **user's eyes as the final gate**.
 
 You (the agent reading this skill) are the **orchestrator**. You spawn the sub-agents, run the render tooling, and **ferry critic verdicts verbatim** — you do NOT design, and you do NOT judge aesthetics. Every piece of design knowledge and every protocol reaches the sub-agents by them **Reading the verbatim equipment/protocol files** — never by you paraphrasing them.
 
@@ -15,8 +15,15 @@ You (the agent reading this skill) are the **orchestrator**. You spawn the sub-a
 
 ## Inputs
 
-- **brief**: the piece's job (audience, takeaway, tone). If not given, ask for it (one short ask).
-- **N (draws)**: how many independent draws to make before blind-select. Default **3**. (More draws = higher ceiling; N is the user's knob.)
+The pipeline needs a **brief** and a **spec** before any draw. Collect both in Step 0.5 (below); for any you can't get, propose a sensible default and let the user accept it in one line.
+
+- **brief**: the piece's job — audience, takeaway, tone. **Required.** If not given, ask for it.
+- **spec** — the finished-video parameters:
+  - **aspect / resolution**: vertical **1080×1920** (default — social/portrait), landscape **1920×1080**, or square **1080×1080**. Propose vertical as the default; the user may pick another.
+  - **duration** (seconds) and **fps** (default 30).
+  - **on-screen copy**: is there required text/wording, or is it the designer's call?
+  - **audio intent**: does the user want sound (music / SFX / VO)? **Note honestly if asked**: audio is **experimental** here — the engine can mount `<Audio>`, but the design equipment and the critic loop are **visual-only** (no audio dimension in the 3-step process, nothing in §4 / the 甲乙环 judges sound). So an audio request is best-effort and **unverified by the pipeline**; surface that before committing to it.
+- **N (draws)**: independent draws before blind-select. Default **3**. (More draws = higher ceiling; N is the user's knob.)
 - **workspace**: a user-side project dir (NOT under the plugin). Default `./<piece-slug>/` in the user's CWD.
 - **MAX_ROUNDS**: critic-loop rounds. Default **2**.
 
@@ -35,6 +42,22 @@ It checks three things and tells you exactly what to do for any that are missing
 
 **Gate**: engine deps resolve, RBP is reachable, ffmpeg is present.
 
+## Step 0.5 — Commission spec (gate; collect before any draw)
+
+A real run starts from the user, not from a guess. **Before scaffolding or drawing, confirm the commission** — the brief and the spec from `Inputs`. Do not start drawing until this is settled.
+
+1. **Brief** — if you don't have audience / takeaway / tone, ask. The brief is required; everything downstream is shaped by it.
+2. **Spec** — settle each parameter. For anything the user didn't state, **propose a default and let them accept or change it in one line** (don't silently assume):
+   - aspect/resolution (default **vertical 1080×1920**; offer landscape 1920×1080 / square 1080×1080),
+   - duration (seconds) and fps (default 30),
+   - on-screen copy (required wording vs. designer's call),
+   - audio intent — and if the user wants sound, **tell them plainly it's experimental and unverified by this pipeline** (visual-only equipment + critic loop; see `Inputs`). Only proceed with audio if they still want it, eyes open.
+3. **Confirm back** the resolved commission in one short summary (brief + final spec) and proceed once the user is content. If the user said "just go / your call", fill every blank with the defaults above, state what you chose, and proceed.
+
+Carry the resolved spec forward: it sets the composition's `width`/`height`/`durationInFrames`/`fps` that the builder hard-wires into `<Composition id="piece">`, and it's part of the brief context every sub-agent receives.
+
+> The pipeline is **validated at 1080×1920**. Landscape/square are supported by the same harnesses but are **not yet smoke-tested**; if the user picks one, say so (it's a first-class option, just less-trodden) and watch the first render closely.
+
 ## Step 1 — Scaffold the workspace (user-side, self-contained)
 
 In the user's chosen dir, create a self-contained Remotion project so the bundler resolves both the builder's `index.tsx` imports and the harness imports from one `node_modules`:
@@ -47,7 +70,7 @@ In the user's chosen dir, create a self-contained Remotion project so the bundle
 
 ## Step 2 — N draws (乙), in parallel
 
-Spawn **N `builder` agents** (one per draw), each with: the brief, its absolute `<RUN_DIR>` (`…/draw-i`), and the product spec (1080×1920 / 30fps / duration from the brief; register `<Composition id="piece">`). Each builder's first act is to **Read the design-equipment in full** and obey it (you do not restate it). Each runs the full 3-step process → §4 self-check → renders R1 (render-arm then render-strip) to its `out/r1`.
+Spawn **N `builder` agents** (one per draw), each with: the brief, the resolved **spec** from Step 0.5 (aspect/resolution, duration, fps, copy + audio intent), its absolute `<RUN_DIR>` (`…/draw-i`), and the product contract (register `<Composition id="piece">` with the spec's `width`/`height`/`durationInFrames`/`fps`). Each builder's first act is to **Read the design-equipment in full** and obey it (you do not restate it). Each runs the full 3-step process → §4 self-check → renders R1 (render-arm then render-strip) to its `out/r1`.
 
 - Keep each builder instance **alive** after R1 — the winner continues into the critic loop in the SAME context (do not start a fresh agent there).
 - Verify each draw rendered non-white (read 2-3 stills).
@@ -82,3 +105,4 @@ Do not declare the piece shipped on 甲's `CONVERGED: YES` alone. The user's ver
 - **甲 is design-blind.** It receives only the brief + frame paths. Never hand it DESIGN.md, code, or notes — that is the exact context-pollution the 甲乙环 exists to prevent.
 - **The orchestrator never judges aesthetics.** Ferry 甲's verdicts verbatim; report only neutral pixel phenomena; all visual defects go to the 甲乙环.
 - **User eyeball is the final gate.** VLM `CONVERGED: YES` is necessary, not sufficient.
+- **Commission before draw.** Don't scaffold or draw until brief + spec are settled (Step 0.5). Fill blanks with stated defaults and say what you chose — never silently assume the aspect/duration/audio.

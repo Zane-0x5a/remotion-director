@@ -51,8 +51,13 @@ import { spawn } from "node:child_process";
 import * as path from "node:path";
 import * as fs from "node:fs";
 
-const AW = 54; // analysis raster width  (1080x1920 aspect)
+const AW = 54; // analysis raster width  (tuned for 1080x1920 / 9:16; see note below)
 const AH = 96; // analysis raster height
+// NOTE: AW:AH is a fixed 9:16 raster. ffmpeg `scale=AW:AH` force-fits any input to it, so
+// for landscape/square pieces the per-block geometry no longer matches the frame's spatial
+// layout. Punctuation detection (whole-frame motion integrated over time) still functions,
+// but block-level motion is distorted off-vertical. Validated only at 1080x1920. To make this
+// aspect-correct, derive AW/AH from the real composition aspect (and re-validate by render).
 const BW = 9; // block width  -> 6x8 = 48 blocks
 const BH = 12; // block height
 

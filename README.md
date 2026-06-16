@@ -1,6 +1,6 @@
 # remotion-director
 
-Design and build a finished **1080×1920 vertical motion piece** from a one-line brief — through a pipeline that judges the work on its **actual rendered frames**, not on a model's self-description.
+Design and build a finished **motion piece** (default **1080×1920 vertical**; landscape and square also supported) from a one-line brief — through a pipeline that judges the work on its **actual rendered frames**, not on a model's self-description.
 
 A unified design-and-build agent drafts the design and writes the Remotion code in one continuous context; several independent draws are blind-selected for the most promising base; a **design-blind aesthetic critic** refines it against the rendered frames; and **your own eyes are the final gate**.
 
@@ -8,7 +8,7 @@ A unified design-and-build agent drafts the design and writes the Remotion code 
 
 ## What it does
 
-You give it a brief — audience, takeaway, tone. It returns a rendered vertical motion piece (`video.mp4` + stills), having:
+You give it a brief — audience, takeaway, tone. After a short **commission step** (it confirms the brief and the spec — aspect/resolution, duration, fps, on-screen copy, and whether you want sound — proposing sensible defaults for anything you leave open), it returns a rendered motion piece (`video.mp4` + stills), having:
 
 1. **designed + built** the piece in one continuous context, with real design knowledge (a top-tier-designer framing, a falsifiable visual *conceit*, a strict 3-step process, and a render self-check where the designer judges the real pixels and refuses to settle);
 2. made **N independent draws** and **blind-selected** the most promising base (selecting for *potential*, not fewest current flaws);
@@ -48,7 +48,12 @@ Invoke the `create` skill with your brief, e.g.:
 
 > /create — a 13s vertical piece for a public library's late-night study space, "The Reading Room — open until 2am." Takeaway: "the quietest place in the city is still awake when you are." Tone: calm, unhurried, a little nocturnal.
 
-Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **MAX_ROUNDS** (critic-loop rounds; default 2), **workspace** (where your piece is built; default a folder in your CWD).
+It first runs a quick **commission step** — confirming the brief and the spec (aspect/resolution, duration, fps, on-screen copy, audio intent) and proposing defaults for anything you didn't pin down — then draws. You can state any of these up front in the brief, or let it ask.
+
+Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **MAX_ROUNDS** (critic-loop rounds; default 2), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **workspace** (where your piece is built; default a folder in your CWD).
+
+> **Audio is experimental.** The engine can mount an audio track, but the design knowledge and the critic loop are **visual-only** — nothing in the pipeline *judges* sound. If you ask for music/SFX/VO it's best-effort and unverified; the pieces the pipeline is validated on are silent. (Tracked as a known limitation for future work.)
+> **Validated aspect:** the pipeline is validated at **1080×1920**. Landscape/square use the same harnesses but aren't yet smoke-tested.
 
 ### Where your piece lives
 

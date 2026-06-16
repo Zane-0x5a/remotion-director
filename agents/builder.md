@@ -32,7 +32,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 ## 产物契约(硬)
 
 - 你的工区是一个目录 `<RUN_DIR>`,里面写一个**自包含的 Remotion entry `index.tsx`**,它**必须注册一个 `<Composition id="piece" ...>`**。渲染 harness 靠 `id="piece"` 找你的作品——注册成别的 id 会让渲染直接报"找不到 composition"。
-- 产物规格(画幅 / 帧率 / 时长)由具体任务给定。竖屏默认 1080×1920。
+- 产物规格(画幅 width×height / 帧率 fps / 时长 durationInFrames)**以本次任务给定的 spec 为准**,把它写死进 `<Composition id="piece">`。任务若没给(罕见),才回退默认:竖屏 1080×1920 / 30fps。横屏 1920×1080、方屏 1080×1080 同样支持,一切以任务给定为准——别假设一定是竖屏。
 - 设计文档落 `<RUN_DIR>/DESIGN.md`(§A→§B→逐拍引擎批注就地);自检与修复落 `<RUN_DIR>/FIXES.md`(标 self-audit / round N)。
 
 ## 渲染(把你的设计变成真像素)
