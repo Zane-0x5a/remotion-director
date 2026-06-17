@@ -1,28 +1,28 @@
 # Development journey
 
-How remotion-director arrived at its architecture — including the two dead ends it walked through first, why each design choice is shaped the way it is, the experimental discipline that kept it honest, and where human judgment did the load-bearing work.
+The goal never changed: make a model design *into the long tail of beauty* — work that earns a second look — autonomously, judged on its real pixels. What changed, twice, was the belief about *how*. This is the story of the two architectures that chased that goal and died, why each died, how the third is shaped by their post-mortems, and where human judgment did the load-bearing work.
 
-> This is not vibe-coding. Every architectural turn below was forced by an observed phenomenon in a controlled experiment, and recorded as "phenomenon → conclusion" in a ground-truth registry. The `L`/`C` tags point into that registry.
+> This is not vibe-coding. Every architectural turn below was forced by an observed phenomenon in a controlled experiment, and recorded as "phenomenon → conclusion" in a ground-truth registry admitted only after the user's own eyes confirmed it. The arc reads as a clean line in hindsight; it was not one while it was being walked.
 
-## Three generations
+## Three generations, one goal
 
-### 1. The Dogma Engine — *compile only prohibitions* (dead)
+### 1. The Dogma Engine — *forbid the slop* (dead)
 
-The first architecture treated design quality as something you could **blacklist your way into**: the engine compiled a list of bans (don't center everything, don't use the slop gradient, …) and **never looked at the rendered image**.
+The first belief was the obvious one: if AI design is slop, **ban the slop**. The engine compiled a list of prohibitions — don't center everything, don't use the slop gradient, don't… — and **never looked at the rendered image** at all.
 
-**Why it died:** across every model it converged to *the same ugliness*. Ruling out the bad is not the same as producing the good — the objective function had no "beauty" dimension, only "absence of named sins." This is the project's first hard lesson, and it is *why* the current architecture gives design knowledge as **positive equipment** rather than negative constraints. (Registry: the negative-space-attractor finding — a bans-only engine converges cross-model to one ugliness.)
+**Why it died:** across every model it converged to *the same ugliness*. Ruling out the bad is not the same as producing the good — the objective function had no "beauty" dimension in it, only "absence of named sins," and a piece can satisfy every prohibition and still be dead on arrival. This is the project's first hard lesson, and it is *why* the current architecture gives design knowledge as **positive equipment** rather than negative constraints. (Registry: a bans-only engine is a negative-space attractor — it collapses cross-model to one ugliness.)
 
-### 2. The MVC pipeline — *heavyweight deterministic compile* (dead)
+### 2. The MVC pipeline — *engineer the slop out* (dead)
 
-The second architecture split the work into Model → Controller → View: a "design brain" emitted **discrete intent** (a strict `SceneDraft`: narrative beats + per-beat composition/color/tempo intents + a global aesthetic vector, **never** coordinates or numbers); a deterministic Controller compiled every continuous value (OKLCH colors, frame timelines, spring params, pixel boxes); the View rendered it verbatim; and a feedback loop judged the real frames (geometry + pixel-CV + conceit).
+The second belief was that the problem was *imprecision* — that if you pinned design intent down rigorously enough and compiled it deterministically, quality would follow. The work split into Model → Controller → View: a "design brain" emitted **discrete intent** (a strict `SceneDraft`: narrative beats + per-beat composition/color/tempo intents + a global aesthetic vector, **never** coordinates or numbers); a deterministic Controller compiled every continuous value (OKLCH colors, frame timelines, spring params, pixel boxes); the View rendered it verbatim; and a feedback loop judged the real frames (geometry + pixel-CV + conceit).
 
 It was real engineering — fully unit-tested, schema-validated. **Why it died:** two reasons. The deterministic-compile layer was enormously heavy. And splitting design from construction into isolated Model/View stages manufactured **translation loss** — the conversation went well, but intent was lost crossing the layer boundary ("HTML preview ≠ final render"). A single agent that *designs and builds in one continuous context* turned out to be simpler **and** stronger: it could actually reach in and fix the design at the execution layer, which the layered pipeline could not.
 
 The MVC code is sealed and archived. The new plugin carries **none** of it — no `SceneDraft`, no Controller, no deterministic compile, no MVC feedback-loop judges. (Carrying any of that under a 甲乙环 label would silently re-import the dead architecture's semantics — a thing we explicitly guard against.)
 
-### 3. The 甲乙环 (critic loop) — *one design+build agent, one design-blind critic* (current)
+### 3. The 甲乙环 (critic loop) — *equip the designer, then judge the pixels* (current)
 
-The current architecture. Born from a dialectic experiment (the first time the asymmetric 甲↔乙 arbitration was tested on real frames), then validated across a chain of experiments (T1, T2, T3, T3b2/T3b3, T4, T5a/T5b). **乙** designs and builds in one continuous context; **甲** is a design-blind aesthetic critic; the orchestrator ferries verdicts verbatim; the user's eyes are the final gate. This is what the plugin packages.
+The third belief — the one that holds — is the synthesis of the first two post-mortems: stop *forbidding* and stop *over-engineering*; **equip** the designer richly, let it design and build in one breath, and put a **design-blind** judge on the rendered pixels. It was born from a dialectic experiment (the first time the asymmetric 甲↔乙 arbitration was tested on real frames), then validated across a chain of experiments (T1, T2, T3, T3b2/T3b3, T4, T5a/T5b). **乙** designs and builds in one continuous context; **甲** is a design-blind aesthetic critic; the orchestrator ferries verdicts verbatim; the user's eyes are the final gate. This is what the plugin packages.
 
 ## Why the 甲乙环 is shaped the way it is
 
@@ -60,4 +60,4 @@ The contribution here is not the lines of prompt — those are the execution sur
 - **Catching the AI's own errors, repeatedly.** Correcting a mislabeled defect (a CSS concentric-ring light wrongly called a "floating orb"); forcing a distinction the AI had blurred (a 3D-lighting regression vs. a crude CSS simulation — *go read the source and prove which*); puncturing an over-stated constraint (the claim that the builder *couldn't* be a continuous-context agent). Each correction pulled the work back from a wrong direction.
 - **Reading the pixels to know when a "fix" was a regression.** The discipline that a fix re-renders and re-scans the *whole* frame — because a repair in one place opens a tear in another exactly where the eye, fixed on the patched spot, won't look.
 
-What a token grant amplifies is precisely this: a method in which **one person's design judgment drives an AI's execution bandwidth** to produce quality the AI cannot reach alone. More compute means more draws, more refinement rounds, more of the right-tail quality a single shot never reaches — the same human insight, exercised at scale.
+What a token grant amplifies is precisely this: a method in which **one person's design judgment drives an AI's execution bandwidth** to produce quality the AI cannot reach alone. More compute is not more of the same — it is more draws to widen the right tail, more refinement rounds to carry a bold base further, more of the long-tail quality a single shot never reaches. Three architectures in, the goal is unchanged and now within reach: a model that designs *into beauty* on its own, and a pipeline that lets a human's taste steer it there at scale.

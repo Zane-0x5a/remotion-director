@@ -1,10 +1,14 @@
 # remotion-director
 
-Design and build a finished **motion piece** (default **1080×1920 vertical**; landscape and square also supported) from a one-line brief — through a pipeline that judges the work on its **actual rendered frames**, not on a model's self-description.
+**Most AI-generated motion design is slop** — a centered headline, a warm gradient, a polite ease-in. Not because the model can't write the code, but because, asked to *design*, it reaches for the template. It produces the average of everything it has seen.
+
+This project is a bet that it doesn't have to. That with the right **equipment** — design knowledge collected and arranged from first principles, the way a real art director carries taste, not a checklist — a model can design *from the principle out*: choose a genuine idea, commit to it, and push a piece into the **long tail of beauty** where work actually makes someone look twice. The ambition is to pull AI motion design off the template floor and toward *eye-catching, made-on-purpose* — at scale, on autopilot, with no human touching the pixels.
+
+remotion-director is the working pipeline built around that bet. You give it a one-line brief; it returns a finished **motion piece** (default **1080×1920 vertical**; landscape and square also supported), judged the only way that's honest — on its **actual rendered frames**, never on the model's flattering description of them.
 
 A unified design-and-build agent drafts the design and writes the Remotion code in one continuous context; several independent draws are blind-selected for the most promising base; a **design-blind aesthetic critic** refines it against the rendered frames; and **your own eyes are the final gate**.
 
-> This is the **甲乙环 (critic-loop)** architecture — the production form validated across the project's experiments and selected as the Alpha release baseline. See [`docs/WHY.md`](docs/WHY.md) for the problem it solves and the evidence, and [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md) for how it came to be.
+> This is the **甲乙环 (critic-loop)** architecture — the production form validated across the project's experiments and selected as the Alpha release baseline. Read [`docs/WHY.md`](docs/WHY.md) for the ambition, the insights it rests on, and the evidence; [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md) for the two dead architectures it walked through to get here.
 
 ## What it does
 
