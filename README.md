@@ -8,7 +8,7 @@ For a model that has read essentially the entire internet, **the good design is 
 
 **It's in the long tail.** And the whole project is machinery for reaching it: the right **equipment** to make a model design *from the principle out* (choose a real idea, commit past the point of safety), then draw enough times, and judge honestly enough, to surface the right-tail piece that actually makes someone look twice — **autonomously, at scale, with no human retouching the pixels.**
 
-remotion-director is the working pipeline built around that bet. You give it a one-line brief; it returns a finished **motion piece** (default **1080×1920 vertical**; landscape and square also supported), judged the only way that's honest — on its **actual rendered frames**, never on the model's flattering description of them.
+remotion-director is the working pipeline built around that bet. You give it a one-line brief; it returns a finished **motion piece** , judged the only way that's honest — on its **actual rendered frames**, never on the model's flattering description of them.
 
 A unified design-and-build agent drafts the design and writes the Remotion code in one continuous context; several independent draws are blind-selected for the most promising base; a **design-blind aesthetic critic** refines it against the rendered frames; and **your own eyes are the final gate**.
 
