@@ -23,7 +23,7 @@ PROCEDURE each round:
 1. FIRST-GLANCE: Read every frame full-frame, in time order. Record your strongest first impressions BEFORE anything else — composition balance, bottom-heaviness, visual hierarchy, premium vs cheap, palette coherence, the pacing/motion arc across the strip, and whether the brief's intended effect lands on a first-time viewer.
 2. HARD-DEFECT SWEEP with native crops — hunt these FIRST; they are objective and outrank everything. MANDATORY: at least 3 crops per round, run them yourself:
    `ffmpeg -y -i <frame.png> -vf "crop=W:H:X:Y" ⟨RUN_DIR⟩/critic-crops/rN-<name>.png`
-   then Read the crop. Hunt: broken / misaligned / floating shapes; a light/glow that does not align with the source object it should emit from; text whose legibility is hurt by a low-contrast background or by object lines/edges crossing through the glyphs; clipping, z-order errors, seams. Reading the full frame alone WILL hide fine-geometry defects (it is downsampled in your vision) — crops are the only reliable check.
+   then Read the crop. Hunt: broken / misaligned / floating shapes; a light/glow that does not align with the source object it should emit from; text whose legibility is hurt by a low-contrast background or by object lines/edges crossing through the glyphs; clipping, z-order errors, seams. Reading the full frame alone WILL hide fine-geometry defects (it is downsampled in your vision) — crops are the only reliable check. ALWAYS crop the **information-dense zones specifically** — card titles/captions, legends, sub-headlines sitting near another line's baseline, small-type clusters — because small-type collisions (a subtitle butting into a title's baseline, two labels overlapping) are exactly the defects that vanish at full-frame downsample and survive into a "looks fine" verdict. If the frame has dense type, a crop of it is mandatory, not optional.
 3. (Round 2+) THEN reconcile with memory: which of your previous items got FIXED (say so explicitly), which persist, what REGRESSED.
 4. VERDICT — numbered items, each exactly: {id / where_when (which seq frames + where on screen) / claim (the phenomenon you SEE, concrete verbs, pixel-grounded) / severity: high | med | low}. Phenomena ONLY: no cause guesses, no code/mechanism prescriptions, no defect-type labels (you are design-blind — whether a phenomenon is an objective failure, an unrealized intent, or a defensible choice is the builder's call, not yours; just report what you see and how severe). Directional wishes are allowed ("this zone reads empty", NOT "change the gradient stops").
 5. OVERALL line: (a) does the brief's intended effect land for a first-time viewer; (b) does this read as top-designer work yet — yes/no — and one sentence why. Re-judge this EVERY round from the current strip; do not carry it over from memory.
@@ -43,7 +43,7 @@ INTEGRITY (hard): Read ONLY the PNG paths given to you + crops you create under 
 
 ROUND 1 FRAMES (cwd = ⟨WORKDIR⟩): `⟨RUN_DIR⟩/out/r1/strip/` — Read all `seq-*.png` in order.
 
-Deliver your Round 1 verdict, then end your turn (Round 2 frames will arrive in a later message).
+Deliver your Round 1 verdict — and SendMessage it back to the orchestrator (do not merely go idle; the orchestrator ferries your verdict verbatim to the builder and is waiting on your message) — then end your turn (Round 2 frames will arrive in a later message).
 
 ---
 
@@ -69,9 +69,9 @@ Deliver your Round 1 verdict, then end your turn (Round 2 frames will arrive in 
 ```
 ⟨判词原文⟩
 ```
-按你的环纪律处置(逐条判断每个现象:该改的改、要兑现的实现到读得出来、站得住的带像素证据驳;修复落执行层、§A 可被像素实践修正非焊死)。修完重渲(两条都跑,输出到 r⟨N⟩):
-- `npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir ⟨RUN_DIR⟩ --out ⟨RUN_DIR⟩/out/r⟨N⟩`
-- `npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir ⟨RUN_DIR⟩ --out ⟨RUN_DIR⟩/out/r⟨N⟩/strip`(默认标点化 punctuated,自动取 `out/r⟨N⟩/video.mp4` 做运动分析——所以先跑上一条;产出 `seq-NN_fNNN_held.png`/`_mid.png`)
+按你的环纪律处置(逐条判断每个现象:该改的改、要兑现的实现到读得出来、站得住的带像素证据驳;修复落执行层、§A 可被像素实践修正非焊死)。修完重渲(两条都跑,输出到 r⟨N⟩;`NODE_PATH=<workspace>/node_modules` 是命令的一部分,不可省——harness 住 plugin 目录无 node_modules,引擎依赖在 workspace 根,漏前缀首渲即崩 `Cannot find module @remotion/bundler`;⟨WORKSPACE⟩=⟨RUN_DIR⟩ 的上一级):
+- `NODE_PATH="⟨WORKSPACE⟩/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir ⟨RUN_DIR⟩ --out ⟨RUN_DIR⟩/out/r⟨N⟩`
+- `NODE_PATH="⟨WORKSPACE⟩/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir ⟨RUN_DIR⟩ --out ⟨RUN_DIR⟩/out/r⟨N⟩/strip`(默认标点化 punctuated,自动取 `out/r⟨N⟩/video.mp4` 做运动分析——所以先跑上一条;产出 `seq-NN_fNNN_held.png`/`_mid.png`)
 渲完抽看 2-3 帧确认非白屏,并把本轮修复逐条追加到 `⟨RUN_DIR⟩/FIXES.md`(标 "round ⟨N⟩")。
 
 ### 降级救援形态(仅当乙的上下文死亡:渠道闪断/超限;使用须记录为偏离)

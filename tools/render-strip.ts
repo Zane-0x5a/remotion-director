@@ -39,10 +39,12 @@
  * frames are named seq-NN_fNNN_<role>.png (role = held | mid); uniform/legacy
  * frames keep the role-less seq-NN_fNNN.png name.
  *
- * Usage: npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir <armDir> --out <dir>
+ * Usage: NODE_PATH="<workspace>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir <armDir> --out <dir>
  *        [--p-high 0.9] [--low-frac 0.5] [--short-max 12] [--span-per-mid 15]
  *        [--video <mp4>] [--step N] [--plan]
  *        --plan: analyze + write manifest only, render nothing (cheap preview).
+ *   NODE_PATH is required (same reason as render-arm.ts): engine deps live in the
+ *   workspace, tsx resolves bare imports via NODE_PATH, not cwd.
  *        --step N: legacy uniform sampling (no roles, role-less filenames).
  */
 import { bundle } from "@remotion/bundler";

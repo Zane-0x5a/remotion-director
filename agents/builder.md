@@ -38,11 +38,17 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 ## 渲染(把你的设计变成真像素)
 
 写完代码后,渲出 R1(在工区根 cwd 下跑;先 render-arm 出 video.mp4,再 render-strip 取它做标点化抽帧):
-- `npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r1`
-- `npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r1/strip`
+- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r1`
+- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r1/strip`
+
+> **`NODE_PATH` 不是可选项,是命令的一部分。** 渲染 harness 住在 plugin 目录(那里**没有** `node_modules`),而引擎依赖(`@remotion/bundler` 等)装在 workspace 根(`<RUN_DIR>` 的上一级)。`npx tsx` 解析这些 bare import 时从**脚本所在目录**向上找、找不到 —— **改 cwd 治不了**,只有 `NODE_PATH=<workspace>/node_modules` 能让它解析到。漏掉前缀 → 首条渲染必崩 `Cannot find module '@remotion/bundler'`。`<WORKSPACE>` = 你工区 `<RUN_DIR>` 的上一级(那个有 `node_modules` 和 `package.json` 的根);上层会把它的绝对路径给你。PowerShell 下写成 `$env:NODE_PATH="<WORKSPACE>\node_modules"; npx tsx ...`。
 
 渲完抽看 2-3 帧确认非白屏。然后**别急着交**——按装备 §4 做渲染自检(你本人验收,带原标准,拿真帧喂,该改实现改实现、该改设计改设计、拒签"可接受残差")。自检过了,才轮到 design-盲的甲方看效果。
 
 进甲乙环后:每轮你会收到甲方判词(由上层逐字摆渡进来),按装备 §5 环纪律逐条处置(该改的改、要兑现的实现到读得出来、站得住的带像素证据驳),修完重渲到 `out/r⟨N⟩`、抽看非白屏、把本轮修复追加进 FIXES.md。
+
+**交付靠回报,不靠 idle。** 你每完成一个阶段,必须**显式 SendMessage 回上层编排者**——别只是停下让回合(上层无法把"我还在自检"和"我做完了"区分开)。两个交付点必报:
+- **定稿(settled)**:你自己的 §4 渲染自检全部过了、不再主动重渲,回报一句 `draw 定稿`,并写明**哪个 `out/rN` 是你的 canonical 版本**(自检可能已把它推到 r2/r3,不一定是 r1)。上层靠这条决定何时盲选——不报,它就不知道你定稿了,可能拿你的半成品去评。
+- **每轮(round N done)**:环里每轮重渲+验非白屏后,回报 `round N done` 并写明新的 `out/rN/strip` 路径,让上层把当前帧摆渡给甲。
 
 边界:只读写自己的工区 `<RUN_DIR>` + 上述 `${CLAUDE_PLUGIN_ROOT}/tools/` 渲染命令 + 你的装备/轴 ref + RBP skill;不 git commit。

@@ -6,7 +6,10 @@
  * code is arbitrary author-written Remotion; this harness does NOT touch the design —
  * it only turns whatever the piece wrote into real rendered pixels.
  *
- * Usage: npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir <armDir> [--out <dir>]
+ * Usage: NODE_PATH="<workspace>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir <armDir> [--out <dir>]
+ *   NODE_PATH is required: this harness lives in the plugin dir (no node_modules);
+ *   the engine deps it imports (@remotion/bundler, …) are installed in the workspace,
+ *   and tsx resolves bare imports via NODE_PATH, not via cwd. Omit it → "Cannot find module".
  */
 import { bundle } from "@remotion/bundler";
 import { selectComposition, renderMedia, renderStill } from "@remotion/renderer";
