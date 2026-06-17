@@ -8,7 +8,7 @@ A unified design-and-build agent drafts the design and writes the Remotion code 
 
 ## What it does
 
-You give it a brief — audience, takeaway, tone. After a short **commission step** (it confirms the brief and the spec — aspect/resolution, duration, fps, on-screen copy, and whether you want sound — proposing sensible defaults for anything you leave open), it returns a rendered motion piece (`video.mp4` + stills), having:
+You give it a brief — audience, takeaway, tone. After a short **commission step** (it confirms the brief, the spec — aspect/resolution, duration, fps, on-screen copy, and whether you want sound — and the draw count **N**, proposing sensible defaults for anything you leave open), it returns a rendered motion piece (`video.mp4` + stills), having:
 
 1. **designed + built** the piece in one continuous context, with real design knowledge (a top-tier-designer framing, a falsifiable visual *conceit*, a strict 3-step process, and a render self-check where the designer judges the real pixels and refuses to settle);
 2. made **N independent draws** and **blind-selected** the most promising base (selecting for *potential*, not fewest current flaws);
@@ -48,7 +48,7 @@ Invoke the `create` skill with your brief, e.g.:
 
 > /create — a 13s vertical piece for a public library's late-night study space, "The Reading Room — open until 2am." Takeaway: "the quietest place in the city is still awake when you are." Tone: calm, unhurried, a little nocturnal.
 
-It first runs a quick **commission step** — confirming the brief and the spec (aspect/resolution, duration, fps, on-screen copy, audio intent) and proposing defaults for anything you didn't pin down — then draws. You can state any of these up front in the brief, or let it ask.
+It first runs a quick **commission step** — confirming the brief, the spec (aspect/resolution, duration, fps, on-screen copy, audio intent), and the draw count **N** — and proposing defaults for anything you didn't pin down — then draws. You can state any of these up front in the brief, or let it ask.
 
 Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **workspace** (where your piece is built; default a folder in your CWD). The critic loop has no round knob — it runs until the critic converges, then your eyes decide.
 

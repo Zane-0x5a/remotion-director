@@ -43,9 +43,9 @@ It checks three things and tells you exactly what to do for any that are missing
 
 **Gate**: engine deps resolve, RBP is reachable, ffmpeg is present.
 
-## Step 0.5 — Commission spec (gate; collect before any draw)
+## Step 0.5 — Commission (gate; collect before any draw)
 
-A real run starts from the user, not from a guess. **Before scaffolding or drawing, confirm the commission** — the brief and the spec from `Inputs`. Do not start drawing until this is settled.
+A real run starts from the user, not from a guess. **Before scaffolding or drawing, confirm the commission** — the brief, the spec, and the production knobs from `Inputs`. Do not start drawing until this is settled.
 
 1. **Brief** — if you don't have audience / takeaway / tone, ask. The brief is required; everything downstream is shaped by it.
 2. **Spec** — settle each parameter. For anything the user didn't state, **propose a default and let them accept or change it in one line** (don't silently assume):
@@ -53,7 +53,10 @@ A real run starts from the user, not from a guess. **Before scaffolding or drawi
    - duration (seconds) and fps (default 30),
    - on-screen copy (required wording vs. designer's call),
    - audio intent — and if the user wants sound, **tell them plainly it's experimental and unverified by this pipeline** (visual-only equipment + critic loop; see `Inputs`). Only proceed with audio if they still want it, eyes open.
-3. **Confirm back** the resolved commission in one short summary (brief + final spec) and proceed once the user is content. If the user said "just go / your call", fill every blank with the defaults above, state what you chose, and proceed.
+3. **Knobs** — surface the production knobs too; don't bury them as silent defaults:
+   - **N (draws before blind-select)** — default **3**. This is the user's knob (more draws = higher ceiling, more cost/time). State the default and let them raise/lower it. **Never silently pick N** — the gate exists precisely to surface the user's decisions.
+   - **workspace** — where the piece is built; default a `<piece-slug>/` folder in the user's CWD. Offer to change it.
+4. **Confirm back** the resolved commission in one short summary (brief + final spec + N + workspace) and proceed once the user is content. If the user said "just go / your call", fill every blank with the defaults above, state what you chose (including N), and proceed.
 
 Carry the resolved spec forward: it sets the composition's `width`/`height`/`durationInFrames`/`fps` that the builder hard-wires into `<Composition id="piece">`, and it's part of the brief context every sub-agent receives.
 
@@ -106,4 +109,4 @@ Do not declare the piece shipped on 甲's `CONVERGED: YES` alone. The user's ver
 - **甲 is design-blind.** It receives only the brief + frame paths. Never hand it DESIGN.md, code, or notes — that is the exact context-pollution the 甲乙环 exists to prevent.
 - **The orchestrator never judges aesthetics.** Ferry 甲's verdicts verbatim; report only neutral pixel phenomena; all visual defects go to the 甲乙环.
 - **User eyeball is the final gate.** VLM `CONVERGED: YES` is necessary, not sufficient.
-- **Commission before draw.** Don't scaffold or draw until brief + spec are settled (Step 0.5). Fill blanks with stated defaults and say what you chose — never silently assume the aspect/duration/audio.
+- **Commission before draw.** Don't scaffold or draw until brief + spec + knobs are settled (Step 0.5). Fill blanks with stated defaults and say what you chose — never silently assume the aspect/duration/audio, and **never silently pick N**: surface the draw count and let the user own it.
