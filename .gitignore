@@ -1,17 +1,19 @@
 # Dependencies
 node_modules/
 
-# Rendered output — never commit pixels (PNG/mp4) or raw pixel-buffer dumps
+# Rendered output — never commit the pipeline's throwaway pixels.
+# Scope this to the OUTPUT DIRS the harness writes, not a blanket *.png/*.mp4 ban
+# (that would also reject the repo's own front-of-house assets in docs/assets/).
 **/out/
-**/*.png
-**/*.mp4
-**/*.mov
-**/*.webm
-**/*.raw
 **/_diag-crops/
 **/critic-crops/
 **/_pick-crops/
 .tmp_crops/
+**/*.raw
+
+# Front-of-house assets (README hero, etc.) are part of the repo, not pipeline output.
+!docs/assets/
+!docs/assets/**
 
 # Remotion / bundler scratch
 .remotion/
