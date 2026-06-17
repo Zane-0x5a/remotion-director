@@ -2,9 +2,13 @@
 
 <div align="center">
 
-<a href="docs/assets/hero.mp4"><img src="docs/assets/hero-poster.png" width="320" alt="remotion-director promo — the model crosses out 'immersive', keeps 'refined', and names its own defaults: centered reflex, warm-gradient default."></a>
 
-<sub>▶ **[Play the 20s promo](docs/assets/hero.mp4)** (1080×1920) — *the pipeline's own promo, designed and built by the model in **near one-shot**.* The only human input was the goal "make a promo for this" and one nudge on text pacing — no design doc, no reference, no art direction. What you're watching is the model naming its own defaults (*centered reflex, warm-gradient default*) and striking them out.</sub>
+
+https://github.com/user-attachments/assets/da315ac3-4cff-4546-b9e9-5d3aba8c73b9
+
+
+
+ — *the pipeline's own promo, designed and built by the model in **near one-shot**.* The only human input was the goal "make a promo for this" and one nudge on text pacing — no design doc, no reference, no art direction. What you're watching is the model naming its own defaults (*centered reflex, warm-gradient default*) and striking them out.</sub>
 
 </div>
 
