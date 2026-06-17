@@ -20,7 +20,7 @@ You give it a brief — audience, takeaway, tone. After a short **commission ste
 This is a Claude Code plugin. Install it directly from this GitHub repo — no manual clone or local-marketplace setup needed. In Claude Code:
 
 ```
-/plugin marketplace add <your-github-owner>/remotion-director
+/plugin marketplace add Zane-0x5a/remotion-director
 /plugin install remotion-director@remotion-director
 ```
 
