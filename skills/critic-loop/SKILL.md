@@ -1,6 +1,6 @@
 ---
 name: critic-loop
-description: The blind-select + critic-loop (盲选 + 甲乙环) stage of the remotion-director pipeline — how to pick the most promising base among N draws, then run the design-blind aesthetic critic (甲) against the builder (乙) for ≤2 rounds, with the orchestrator ferrying verdicts verbatim. Loads the two authoritative protocol files (BLIND-SELECT-PROTOCOL.md, CRITIC-PROTOCOL.md). Use when N draws of a piece exist and need selecting + refining; invoked by the create skill.
+description: The blind-select + critic-loop (盲选 + 甲乙环) stage of the remotion-director pipeline — how to pick the most promising base among N draws, then run the design-blind aesthetic critic (甲) against the builder (乙), round after round until it converges, with the orchestrator ferrying verdicts verbatim. Loads the two authoritative protocol files (BLIND-SELECT-PROTOCOL.md, CRITIC-PROTOCOL.md). Use when N draws of a piece exist and need selecting + refining; invoked by the create skill.
 version: 0.1.0
 user-invocable: false
 ---
@@ -13,7 +13,7 @@ This stage turns N rendered draws into one refined piece. Two protocols govern i
 
 Read **`${CLAUDE_PLUGIN_ROOT}/skills/critic-loop/BLIND-SELECT-PROTOCOL.md`**. Spawn the `blind-selector` agent (fresh, one-shot) with the brief + the N candidate dirs (each has 6 `still-*.png` + `strip/`). It selects for **potential** (the base whose ceiling after the loop is highest), not fewest current flaws — fixable execution nits must not count against a strong base. It returns `{ winner, reason }`. The orchestrator does NOT judge; it hands over candidates and takes back the winner.
 
-## 2 · Critic loop (甲乙环) — refine the winner, ≤2 rounds
+## 2 · Critic loop (甲乙环) — refine the winner until it converges
 
 Read **`${CLAUDE_PLUGIN_ROOT}/skills/critic-loop/CRITIC-PROTOCOL.md`** (条带规格 harness contract + the verbatim 甲 prompt + the per-round ferry message + 乙环纪律).
 
@@ -23,7 +23,7 @@ Read **`${CLAUDE_PLUGIN_ROOT}/skills/critic-loop/CRITIC-PROTOCOL.md`** (条带�
   - 甲's verdict text → the builder's conversation, and archive it to `⟨RUN_DIR⟩/CRITIC-VERDICTS.md`.
   - The builder's pixel-grounded rebuttal → 甲 (甲's INTEGRITY forbids it from reading any file other than the frames + its own crops, so it cannot fetch the rebuttal itself).
 - The builder re-renders each round to `out/r⟨N⟩` (render-arm then render-strip), confirms non-white, appends fixes to `⟨RUN_DIR⟩/FIXES.md`.
-- Stop at `CONVERGED: YES` or after ⟨MAX_ROUNDS⟩ (default 2). The result is the latest `out/rN`.
+- **Loop until `CONVERGED: YES`** — no round cap. 甲's retained cross-round memory is what drives fast convergence (typically a few rounds); never stop it while high-/med-severity items remain. The result is the latest `out/rN`.
 
 ## 3 · Final gate = the user's eyes
 

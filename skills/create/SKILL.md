@@ -25,7 +25,8 @@ The pipeline needs a **brief** and a **spec** before any draw. Collect both in S
   - **audio intent**: does the user want sound (music / SFX / VO)? **Note honestly if asked**: audio is **experimental** here — the engine can mount `<Audio>`, but the design equipment and the critic loop are **visual-only** (no audio dimension in the 3-step process, nothing in §4 / the 甲乙环 judges sound). So an audio request is best-effort and **unverified by the pipeline**; surface that before committing to it.
 - **N (draws)**: independent draws before blind-select. Default **3**. (More draws = higher ceiling; N is the user's knob.)
 - **workspace**: a user-side project dir (NOT under the plugin). Default `./<piece-slug>/` in the user's CWD.
-- **MAX_ROUNDS**: critic-loop rounds. Default **2**.
+
+The critic loop has **no round knob** — it runs until 甲 reports `CONVERGED: YES`, then the user's eyes are the final gate.
 
 ## Step 0 — Environment check (gate; do this first)
 
@@ -79,14 +80,14 @@ Spawn **N `builder` agents** (one per draw), each with: the brief, the resolved 
 
 Invoke the **critic-loop** skill's selection step: spawn the `blind-selector` agent with the brief + the N candidate dirs (each `…/draw-i/out/r1/` with `strip/`). It returns `{ winner, reason }` selecting for **potential** (highest ceiling after the loop), not fewest current flaws. You do not pick.
 
-## Step 4 — Critic loop (甲乙环), ≤ MAX_ROUNDS
+## Step 4 — Critic loop (甲乙环), run to convergence
 
 Run the **critic-loop** skill's loop, ferrying verbatim:
 
-1. Spawn ONE `aesthetic-critic` (甲) instance, design-blind, with the brief + the winner's `out/r1/strip/` paths only (no DESIGN.md, no code). Fill the protocol slots: `⟨BRIEF⟩`, `⟨RUN_DIR⟩` (the winner draw dir, absolute), `⟨WORKDIR⟩` (workspace root), `⟨MAX_ROUNDS⟩`.
+1. Spawn ONE `aesthetic-critic` (甲) instance, design-blind, with the brief + the winner's `out/r1/strip/` paths only (no DESIGN.md, no code). Fill the protocol slots: `⟨BRIEF⟩`, `⟨RUN_DIR⟩` (the winner draw dir, absolute), `⟨WORKDIR⟩` (workspace root).
 2. Take 甲's verdict **verbatim** → send to the winning **builder** instance's conversation (the same continuous-context 乙), and archive it to `⟨RUN_DIR⟩/CRITIC-VERDICTS.md`. The builder adjudicates per §5 环纪律 (fix / fulfill / pixel-grounded rebuttal), re-renders to `out/r⟨N⟩` (render-arm then render-strip), appends to `FIXES.md`.
 3. If the builder rebuts an item, ferry the rebuttal **verbatim** → back to 甲 (甲 can't read files; it only re-judges from pixels + your relayed rebuttal). 甲 re-judges that round's frames (`out/r⟨N⟩/strip/`).
-4. Stop at 甲's `CONVERGED: YES` or after MAX_ROUNDS. The converged result is the latest `out/rN`.
+4. **Loop until 甲 reports `CONVERGED: YES`** — there is no round cap. 甲 is a *persistent* instance with cross-round memory, which is exactly what makes it converge fast (typically a few rounds); do not impose an artificial ceiling that stops it while it still has high-/med-severity items. The converged result is the latest `out/rN`.
 
 Throughout: you **only** orchestrate + ferry verbatim + verify pixels landed. You report neutral pixel phenomena if asked, **never aesthetic conclusions** — all visual judgment lives in the design-blind 甲乙环.
 

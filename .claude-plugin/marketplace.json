@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "remotion-director",
-      "description": "Design and build a finished motion piece (vertical 1080×1920 by default; landscape/square supported) from a brief through the 甲乙环 (critic-loop) pipeline: a unified design+build agent (乙) drafts the design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames across ≤2 rounds; the user's own eyes are the final gate.",
+      "description": "Design and build a finished motion piece (vertical 1080×1920 by default; landscape/square supported) from a brief through the 甲乙环 (critic-loop) pipeline: a unified design+build agent (乙) drafts the design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames, round after round until it converges; the user's own eyes are the final gate.",
       "version": "0.1.0",
       "author": {
         "name": "Zane"

@@ -12,7 +12,7 @@ You give it a brief — audience, takeaway, tone. After a short **commission ste
 
 1. **designed + built** the piece in one continuous context, with real design knowledge (a top-tier-designer framing, a falsifiable visual *conceit*, a strict 3-step process, and a render self-check where the designer judges the real pixels and refuses to settle);
 2. made **N independent draws** and **blind-selected** the most promising base (selecting for *potential*, not fewest current flaws);
-3. refined the winner through a **design-blind critic loop** (≤2 rounds) — a critic that sees only the frames, reports phenomena, never prescribes fixes;
+3. refined the winner through a **design-blind critic loop** — round after round until it converges — a critic that sees only the frames, reports phenomena, never prescribes fixes;
 4. handed it to **you** — your eyes are the final gate, outranking every machine judge.
 
 ## Install
@@ -50,7 +50,7 @@ Invoke the `create` skill with your brief, e.g.:
 
 It first runs a quick **commission step** — confirming the brief and the spec (aspect/resolution, duration, fps, on-screen copy, audio intent) and proposing defaults for anything you didn't pin down — then draws. You can state any of these up front in the brief, or let it ask.
 
-Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **MAX_ROUNDS** (critic-loop rounds; default 2), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **workspace** (where your piece is built; default a folder in your CWD).
+Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **workspace** (where your piece is built; default a folder in your CWD). The critic loop has no round knob — it runs until the critic converges, then your eyes decide.
 
 > **Audio is experimental.** The engine can mount an audio track, but the design knowledge and the critic loop are **visual-only** — nothing in the pipeline *judges* sound. If you ask for music/SFX/VO it's best-effort and unverified; the pieces the pipeline is validated on are silent. (Tracked as a known limitation for future work.)
 > **Validated aspect:** the pipeline is validated at **1080×1920**. Landscape/square use the same harnesses but aren't yet smoke-tested.
