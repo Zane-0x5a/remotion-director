@@ -1,8 +1,12 @@
 # remotion-director
 
-**Most AI-generated motion design is slop** — a centered headline, a warm gradient, a polite ease-in. Not because the model can't write the code, but because, asked to *design*, it reaches for the template. It produces the average of everything it has seen.
+There's a settled assumption about AI and design, and it comes in two flavors. One: **AI only gets to write the code** — good design still has to be squeezed out of it by a human, round after round of prompting, the human's taste doing all the real work. Two, the more generous-sounding version: AI *can* design — so long as you feed it the taste, a `design.md`, a template, a reference, treating "hand the model your design system" as the mature practice.
 
-This project is a bet that it doesn't have to. That with the right **equipment** — design knowledge collected and arranged from first principles, the way a real art director carries taste, not a checklist — a model can design *from the principle out*: choose a genuine idea, commit to it, and push a piece into the **long tail of beauty** where work actually makes someone look twice. The ambition is to pull AI motion design off the template floor and toward *eye-catching, made-on-purpose* — at scale, on autopilot, with no human touching the pixels.
+Both quietly agree that the design doesn't come from the AI. This project doesn't.
+
+For a model that has read essentially the entire internet, **the good design is already in there.** Every principle, every reference, every act of taste a human art director ever published — it has seen them. It defaults to slop not because it lacks the design, but because nothing in the request *excites that part of the weights* into code. So if good design isn't in the AI's default range — where is it?
+
+**It's in the long tail.** And the whole project is machinery for reaching it: the right **equipment** to make a model design *from the principle out* (choose a real idea, commit past the point of safety), then draw enough times, and judge honestly enough, to surface the right-tail piece that actually makes someone look twice — **autonomously, at scale, with no human retouching the pixels.**
 
 remotion-director is the working pipeline built around that bet. You give it a one-line brief; it returns a finished **motion piece** (default **1080×1920 vertical**; landscape and square also supported), judged the only way that's honest — on its **actual rendered frames**, never on the model's flattering description of them.
 

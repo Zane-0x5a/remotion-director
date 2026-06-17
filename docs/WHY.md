@@ -2,13 +2,17 @@
 
 ## The ambition
 
-There is a ceiling that almost everything an AI generates lives just beneath. Ask any capable model to *design* — a poster, a slide, a short motion piece — and you get something competent and forgettable: centered, balanced, gradient-warm, inoffensive. It is the **average** of everything the model has seen, and the average of a million designs is, by construction, a template.
+There's a settled assumption about AI and design, and it travels in two forms. The first: **AI is for the code, not the design.** Good design is something a human extracts from the model over many rounds of prompting — the taste, the judgment, the *direction* are the human's; the AI is hands, not eyes. The second is softer and sounds more progressive: AI *can* design — *provided* you feed it the design. Hand it a `design.md`, a template, a style reference, a brand system, and the received wisdom calls that the mature practice: the better your input artifact, the better the output.
 
-This project is built on the conviction that the ceiling is not real. That a model already holds, latent, the ingredients of genuinely good design — it simply defaults to the safe mean because nothing in the request asks it to do otherwise. Give it the right **equipment** — design knowledge collected and arranged from first principles, the way a working art director carries *taste* rather than a rulebook — and a model can design **from the principle out**: pick a real idea, commit to it past the point of safety, and reach for the part of the distribution where a piece actually stops someone mid-scroll.
+Look closely and both forms agree on the same thing — **the design does not originate in the AI.** One denies it outright; the other launders the human's taste through a document and calls the result the model's. This project rejects the shared premise.
 
-The ambition, stated plainly: **pull AI motion design off the template floor and into the long tail of beauty — eye-catching, made-on-purpose, the kind of work a person notices — and do it autonomously, at scale, with no human retouching the pixels.** Not "less bad slop." Work that earns a second look.
+Here is the conviction underneath it. For a model that has effectively read the entire internet — every design principle ever written down, every reference, every published act of taste by every art director who came before — **the good design is already inside it.** It does not need to be taught taste; it has ingested more of it than any single human ever could. When it returns slop, the design knowledge didn't go missing — *the code for it simply wasn't excited out of the weights.* The request asked for the safe, expected thing, so the safe, expected thing is what lit up.
 
-That is the hard, ambitious thing, and it is where the project spent its effort. Everything below — the architecture, the experiments, the discipline — exists to make a model reach that long tail and *stay* there instead of collapsing back to the mean.
+Which reframes the entire problem as a single question. If genuinely good design isn't in the model's *default* range — then where is it?
+
+**It's in the long tail.** It lives in the low-probability, high-quality region the model will never wander into on its own, because its default is the mean and the mean is a template. So the ambition, stated plainly: **reach into that tail on purpose — make the model design *from the principle out*, draw the right-tail piece that actually makes someone look twice, and do it autonomously, at scale, with no human retouching the pixels.** Not a human squeezing design out of the model. Not the model parroting a design doc back. The model designing — and a thin layer of human judgment steering it toward the tail instead of doing the design itself.
+
+That is the hard, ambitious thing, and it is where the project spent its effort. Everything below — the equipment, the architecture, the experiments, the discipline — exists to make a model reach that long tail and *stay* there instead of collapsing back to the mean.
 
 ## Why it's hard
 
