@@ -26,15 +26,23 @@ A unified design-and-build agent drafts the design and writes the Remotion code 
 
 ## What the equipment does
 
-Most of the work behind this project wasn't the pipeline code. It was the **design equipment** — the text the model reads as its own standing knowledge before it draws a frame — researched, tuned, and tested until it reliably pushed a model off the safe, average answer. Three of its load-bearing rules, and what each one is actually for:
+Most of the work behind this project wasn't the pipeline code. It was the **design equipment** — the text the model reads as its own standing knowledge before it draws a frame — researched, tuned, and tested until it reliably pushed a model off the safe, average answer.
 
-| The rule | The slop it kills | What you get instead |
-|---|---|---|
-| **Commit to a falsifiable *conceit* first** — one concrete mechanism the whole piece runs on, and its subject must be a *thing or event* (an empty chair, the fate of a word), never a glow or a mood. | The category reflex: ask for "a late-night library" and you get a centered headline on a warm gradient, every time. | A piece you can hold to its own promise — in the promo above, the model says its reflexes out loud (*"centered reflex, warm-gradient default"*) and crosses them out. |
-| **Design in a fixed order** — narrative, then texture, then the engine plan — and the narrative is locked to disk before the texture techniques are even readable. | The subject quietly turning into a lighting trick: a model that learns the glow-techniques too early ends up making a piece *about* the glow. | The conceit stays about its real subject; texture serves the story instead of replacing it. |
-| **Self-check as the designer, not as QA.** The most-tuned line in the project: when a model reviews its own render, it stops designing and starts ticking boxes — "acceptable residue, ship it." | A first draft full of ambition, signed off the moment it technically renders. | A maker who looks at the actual pixels and asks "is this worth the piece I wanted?" — and re-opens the design if it isn't. |
+It isn't a style guide and it isn't a list of bans (the project tried bans first; they converge every model to the *same* ugliness). It's the knowledge a good designer already carries, written down as seven reference axes the model loads as it works:
 
-The equipment raises the **floor** — it makes a bold, competent attempt reliable. The ceiling is a different problem, and it's what the loop solves. (All seven reference axes — narrative, aesthetic, color, composition, tempo, persuasion, texture — and the experiments showing equipment beats a bare brief are in [`docs/WHY.md`](docs/WHY.md).)
+| Axis | What it carries |
+|---|---|
+| **`narrative`** | The storytelling spine — six tests for choosing what the piece is *about*, and how a single takeaway drives every beat. |
+| **`aesthetic`** | Typography, motion, and copy craft — plus the absolute bans and the two-stage "is this AI slop?" test a draft has to pass. |
+| **`color`** | Four levels of color commitment, the anti-cream rule, simultaneous-contrast and boundary-vibration effects, and a hard contrast floor. |
+| **`composition`** | Single focus, grouping, visual weight — Gestalt ordering (motion > size > …), optical alignment, and *don't default to centered*. |
+| **`tempo`** | Pacing: reading dwell time, staggering elements so they don't fight for the eye, and why uniform motion is itself a tell. |
+| **`persuasion`** | How attention is actually captured (surprise over joy), ELM message-matching, and the two channels brand presence rides on. |
+| **`texture`** | Light and material — where light comes from, how surfaces respond, grain and atmosphere — read *last*, so it serves the story instead of becoming it. |
+
+Three rules hold the whole thing together. **The piece commits to a falsifiable *conceit* first** — one concrete mechanism it runs on, whose subject is a *thing or event* (an empty chair, the fate of a word), never a glow or a mood; that single rule is what kills the category reflex (ask for "a late-night library," get a centered headline on a warm gradient). **The order is fixed** — narrative, then texture, then the engine plan — and the narrative is locked to disk before the texture techniques are even readable, because a model that learns the glow-tricks too early quietly makes a piece *about* the glow. And **the self-check is done by the designer, not a QA clerk** — the single most-tuned line in the project, because the moment a model reviews its own render it stops designing and starts ticking boxes ("acceptable residue, ship it"); the rewrite puts a maker back in the chair who looks at the real pixels and asks "is this worth the piece I wanted?"
+
+The equipment raises the **floor** — it makes a bold, competent attempt reliable. The ceiling is a different problem, and it's what the loop solves. (The full axis texts and the experiments showing equipment beats a bare brief are in [`docs/WHY.md`](docs/WHY.md).)
 
 ## How the loop stays honest
 
