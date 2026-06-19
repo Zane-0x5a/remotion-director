@@ -2,7 +2,11 @@
 
 <div align="center">
 
-https://github.com/user-attachments/assets/da315ac3-4cff-4546-b9e9-5d3aba8c73b9
+
+
+https://github.com/user-attachments/assets/f34c4aef-fd88-44be-9300-b2a5418fdfe1
+
+
 
 <sub>*The pipeline's own promo, designed and built by the model in **near one-shot**.* The only human input was the goal "make a promo for this" and one nudge on text pacing — no design doc, no reference, no art direction. What you're watching is the model naming its own defaults (*centered reflex, warm-gradient default*) and striking them out.</sub>
 
