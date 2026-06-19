@@ -2,6 +2,7 @@
   "name": "remotion-director",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Remotion engine + render harnesses for the remotion-director 甲乙环 pipeline. The design knowledge lives in skills/; this package provides the engine deps and the render/strip tooling.",
   "scripts": {
     "render-arm": "tsx tools/render-arm.ts",
