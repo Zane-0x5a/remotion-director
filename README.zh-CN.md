@@ -2,7 +2,9 @@
 
 <div align="center">
 
-https://github.com/user-attachments/assets/da315ac3-4cff-4546-b9e9-5d3aba8c73b9
+
+https://github.com/user-attachments/assets/1243ab0f-cb37-4a83-90d4-62b2a56688ba
+
 
 <sub>*这支宣发片本身就是管线自己的作品,由模型近乎 one-shot 设计并构建。* 人类的全部输入只有一句目标「给这个项目做支宣发片」,外加一处对文字节奏的提醒——没有设计文档、没有参考、没有美术指导。你看到的,是模型亲口说出自己的默认套路(*居中反射、暖渐变默认*)、又把它们划掉。</sub>
 
