@@ -28,6 +28,8 @@ A unified design-and-build agent drafts the design and writes the Remotion code 
 
 > This is the **甲乙环 (critic-loop)** architecture — the production form validated across the project's experiments and selected as the Alpha release baseline. Read [`docs/WHY.md`](docs/WHY.md) for the ambition, the insights it rests on, and the evidence; [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md) for the two dead architectures it walked through to get here.
 
+> **On this repo's age:** the git history here is young because this is a *clean release repo*, split off in mid-2026 from a much longer-running development repo. The actual work spans **~3.5 months across three architectures** (early 2026 onward) — driven by preregistered experiments and a pixel-verified ground-truth registry, not a quick build. The arc is in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
+
 ## What the equipment does
 
 Most of the work behind this project wasn't the pipeline code. It was the **design equipment** — the text the model reads as its own standing knowledge before it draws a frame — researched, tuned, and tested until it reliably pushed a model off the safe, average answer.

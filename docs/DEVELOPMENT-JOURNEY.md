@@ -3,6 +3,8 @@
 The goal never changed: make a model design *into the long tail of beauty* — work that earns a second look — autonomously, judged on its real pixels. What changed, twice, was the belief about *how*. This is the story of the two architectures that chased that goal and died, why each died, how the third is shaped by their post-mortems, and where human judgment did the load-bearing work.
 
 > This is not vibe-coding. Every architectural turn below was forced by an observed phenomenon in a controlled experiment, and recorded as "phenomenon → conclusion" in a ground-truth registry admitted only after the user's own eyes confirmed it. The arc reads as a clean line in hindsight; it was not one while it was being walked.
+>
+> **Scale of the arc.** The work spans roughly **3.5 months** — from the earliest design-direction prototypes in **early 2026**, through a formal scaffold that reached ~84 design-revision rounds, into a dedicated development repo where the two dead architectures below were built, measured, and sealed, and finally this clean release. Along the way it accumulated a **ground-truth registry of 23 locked conclusions** (each admitted only after the user's own eyes verified the rendered pixels) plus 17 transparently-marked conjectures, and **10+ preregistered experiments** (T1, T2, T3, T3b2/T3b3, T4, T5a/T5b) with bare controls, dual-primary metrics, and third-party (Codex) audits. The current repo's short git history reflects the release split, not the project's age.
 
 ## Three generations, one goal
 
