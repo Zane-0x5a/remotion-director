@@ -8,7 +8,7 @@ https://github.com/user-attachments/assets/f34c4aef-fd88-44be-9300-b2a5418fdfe1
 
 
 
-<sub>*The pipeline's own promo, designed and built by the model in **near one-shot**.* The only human input was the goal "make a promo for this" and one nudge on text pacing — no design doc, no reference, no art direction. What you're watching is the model naming its own defaults (*centered reflex, warm-gradient default*) and striking them out.</sub>
+<sub>*The pipeline's own promo, designed and built by the model in **near one-shot**.* The only human input was the goal "make a promo for this" and one supplementary human prompt on text pacing — no design doc, no reference, no art direction. What you're watching is a cool probe hunt past the dense crowd of "AI average" to ignite a rare design in the long tail — then let a blind critic sharpen it using only raw pixels.</sub>
 
 <sub>[**中文说明 →**](README.zh-CN.md)</sub>
 
