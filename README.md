@@ -24,7 +24,7 @@ For a model that has read essentially the entire internet, **the good design is 
 
 remotion-director is the working pipeline built around that bet. You give it a one-line brief; it returns a finished **motion piece**, judged the only way that's honest — on its **actual rendered frames**, never on the model's flattering description of them.
 
-A unified design-and-build agent drafts the design and writes the Remotion code in one continuous context; several independent draws are blind-selected for the most promising base; a **design-blind aesthetic critic** refines it against the rendered frames; and **your own eyes are the final gate**.
+A unified design-and-build agent drafts the design and writes the Remotion code in one continuous context; several independent draws are blind-selected for the most promising base; a **design-blind aesthetic critic** refines it against the rendered frames; a final **tempo pass** re-times the result with fresh eyes, covering the one thing a frame-judging loop can't see; and **your own eyes are the final gate**.
 
 > This is the **甲乙环 (critic-loop)** architecture — the production form validated across the project's experiments and selected as the Alpha release baseline. Read [`docs/WHY.md`](docs/WHY.md) for the ambition, the insights it rests on, and the evidence; [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md) for the two dead architectures it walked through to get here.
 
@@ -60,6 +60,14 @@ One subtlety turned out to matter more than expected: *which* frames the critic 
 
 And the critic remembers. A fresh, forgetful critic every round keeps finding brand-new nitpicks and is never satisfied — it over-fits until the loop can't converge at all; the same critic, carried across rounds, holds a stable bar and is what makes the loop actually converge instead of spiraling. Then, because all of this only raises the *floor*, the builder draws several independent times and a provenance-blind selector keeps the one with the highest ceiling — a bold draft with fixable nits over a clean, safe, forgettable one, since the loop can fix nits but never fixes forgettable.
 
+## The one thing the loop can't see
+
+The frame sampling that makes the critic fair has a price, and it's exact: showing one settled frame per pause means a pause that lasts half a second and one that lasts three seconds arrive looking **identical**. The time axis is discarded at the moment of sampling. So a loop can run round after round and converge beautifully without a single judgment ever having been passed on whether you can actually *read* that line before it leaves — while every frame-level fix along the way (more layering, bigger type, one more staggered entrance) quietly spends time budget nobody is accounting for. Pacing drift after a long loop isn't bad luck; it's the structure.
+
+So the pipeline closes it with one last pass, and hands it to **fresh eyes on purpose** — the one place in the whole design where that's the right move rather than the degraded one. Two reasons it inverts here. Unlike beauty, **timing is written down exactly**: every entrance frame, hold length and beat boundary is literally in the source, so a newcomer reading the code has better data than anyone, not worse. And the builder by that point has spent many rounds with its attention inside local defects — precisely the state in which the shape of the whole piece in time is invisible. The tempo pass reconstructs the real beat timetable from the code, checks it against what a person can actually read per second, fixes the arc — and touches nothing else, because the design is already settled and isn't its business.
+
+Whether it may change the *total* length is not its call either: if you named a duration, that's a promise and it can only redistribute time inside it (and says so out loud if the piece genuinely doesn't fit). Only if you chose "don't constrain it — leave the length to the designer" is the length the model's own, and therefore movable.
+
 The two architectures we tried before this one — a pipeline that only *forbade* slop, and a heavyweight compiler that lost the design in translation — and why both died, are in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
 
 The full mechanism — including the two dead architectures (a bans-only "Dogma" engine that converged to one ugliness, and a heavyweight MVC compile pipeline that lost intent in translation) and why the 甲乙环 replaced them — is in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
@@ -71,7 +79,8 @@ You give it a brief — audience, takeaway, tone. After a short **commission ste
 1. **designed + built** the piece in one continuous context, with real design knowledge (a top-tier-designer framing, a falsifiable visual *conceit*, a strict 3-step process, and a render self-check where the designer judges the real pixels and refuses to settle);
 2. made **N independent draws** and **blind-selected** the most promising base (selecting for *potential*, not fewest current flaws);
 3. refined the winner through a **design-blind critic loop** — round after round until it converges — a critic that sees only the frames, reports phenomena, never prescribes fixes;
-4. handed it to **you** — your eyes are the final gate, outranking every machine judge.
+4. re-timed the converged piece in a final **tempo pass** — a deliberately fresh pair of hands doing the one thing a frame-judging loop structurally cannot (see below);
+5. handed it to **you** — your eyes are the final gate, outranking every machine judge.
 
 ## Install
 
@@ -108,7 +117,7 @@ Invoke the `create` skill with your brief, e.g.:
 
 It first runs a quick **commission step** — confirming the brief, the spec (aspect/resolution, duration, fps, on-screen copy, audio intent), and the draw count **N** — and proposing defaults for anything you didn't pin down — then draws. You can state any of these up front in the brief, or let it ask.
 
-Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **workspace** (where your piece is built; default a folder in your CWD). The critic loop has no round knob — it runs until the critic converges, then your eyes decide.
+Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **duration** (pick a second-count — it's then a promise nothing downstream may break — or choose *"don't constrain it"* and let the designer decide the length, in which case the final tempo pass may adjust it), **workspace** (where your piece is built; default a folder in your CWD). The critic loop has no round knob — it runs until the critic converges, then your eyes decide.
 
 > **Audio is experimental.** The engine can mount an audio track, but the design knowledge and the critic loop are **visual-only** — nothing in the pipeline *judges* sound. If you ask for music/SFX/VO it's best-effort and unverified; the pieces the pipeline is validated on are silent. (Tracked as a known limitation for future work.)
 > **Validated aspect:** the pipeline is validated at **1080×1920**. Landscape/square use the same harnesses but aren't yet smoke-tested.
@@ -121,7 +130,7 @@ Your output lives in **your** project dir, not inside the plugin (so plugin upda
 <your-project>/
   package.json   node_modules/        # one npm install resolves both your code and the harness
   <piece-slug>/
-    draw-1/  index.tsx  DESIGN.md  FIXES.md  out/r1/{still-*.png, video.mp4, strip/}
+    draw-1/  index.tsx  DESIGN.md  FIXES.md  TEMPO.md  out/r1/{still-*.png, video.mp4, strip/}
     draw-2/  …
     draw-N/  …
 ```
@@ -131,7 +140,7 @@ Each draw registers a `<Composition id="piece">` (the render harness's contract)
 ## How it's wired (for the curious)
 
 - **Skills** — `create` (the orchestrator + product entry point), `design-brain` (loads the design equipment + 7 axis refs), `critic-loop` (blind-select + the 甲乙环).
-- **Agents** — `builder` (乙: design+build, continuous context), `aesthetic-critic` (甲: design-blind, persistent, reports phenomena only), `blind-selector` (picks the most promising base).
+- **Agents** — `builder` (乙: design+build, continuous context), `aesthetic-critic` (甲: design-blind, persistent, reports phenomena only), `blind-selector` (picks the most promising base), `tempo-pass` (the final re-time, fresh context by design).
 - **Tools** — `render-arm.ts` (6 stills + mp4), `render-strip.ts` (the frames the critic reads), `check-env.mjs` (the Step-0 check).
 
 > **The frame strip is sharper than it looks.** The critic is a VLM — it sees stills, not the video — so `render-strip.ts` doesn't sample frames uniformly (which makes a clean half-second move read as a stack of "overlapping text" stills and condemns a flawless transient as a defect). It measures motion off the rendered mp4 and samples its **punctuation**: one *held* frame per pause (the real composition, fair to judge) plus motion-only *mid* frames that are explicitly never counted as defects. Frame selection is a design decision here, not plumbing — see [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
