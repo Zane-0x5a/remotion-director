@@ -1,6 +1,6 @@
 ---
 name: create
-description: Design and build a finished motion piece (default vertical 1080×1920; landscape/square also supported) from a brief through the 甲乙环 (critic-loop) pipeline — a unified design+build agent (乙) drafts a design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames across ≤2 rounds; the user's own eyes are the final gate. Use when the user wants to generate, design, or build a short motion piece, text animation, or social video from a brief.
+description: Design and build a finished motion piece (default vertical 1080×1920; landscape/square also supported) from a brief through the 甲乙环 (critic-loop) pipeline — a unified design+build agent (乙) drafts a design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames, round after round until it converges; a fresh-context tempo pass then re-times the converged piece (the frame-judged loop is blind to the time axis); the user's own eyes are the final gate. Use when the user wants to generate, design, or build a short motion piece, text animation, or social video from a brief.
 version: 0.1.0
 user-invocable: true
 ---
@@ -20,7 +20,8 @@ The pipeline needs a **brief** and a **spec** before any draw. Collect both in S
 - **brief**: the piece's job — audience, takeaway, tone. **Required.** If not given, ask for it.
 - **spec** — the finished-video parameters:
   - **aspect / resolution**: vertical **1080×1920** (default — social/portrait), landscape **1920×1080**, or square **1080×1080**. Propose vertical as the default; the user may pick another.
-  - **duration** (seconds) and **fps** (default 30).
+  - **duration** — offer it as a *choice*, not a blank (see Step 0.5): a couple of sensible second-counts for this brief, "I'll name one", or **"don't constrain it — the designer decides"**. Whichever second-count the user picks or states, it is **locked**; only the explicit "don't constrain it" option makes it **free**. This authority is carried all the way to Step 4.5.
+  - **fps** (default 30).
   - **on-screen copy**: is there required text/wording, or is it the designer's call?
   - **audio intent**: does the user want sound (music / SFX / VO)? **Note honestly if asked**: audio is **experimental** here — the engine can mount `<Audio>`, but the design equipment and the critic loop are **visual-only** (no audio dimension in the 3-step process, nothing in §4 / the 甲乙环 judges sound). So an audio request is best-effort and **unverified by the pipeline**; surface that before committing to it. If the user still insists on sound, the minimal tool-chain pointer is: consult the `remotion-best-practices` skill's audio/SFX surface (e.g. `<Audio>`, `remotion.media` remote SFX) for what the engine supports, and source CC0 assets yourself — the pipeline neither provides nor validates audio.
 - **target-project port (only if asked)**: if the user intends to *port the finished piece back into an existing Remotion project* rather than ship the standalone workspace render, **ask for that project's Remotion version and whether it has `three` / `@remotion/media` installed** up front. The workspace builds on Remotion **4.0.477** + three; an older/leaner target can drift on API, so knowing the target version before drawing avoids a port-time surprise. (Porting is a user-side activity the pipeline doesn't itself verify.)
@@ -51,13 +52,17 @@ A real run starts from the user, not from a guess. **Before scaffolding or drawi
 1. **Brief** — if you don't have audience / takeaway / tone, ask. The brief is required; everything downstream is shaped by it.
 2. **Spec** — settle each parameter. For anything the user didn't state, **propose a default and let them accept or change it in one line** (don't silently assume):
    - aspect/resolution (default **vertical 1080×1920**; offer landscape 1920×1080 / square 1080×1080),
-   - duration (seconds) and fps (default 30),
+   - **duration — ask it as a pick-list, and record which of two authorities results.** Don't leave it as a blank to type into: put the options in front of the user (AskUserQuestion is the right instrument) — two or three second-counts that suit this brief, "I'll name one", and **"don't constrain it — leave the length to the designer"**. Then record:
+     - **locked** — the user picked or stated a second-count. *Any* number the user put their name to is locked, whether you proposed it or they volunteered it; accepting your proposal **is** choosing. It is a promise to the user, and **Step 4.5 may not change the total length.**
+     - **free** — the user explicitly chose "don't constrain it". The builder still hard-wires a concrete `durationInFrames` (the engine needs one), but that number is **乙's own internal decision, never aligned with the user** — so it is not a promise, and **Step 4.5 may change it**. Same for any second-count 乙 writes into DESIGN.md: it's a one-shot draft value, not a constraint.
+     - Carry this flag verbatim to Step 4.5. If in doubt, it is **locked** — never silently promote a user's number to "adjustable".
+   - fps (default 30),
    - on-screen copy (required wording vs. designer's call),
    - audio intent — and if the user wants sound, **tell them plainly it's experimental and unverified by this pipeline** (visual-only equipment + critic loop; see `Inputs`). Only proceed with audio if they still want it, eyes open.
 3. **Knobs** — surface the production knobs too; don't bury them as silent defaults:
    - **N (draws before blind-select)** — default **3**. This is the user's knob (more draws = higher ceiling, more cost/time). State the default and let them raise/lower it. **Never silently pick N** — the gate exists precisely to surface the user's decisions.
    - **workspace** — where the piece is built; default a `<piece-slug>/` folder in the user's CWD. Offer to change it.
-4. **Confirm back** the resolved commission in one short summary (brief + final spec + N + workspace) and proceed once the user is content. If the user said "just go / your call", fill every blank with the defaults above, state what you chose (including N), and proceed.
+4. **Confirm back** the resolved commission in one short summary (brief + final spec + **duration authority: locked ⟨Ns⟩ / free** + N + workspace) and proceed once the user is content. If the user said "just go / your call", fill every blank with the defaults above, state what you chose (including N), and proceed — note that "your call" on the duration means **free**: you did not put a number in front of them to accept.
 
 Carry the resolved spec forward: it sets the composition's `width`/`height`/`durationInFrames`/`fps` that the builder hard-wires into `<Composition id="piece">`, and it's part of the brief context every sub-agent receives.
 
@@ -96,11 +101,32 @@ Run the **critic-loop** skill's loop, ferrying verbatim:
 
 Throughout: you **only** orchestrate + ferry verbatim + verify pixels landed. You report neutral pixel phenomena if asked, **never aesthetic conclusions** — all visual judgment lives in the design-blind 甲乙环.
 
+## Step 4.5 — 节奏刀 (tempo pass; after convergence, before the user's eyes)
+
+**Why this step exists.** The loop judges **frames**, and the punctuated strip discards the time axis *by construction*: a PAUSE contributes exactly **one** held frame whether it lasted 8 frames or 80 (that trade is correct — it's what kills the "motion mid-pass read as overlapping-text" misjudgment). The consequence is that across every round of the loop, **no judge ever spoke about dwell time or the piece's slack-and-tension arc**, while each frame-domain fix (more layering, bigger type, added stagger) silently spent time budget. Pacing drift after a long loop isn't a fluke — it's structural. This step closes it, once.
+
+Spawn ONE `tempo-pass` agent — **fresh context, deliberately** (see *Hard rules* for why this one is legitimate). Give it:
+
+- the brief, absolute `<RUN_DIR>` (the winner draw) and `<WORKSPACE>` root,
+- the **converged** `out/r⟨canonical⟩` (the latest render — video + strip), and the round number to render into (`r⟨canonical+1⟩`),
+- the **duration authority from Step 0.5, verbatim: `locked ⟨N⟩s` or `free`.** This is the one input only you can supply — the agent cannot derive it from the workspace, and getting it wrong either breaks a promise to the user or needlessly straitjackets the piece.
+
+Then **wait for its explicit message** (idle is not done — same delivery protocol as every other sub-agent). Two possible outcomes:
+
+- **`tempo pass done`** — it names the new `out/rN` and states whether the total length changed (only possible under `free`; X→Y with a reason). That render is now canonical; carry it to Step 5.
+- **`tempo pass blocked`** — `locked` only: redistribution inside the fixed total can't resolve the piece (content genuinely doesn't fit). It reports which beats are unresolvable, at what chars/sec, how many extra seconds would resolve it, and what cutting would. **Surface that to the user and let them decide** — relax the lock (then re-run this step as `free`) or ship the current piece. Do not decide this yourself, and never let a locked total be silently overrun.
+
+The tempo pass does **not** redesign — conceit, narrative subject, copy, palette and layout are out of its scope; it moves time only. If it reports a non-time defect it noticed but did not touch, that is a normal finding: judge whether it's worth one more 甲乙环 round before Step 5.
+
+> **Optional guard, your call:** a re-time can open new seams (an element now clipped at a beat's end, a stagger collapsed into simultaneous entry). 甲 is still alive with its cross-round memory, so ferrying the new `out/rN/strip/` for one more round is cheap insurance. Take it when the re-time was structural (beats moved, total length changed); skip it when it was a few dwell tweaks. If 甲 comes back `CONVERGED: NO`, that's just an ordinary round — hand it to 乙 as usual.
+
 ## Step 5 — User eyeball (final gate)
 
-Present the converged piece for the user's own eyes — the **final gate, outranking every VLM judge**:
+Present the piece as it stands after Step 4.5 — **the post-tempo-pass render, not the pre-tempo one** — for the user's own eyes, the **final gate, outranking every VLM judge**:
 - key stills: `⟨RUN_DIR⟩/out/rN/still-*.png`
 - the video: `⟨RUN_DIR⟩/out/rN/video.mp4`
+
+The version the user judges must be the version that ships; never re-time after this gate. If the duration authority was `free` and the tempo pass changed the total length, say so here (X→Y seconds) — the user picked "leave it to the designer", not "surprise me".
 
 Do not declare the piece shipped on 甲's `CONVERGED: YES` alone. The user's verdict is final.
 
@@ -108,11 +134,14 @@ Do not declare the piece shipped on 甲's `CONVERGED: YES` alone. The user's ver
 
 - **Delegate by Read, never paraphrase.** The builder Reads the equipment; 甲/blind-selector ARE the verbatim protocols. You never restate tuned wording.
 - **乙 is continuous context.** One builder instance per draw, alive through design→build→render→self-check→critic-loop. Never a fresh read-back agent mid-loop (that's the degraded rescue form only).
+- **Fresh context is legitimate in exactly one place: Step 4.5.** The continuous-context rule above protects *design adjudication* — a fresh agent dropped into the loop would re-litigate a conceit it doesn't own. The tempo pass is not design adjudication: it is a bounded re-balancing of an already-converged piece, and unlike aesthetics, **time is written exactly in the source** (`<Sequence from durationInFrames>`, interpolate domains, springs), so a fresh reader gets complete, precise data rather than a lossy read-back. There, fresh context is the *asset*: 乙's context is saturated by N rounds of local defect work, which is precisely the state in which the whole-piece time arc is invisible. Do **not** read this as license for read-back agents anywhere else.
+- **A locked duration is a promise.** If the user picked or stated a second-count at Step 0.5, no later step may change the total length — Step 4.5 redistributes inside it or reports back. Only an explicit "don't constrain it" makes the length 乙's own (and therefore movable).
 - **甲 is design-blind.** It receives only the brief + frame paths. Never hand it DESIGN.md, code, or notes — that is the exact context-pollution the 甲乙环 exists to prevent.
 - **The orchestrator never judges aesthetics.** Ferry 甲's verdicts verbatim; report only neutral pixel phenomena; all visual defects go to the 甲乙环.
 - **User eyeball is the final gate.** VLM `CONVERGED: YES` is necessary, not sufficient.
-- **Commission before draw.** Don't scaffold or draw until brief + spec + knobs are settled (Step 0.5). Fill blanks with stated defaults and say what you chose — never silently assume the aspect/duration/audio, and **never silently pick N**: surface the draw count and let the user own it.
-- **Delivery protocol — idle is not done.** Every sub-agent (乙 builders, 甲, blind-selector) **finishes by SendMessage-ing you an explicit result**, and only that message means it's done. An agent going **idle is a yielded turn, not a delivered task** — a builder is idle between self-check re-renders; 甲 is idle between rounds. Never read disk artifacts to *infer* that an agent finished, which render is canonical, or what a verdict was.
+- **Commission before draw.** Don't scaffold or draw until brief + spec + knobs are settled (Step 0.5). Fill blanks with stated defaults and say what you chose — never silently assume the aspect/duration/audio, and **never silently pick N**: surface the draw count and let the user own it. Put the **duration** in front of the user as a pick-list (including "don't constrain it") rather than a blank to type into, and record which authority resulted.
+- **Delivery protocol — idle is not done.** Every sub-agent (乙 builders, 甲, blind-selector, tempo-pass) **finishes by SendMessage-ing you an explicit result**, and only that message means it's done. An agent going **idle is a yielded turn, not a delivered task** — a builder is idle between self-check re-renders; 甲 is idle between rounds. Never read disk artifacts to *infer* that an agent finished, which render is canonical, or what a verdict was.
   - **Builders** report `settled` + their **canonical out dir** (which `out/rN` is final — self-check may have moved it past `r1`). Hold blind-select until **all N** report settled; never select on half-baked snapshots (a draw mid-self-check, or one that abandoned its `r1`).
   - **甲 and the blind-selector** must hand their verdict/`{winner,reason}` back to you by message before idling — if a one-shot judge ends its turn without sending the result, ask it for the result; don't go fishing on disk.
+  - **tempo-pass** reports `tempo pass done` (new `out/rN` + whether the total length changed) or `tempo pass blocked` (locked total, unresolvable — the user decides).
   - **Always carry the *canonical* artifact.** Whatever you ferry to 甲 (the winner's strip) or to the builder must be the latest reported render, never a stale earlier one — a stale strip makes a persistent 甲 condemn already-fixed defects round after round.
