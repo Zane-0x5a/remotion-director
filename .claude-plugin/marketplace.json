@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "remotion-director",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Marketplace for remotion-director — the 甲乙环 (critic-loop) motion-design pipeline plugin.",
   "owner": {
     "name": "Zane"
@@ -10,7 +10,7 @@
     {
       "name": "remotion-director",
       "description": "Design and build a finished motion piece (vertical 1080×1920 by default; landscape/square supported) from a brief through the 甲乙环 (critic-loop) pipeline: a unified design+build agent (乙) drafts the design and writes the Remotion code in one continuous context; N independent draws are blind-selected for the most promising base; a design-blind aesthetic critic (甲) judges only the rendered frames, round after round until it converges; a fresh-context tempo pass then re-times the result; the user's own eyes are the final gate.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Zane"
       },
