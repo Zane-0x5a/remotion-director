@@ -6,9 +6,26 @@
 https://github.com/user-attachments/assets/1243ab0f-cb37-4a83-90d4-62b2a56688ba
 
 
-<sub>*这支宣发片本身就是管线自己的作品,由模型近乎 one-shot 设计并构建。* 人类的全部输入只有一句目标「给这个项目做支宣发片」,外加一处对文字节奏的提醒——没有设计文档、没有参考、没有美术指导。你看到的，是探针越过拥挤的“AI平庸”，在长尾深处点燃罕见的好设计，再交由“盲评家”仅凭像素逐帧修正。</sub>
+<sub>*这支宣发片本身就是管线自己的作品,由 **Claude Opus 4.8** 近乎 one-shot 设计并构建。* 人类的全部输入只有一句目标「给这个项目做支宣发片」,外加一处对文字节奏的提醒——没有设计文档、没有参考、没有美术指导。你看到的，是探针越过拥挤的“AI平庸”，在长尾深处点燃罕见的好设计，再交由“盲评家”仅凭像素逐帧修正。</sub>
 
 <sub>[**English →**](README.md)</sub>
+
+</div>
+
+<div align="center">
+
+<sub>**同一条管线,换别的模型执掌** —— 同一句宣发 brief、同一套机器,同样没有任何人补一笔像素:</sub>
+
+<table>
+  <tr>
+    <td><video src="https://github.com/Zane-0x5a/remotion-director/raw/master/docs/assets/promos/promo-kimi-k3.mp4" width="430" controls></video></td>
+    <td><video src="https://github.com/Zane-0x5a/remotion-director/raw/master/docs/assets/promos/promo-claude-opus-5.mp4" width="430" controls></video></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>由 <b>Kimi K3</b> 创作</sub></td>
+    <td align="center"><sub>由 <b>Claude Opus 5</b> 创作</sub></td>
+  </tr>
+</table>
 
 </div>
 
