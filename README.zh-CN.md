@@ -18,8 +18,8 @@ https://github.com/user-attachments/assets/1243ab0f-cb37-4a83-90d4-62b2a56688ba
 
 <table>
   <tr>
-    <td><a href="https://github.com/Zane-0x5a/remotion-director/blob/master/docs/assets/promos/promo-kimi-k3.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-kimi-k3-thumb.webp" width="430" alt="由 Kimi K3 创作的宣发片——点击播放完整影片"></a></td>
-    <td><a href="https://github.com/Zane-0x5a/remotion-director/blob/master/docs/assets/promos/promo-claude-opus-5.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-claude-opus-5-thumb.webp" width="430" alt="由 Claude Opus 5 创作的宣发片——点击播放完整影片"></a></td>
+    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/promo-kimi-k3.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-kimi-k3-thumb.webp" width="430" alt="由 Kimi K3 创作的宣发片——点击播放完整影片"></a></td>
+    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/promo-claude-opus-5.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-claude-opus-5-thumb.webp" width="430" alt="由 Claude Opus 5 创作的宣发片——点击播放完整影片"></a></td>
   </tr>
   <tr>
     <td align="center"><sub>由 <b>Kimi K3</b> 创作</sub></td>
