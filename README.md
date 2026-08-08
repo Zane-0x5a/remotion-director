@@ -8,9 +8,26 @@ https://github.com/user-attachments/assets/f34c4aef-fd88-44be-9300-b2a5418fdfe1
 
 
 
-<sub>*The pipeline's own promo, designed and built by the model in **near one-shot**.* The only human input was the goal "make a promo for this" and one supplementary human prompt on text pacing — no design doc, no reference, no art direction. What you're watching is a cool probe hunt past the dense crowd of "AI average" to ignite a rare design in the long tail — then let a blind critic sharpen it using only raw pixels.</sub>
+<sub>*The pipeline's own promo, designed and built by **Claude Opus 4.8** in **near one-shot**.* The only human input was the goal "make a promo for this" and one supplementary human prompt on text pacing — no design doc, no reference, no art direction. What you're watching is a cool probe hunt past the dense crowd of "AI average" to ignite a rare design in the long tail — then let a blind critic sharpen it using only raw pixels.</sub>
 
 <sub>[**中文说明 →**](README.zh-CN.md)</sub>
+
+</div>
+
+<div align="center">
+
+<sub>**The same pipeline, other models behind the wheel** — same one-line promo brief, same machinery, no human retouching:</sub>
+
+<table>
+  <tr>
+    <td><video src="https://github.com/Zane-0x5a/remotion-director/raw/master/docs/assets/promos/promo-kimi-k3.mp4" width="430" controls></video></td>
+    <td><video src="https://github.com/Zane-0x5a/remotion-director/raw/master/docs/assets/promos/promo-claude-opus-5.mp4" width="430" controls></video></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Created by <b>Kimi K3</b></sub></td>
+    <td align="center"><sub>Created by <b>Claude Opus 5</b></sub></td>
+  </tr>
+</table>
 
 </div>
 
