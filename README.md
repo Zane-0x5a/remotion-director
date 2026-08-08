@@ -20,14 +20,16 @@ https://github.com/user-attachments/assets/f34c4aef-fd88-44be-9300-b2a5418fdfe1
 
 <table>
   <tr>
-    <td><video src="https://github.com/Zane-0x5a/remotion-director/raw/master/docs/assets/promos/promo-kimi-k3.mp4" width="430" controls></video></td>
-    <td><video src="https://github.com/Zane-0x5a/remotion-director/raw/master/docs/assets/promos/promo-claude-opus-5.mp4" width="430" controls></video></td>
+    <td><a href="https://github.com/Zane-0x5a/remotion-director/blob/master/docs/assets/promos/promo-kimi-k3.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-kimi-k3-thumb.webp" width="430" alt="Promo created by Kimi K3 — click to play the full piece"></a></td>
+    <td><a href="https://github.com/Zane-0x5a/remotion-director/blob/master/docs/assets/promos/promo-claude-opus-5.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-claude-opus-5-thumb.webp" width="430" alt="Promo created by Claude Opus 5 — click to play the full piece"></a></td>
   </tr>
   <tr>
     <td align="center"><sub>Created by <b>Kimi K3</b></sub></td>
     <td align="center"><sub>Created by <b>Claude Opus 5</b></sub></td>
   </tr>
 </table>
+
+<sub>*(Looping previews — click either one to play the full piece.)*</sub>
 
 </div>
 
