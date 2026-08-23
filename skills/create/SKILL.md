@@ -49,7 +49,9 @@ It checks three things and tells you exactly what to do for any that are missing
 > ```bash
 > node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <the-workspace> --fix
 > ```
-> `--fix` merges the plugin's pinned dependency blocks into the workspace `package.json` (the user's own entries are preserved — only pinned keys are set) and runs `npm install`, then the same run re-verifies. Do NOT hand this mechanical step to the user, and do NOT freelance a different repair (e.g. `npm install remotion@latest` — that breaks the pin). Skill/ffmpeg gaps are the only items that may require the user (host-level installs).
+> `--fix` merges the plugin's pinned dependency blocks into the workspace `package.json` (the user's own entries are preserved — only pinned keys are set) and runs `npm install`, then the same run re-verifies. Do NOT hand this mechanical step to the user, and do NOT freelance a different repair (e.g. `npm install remotion@latest` — that breaks the pin).
+>
+> **Same rule for host-level installs, with one caveat.** Skill missing/old-form and ffmpeg missing aren't "the user's problem" either — **offer to install them yourself and run the install** (`npx skills add remotion-dev/skills -g`; `winget install Gyan.FFmpeg` / `brew install ffmpeg` / `apt install ffmpeg`). The caveat: these write outside the workspace (a global skill dir, the system PATH), so get the user's **one confirmation first** — that's all the user is ever needed for here: consent, not labor.
 
 ## Step 0.5 — Commission (gate; collect before any draw)
 
