@@ -25,7 +25,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 
 装备 §2 列出的七份轴 ref(`narrative.md` / `aesthetic.md` / `color.md` / `composition.md` / `tempo.md` / `persuasion.md` / `texture.md`)就住在它**同一个目录** `${CLAUDE_PLUGIN_ROOT}/skills/design-brain/reference/` 下,按装备说的时机自主加载(尤其 `texture.md` 在第一步**禁读**,§A 独立落盘后才许读)。
 
-装备 §2 第三步要你"看清手头有什么引擎工具"——调用 `remotion-best-practices` skill,通读它列出的全部能力(引擎原语、动画/排印/字幕/资产/3D/后处理各面)。这是活的技术能力面,别凭记忆假设有什么没什么,每次都去 skill 里看当前真实可用的。
+装备 §2 第三步要你"看清手头有什么引擎工具"——调用 `remotion-best-practices` skill。它现在是一张路由表:读完进 **`remotion-markup/REFERENCE.md`** 节点,那才是施工能力面本体(引擎原语、动画/计时/排印/资产/3D/effects 后处理各面),链出的规则文件按需加载。明确避开 `remotion-create`(另起脚手架,与本管线 harness 契约冲突——不许跑)、`remotion-studio` / `remotion-interactivity` / `remotion-saas` / `remotion-upgrade`(Studio 交互与部署升级,与本管线无关)。remotion-markup 正文里指向上述节点的链接/示例同样是通用场景指引,在本管线内不适用,遇到即忽略、不要顺着走进去。这是活的技术能力面,别凭记忆假设有什么没什么;但它的版本跟上游最新 Remotion 走,**以工区 `node_modules` 实际安装的引擎为准**——skill 说有而安装里导不出的能力就是不可用;缺 `@remotion/*` 包用 `npx remotion add <pkg>` 装匹配版本,永远不要升 remotion 本身。
 
 > **不要让任何人(包括编排你的上层)用几句话替你复述这套装备。** 你必须亲自读到装备的原文——§4 自检人格、§1 conceit 判准、三步顺序的每个字都是 load-bearing,只有它们进了你的上下文才真正约束你。
 

@@ -6,10 +6,14 @@
  * any that are missing. Pure Node (no deps) so it runs BEFORE `npm install`.
  *
  *   1. Engine deps      — node_modules + the load-bearing @remotion/* set, three,
- *                         tsx, bundler/renderer — resolvable from the WORKSPACE.
+ *                         tsx, bundler/renderer — resolvable from the WORKSPACE,
+ *                         at the version PINNED by the plugin's package.json.
  *   2. remotion-best-practices skill — the builder (乙) reads it for the LIVE engine
  *                         capability surface (§2 第三步). Separately-owned, hot-updated;
- *                         NOT vendored here. Installed from its official source.
+ *                         NOT vendored here. Since upstream's 2026-07 router restructure
+ *                         the skill carries a `version:` frontmatter = the Remotion
+ *                         version it describes; it must exist (router form) and its
+ *                         version is checked against the installed engine.
  *   3. ffmpeg on PATH   — render-strip uses it to measure motion for the PUNCTUATED
  *                         frame sampling the critic depends on. Without it, render-strip
  *                         SILENTLY falls back to uniform sampling (no held/mid roles) —
@@ -49,12 +53,24 @@ console.log(`${C.dim}plugin: ${PLUGIN_ROOT}${C.dim}\nworkspace: ${workspace}${C.
 let problems = 0;
 
 // ── 1. Engine deps in the workspace ─────────────────────────────────────────
+// The engine version is PINNED (exact, no ^) by the plugin's package.json so the
+// pipeline and the remotion-best-practices skill describe the same engine.
+const pluginPkg = JSON.parse(readFileSync(join(PLUGIN_ROOT, "package.json"), "utf8"));
+const PINNED_ENGINE = (pluginPkg.dependencies?.remotion ?? "").replace(/^[^\d]*/, "");
+// Every remotion/@remotion/* dependency is pinned to PINNED_ENGINE; all of them must
+// be installed at exactly that version (a remotion@new + @remotion/renderer@old mix
+// is precisely the failure this gate exists to catch).
+const PINNED_PKGS = Object.keys(pluginPkg.dependencies ?? {}).filter(
+  (d) => d === "remotion" || d.startsWith("@remotion/"),
+);
 const REQUIRED_DEPS = [
   "remotion", "@remotion/bundler", "@remotion/renderer", "@remotion/cli",
   "@remotion/google-fonts", "@remotion/light-leaks", "@remotion/motion-blur",
+  "@remotion/media", "@remotion/effects",
   "@remotion/three", "@react-three/fiber", "three", "react", "react-dom", "tsx",
 ];
 const wsModules = join(workspace, "node_modules");
+let engineVersion = null;
 if (!existsSync(wsModules)) {
   bad(`engine deps: no node_modules in workspace`);
   hint(`scaffold a package.json (copy ${join(PLUGIN_ROOT, "package.json")}'s deps) and run:  npm install`);
@@ -66,7 +82,26 @@ if (!existsSync(wsModules)) {
     ok(`engine deps present (${REQUIRED_DEPS.length} load-bearing modules incl. @remotion/bundler, @remotion/renderer, tsx)`);
   } else {
     bad(`engine deps: missing ${missing.length} — ${missing.join(", ")}`);
-    hint(`run \`npm install\` in the workspace; ensure package.json declares the full @remotion/* 4.0.477 set + bundler/renderer + tsx`);
+    hint(`run \`npm install\` in the workspace; ensure package.json declares the full @remotion/* ${PINNED_ENGINE} set + bundler/renderer + tsx`);
+    problems++;
+  }
+  const drift = [];
+  for (const dep of PINNED_PKGS) {
+    const depDir = join(wsModules, ...dep.split("/"));
+    if (!existsSync(depDir)) continue; // already counted in `missing` above
+    let v = null;
+    try {
+      v = JSON.parse(readFileSync(join(depDir, "package.json"), "utf8")).version;
+    } catch { /* unreadable/corrupt */ }
+    if (dep === "remotion") engineVersion = v;
+    if (v !== PINNED_ENGINE) drift.push(`${dep}@${v ?? "unreadable package.json"}`);
+  }
+  if (PINNED_ENGINE && drift.length === 0 && engineVersion) {
+    ok(`engine version matches pin (${PINNED_ENGINE}, all ${PINNED_PKGS.length} remotion packages)`);
+  } else {
+    bad(`engine version drift vs pin ${PINNED_ENGINE} — ${drift.join(", ")}`);
+    hint(`the pipeline validates ONE engine version at a time (pinned exactly in the plugin's package.json).`);
+    hint(`re-copy the plugin package.json's dependency block into the workspace and re-run npm install.`);
     problems++;
   }
 }
@@ -74,10 +109,13 @@ if (!existsSync(wsModules)) {
 // ── 2. remotion-best-practices skill (host-resolved, separately owned) ───────
 function findRbpSkill() {
   // The host resolves skills by name; we probe the common skill homes to report
-  // presence. The builder invokes it by NAME — these paths are only for the check.
+  // presence — global first, then workspace-local (a `skills add` without -g inside
+  // a project installs there, and is equally reachable by the host).
   const candidates = [
     join(homedir(), ".claude", "skills", "remotion-best-practices"),
     join(homedir(), ".agents", "skills", "remotion-best-practices"),
+    join(workspace, ".claude", "skills", "remotion-best-practices"),
+    join(workspace, ".agents", "skills", "remotion-best-practices"),
   ];
   for (const c of candidates) {
     try {
@@ -87,15 +125,58 @@ function findRbpSkill() {
   return null;
 }
 const rbp = findRbpSkill();
-if (rbp) {
-  ok(`remotion-best-practices skill reachable (${rbp})`);
-  hint(`it is separately owned & hot-updated from remotion-dev/skills — not vendored in this plugin`);
-} else {
+if (!rbp) {
   bad(`remotion-best-practices skill not found`);
   hint(`install it from its official source (keeps it on the hot-update track):`);
-  hint(`    npx skills add remotion-dev/skills`);
-  hint(`  (or use the host's skill-install flow). The builder reads it for the live engine capability surface.`);
+  hint(`    npx skills add remotion-dev/skills -g`);
+  hint(`  (-g = global; a project-local install under <workspace>/.agents|claude/skills is also`);
+  hint(`   detected. Or use the host's skill-install flow.) The builder reads it for the live surface.`);
   problems++;
+} else {
+  // Since the 2026-07 upstream restructure the skill is a ROUTER whose frontmatter
+  // `version:` = the Remotion version it describes. Router-form = `version:` in the
+  // YAML frontmatter (first --- block) AND the remotion-markup node present on disk.
+  const skillText = readFileSync(join(rbp, "SKILL.md"), "utf8");
+  const fm = skillText.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  const m = fm ? fm[1].match(/^version:\s*["']?(\S+?)["']?\s*$/m) : null;
+  const hasMarkupNode = existsSync(join(rbp, "remotion-markup", "REFERENCE.md"));
+  if (!m || !hasMarkupNode) {
+    bad(`remotion-best-practices is not the router form (${rbp})`);
+    hint(!m
+      ? `no \`version:\` in its SKILL.md frontmatter — likely the pre-restructure monolith.`
+      : `frontmatter version present but remotion-markup/REFERENCE.md is missing — partial install.`);
+    hint(`upstream restructured it into a router + sub-skills (2026-07); the pipeline's`);
+    hint(`instructions navigate the router. Update:  npx skills update remotion-best-practices -g`);
+    hint(`(if that claims the skill "was deleted upstream", remove ${rbp}`);
+    hint(`and re-run:  npx skills add remotion-dev/skills -g)`);
+    problems++;
+  } else {
+    const skillVersion = m[1];
+    ok(`remotion-best-practices skill reachable (${rbp}, describes Remotion ${skillVersion})`);
+    if (engineVersion && skillVersion !== engineVersion) {
+      const numeric = /^\d+\.\d+\.\d+$/;
+      const newer = (a, b) => {
+        const pa = a.split(".").map(Number), pb = b.split(".").map(Number);
+        for (let i = 0; i < 3; i++) {
+          const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+          if (d) return d > 0;
+        }
+        return false;
+      };
+      if (!numeric.test(skillVersion) || !numeric.test(engineVersion)) {
+        warn(`cannot compare skill (${skillVersion}) with engine (${engineVersion}) — non-numeric version`);
+        hint(`expected plain x.y.z on both sides; check what got installed.`);
+      } else if (newer(skillVersion, engineVersion)) {
+        warn(`skill (${skillVersion}) is NEWER than the installed engine (${engineVersion})`);
+        hint(`the skill may describe APIs the engine doesn't have — the builder is instructed`);
+        hint(`that the installed engine wins. To absorb the new capabilities, bump the plugin's`);
+        hint(`pinned engine set to ${skillVersion} (package.json) and re-validate the harnesses.`);
+      } else {
+        warn(`skill (${skillVersion}) is OLDER than the installed engine (${engineVersion})`);
+        hint(`update it so the capability surface matches:  npx skills update remotion-best-practices -g`);
+      }
+    }
+  }
 }
 
 // ── 3. ffmpeg on PATH (hard prerequisite for punctuated sampling) ───────────

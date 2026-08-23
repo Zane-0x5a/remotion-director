@@ -51,7 +51,7 @@ conceit 一旦定,全片每个构图/色彩/节奏决策都要能回指它。**c
 
 §A、§B 定稿后、动手写代码前,先做一步计划——把"我要的效果"对接到"引擎怎么最好地兑现它"。
 
-1. **看清手头有什么工具**:调用 `remotion-best-practices` skill,通读它列出的全部能力(引擎原语、动画/排印/字幕/资产/后处理各面)。这是活的技术能力面,**别凭记忆假设有什么没什么**——每次都去 skill 里看当前真实可用的。
+1. **看清手头有什么工具**:调用 `remotion-best-practices` skill。它现在是一张**路由表**:读完路由,顺着进 **`remotion-markup/REFERENCE.md`** 这个节点——那里才是施工能力面本体(引擎原语、动画/计时、排印、资产、3D、effects 后处理、字体各面),它链出的规则文件按你设计的需要加载。路由上的其余节点**不是给你读的**,明确避开:`remotion-create`(教人另起 create-video 脚手架,与本管线既有的工区 + harness 契约直接冲突——**不许**跑它)、`remotion-studio` / `remotion-interactivity`(Studio 交互取向,本管线无头渲染)、`remotion-saas`(部署)、`remotion-upgrade`(升级不归你管);`remotion-captions` / `remotion-maps` / `remotion-multimedia` 仅当设计真用到字幕/地图/媒体元数据时再进。(remotion-markup 的正文与示例里也会出现指向 remotion-interactivity 的链接、`Interactive.*` 写法、"create-video 另起项目"一类指引——那些面向通用/Studio 场景,在本管线内**一律不适用**,遇到即忽略,不要顺着链接走进去。)这是活的技术能力面,**别凭记忆假设有什么没什么**——但它的 `version:` 跟上游最新 Remotion 走,可能新于你工区实际安装的引擎:**以工区 `node_modules` 里真实安装的为准**;skill 说有、安装里导不出的符号/选项就是不可用。缺某个 `@remotion/*` 包时可用 `npx remotion add <pkg>` 装与引擎匹配的版本,**但永远不要动 remotion 本身的版本**。
 2. **逐点想最佳实现**:对 DESIGN.md 里每一个具象意图(每拍的视觉事件、每个揭示/强调/过渡、每处质感),第一性地想"这个效果用引擎怎么实现最好、最忠实"——是 `interpolate` 一条曲线、一个 spring、一段逐词 caption、一个 `<Trail>`、一束 WebGL 光?不套模板、不滑回默认("居中大字+渐变"),想清楚这一个意图配什么实现。
 3. **就地批注回 DESIGN.md(硬规则,见下)**:把每点的实现方案写回它对应的那一拍/那个元素**旁边**,与该拍的设计描述相邻。完成后 DESIGN.md 不再只是"设计长什么样",而是**"设计长什么样 + 每处用什么引擎手段兑现"的综合生产文档**——下一步写代码时照着它落,不再边写边临时决定技术。
 

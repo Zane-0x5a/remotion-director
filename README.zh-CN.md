@@ -113,11 +113,12 @@ remotion-director 就是围绕这个赌注造出来的、能跑的管线。你�
 - **Node.js**(给渲染工具用)和 **npm**。
 - **ffmpeg** 在你的 PATH 上——**必需**。帧条采样器靠它找出运动的*标点*(批判家要读的「持定帧 vs 运动中帧」)。缺了 ffmpeg,采样器会静默退化成均匀采样,破坏经验证的批判家选帧机制——所以在它就位前,管线会拒绝运行。
   - Windows:`winget install Gyan.FFmpeg` · macOS:`brew install ffmpeg` · Linux:`apt install ffmpeg`
-- **`remotion-best-practices` skill**——builder 读它来获取*实时*的引擎能力面。它**单独所有、随上游热更新**(来自 [`remotion-dev/skills`](https://github.com/remotion-dev/skills)),**不打包**进本插件,因此始终跟随上游 Remotion。若缺失,从其官方源安装:
+- **`remotion-best-practices` skill**——builder 读它来获取*实时*的引擎能力面。它**单独所有、随上游热更新**(来自 [`remotion-dev/skills`](https://github.com/remotion-dev/skills)),**不打包**进本插件。自上游 2026-07 重构起,它是一个**路由技能**,frontmatter 里的 `version:` 即它所描述的 Remotion 版本。**技能与引擎是一对版本配对**:本插件把引擎精确锁定(不用 `^`)在管线验证过的版本上,`check-env` 会对两者的漂移告警(并拒收重构前的旧版单体形态)。若缺失,从其官方源安装:
   ```bash
-  npx skills add remotion-dev/skills
+  npx skills add remotion-dev/skills -g
   ```
-- **引擎依赖**(Remotion 4.0.477 + three + 工具链)——由 `create` skill 的脚手架步逐片装进你的 workspace(一次 `npm install`)。
+  (`-g` 为全局安装;装在你 workspace 下的 `.agents/skills` / `.claude/skills` 项目级副本同样会被 `check-env` 探测到。)
+- **引擎依赖**(Remotion 4.0.515——精确锁定——+ three + 工具链)——由 `create` skill 的脚手架步逐片装进你的 workspace(一次 `npm install`)。
 
 你也可以随时自己跑环境检查:
 ```bash
