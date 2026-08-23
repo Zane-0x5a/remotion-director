@@ -20,13 +20,19 @@
  *                         a degraded, non-validated regime. Treated as a hard prerequisite.
  *
  * Usage:
- *   node tools/check-env.mjs [--workspace <dir>]
+ *   node tools/check-env.mjs [--workspace <dir>] [--fix]
  *     --workspace <dir>  where the user's piece + its npm install live (default: cwd)
+ *     --fix              repair engine-dep drift IN THE WORKSPACE before checking:
+ *                        merges the plugin's pinned dependency blocks into the
+ *                        workspace package.json (the user's own entries are
+ *                        preserved — only pinned keys are set) and runs npm install.
+ *                        Deterministic self-repair: never hand this mechanical
+ *                        step to the user.
  *
  * Exit code 0 if everything required is present; 1 if anything is missing.
  */
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
@@ -71,10 +77,42 @@ const REQUIRED_DEPS = [
 ];
 const wsModules = join(workspace, "node_modules");
 let engineVersion = null;
+
+// ── 0. --fix: deterministic repair of engine-dep drift, before checking ─────
+// Merges the plugin's pinned dependency blocks INTO the workspace package.json
+// (the user's own entries are preserved — only pinned keys are set), then runs
+// npm install. The checks below then verify the result like any other run.
+if (args.includes("--fix")) {
+  const wsPkgPath = join(workspace, "package.json");
+  let wsPkg = null;
+  try {
+    wsPkg = JSON.parse(readFileSync(wsPkgPath, "utf8"));
+  } catch { /* missing or corrupt */ }
+  if (!wsPkg || typeof wsPkg !== "object") {
+    wsPkg = { name: basename(workspace), private: true };
+    warn(`--fix: no readable package.json in workspace — scaffolding a minimal one`);
+  }
+  wsPkg.dependencies = { ...(wsPkg.dependencies ?? {}), ...pluginPkg.dependencies };
+  wsPkg.devDependencies = { ...(wsPkg.devDependencies ?? {}), ...pluginPkg.devDependencies };
+  writeFileSync(wsPkgPath, JSON.stringify(wsPkg, null, 2) + "\n");
+  warn(`--fix: workspace package.json merged to the pinned set (remotion ${PINNED_ENGINE}); running npm install ...`);
+  const inst = spawnSync("npm", ["install"], {
+    cwd: workspace,
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+  if (inst.status !== 0) {
+    bad(`--fix: npm install failed (see output above)`);
+    process.exit(1);
+  }
+  console.log("");
+}
+
 if (!existsSync(wsModules)) {
   bad(`engine deps: no node_modules in workspace`);
   hint(`scaffold a package.json (copy ${join(PLUGIN_ROOT, "package.json")}'s deps) and run:  npm install`);
-  hint(`(the create skill's Step 1 does this for you)`);
+  hint(`(the create skill's Step 1 does this for you) — or let this checker repair it:`);
+  hint(`    node "${join(PLUGIN_ROOT, "tools", "check-env.mjs")}" --workspace <dir> --fix`);
   problems++;
 } else {
   const missing = REQUIRED_DEPS.filter((d) => !existsSync(join(wsModules, ...d.split("/"))));
@@ -101,7 +139,8 @@ if (!existsSync(wsModules)) {
   } else {
     bad(`engine version drift vs pin ${PINNED_ENGINE} — ${drift.join(", ")}`);
     hint(`the pipeline validates ONE engine version at a time (pinned exactly in the plugin's package.json).`);
-    hint(`re-copy the plugin package.json's dependency block into the workspace and re-run npm install.`);
+    hint(`repair it deterministically (merges pinned deps, keeps the user's own, runs npm install):`);
+    hint(`    node "${join(PLUGIN_ROOT, "tools", "check-env.mjs")}" --workspace <dir> --fix`);
     problems++;
   }
 }
@@ -131,6 +170,8 @@ if (!rbp) {
   hint(`    npx skills add remotion-dev/skills -g`);
   hint(`  (-g = global; a project-local install under <workspace>/.agents|claude/skills is also`);
   hint(`   detected. Or use the host's skill-install flow.) The builder reads it for the live surface.`);
+  hint(`  orchestrator: offer to RUN this install yourself — it writes outside the workspace,`);
+  hint(`  so get the user's one confirmation first. Consent, not labor.`);
   problems++;
 } else {
   // Since the 2026-07 upstream restructure the skill is a ROUTER whose frontmatter
@@ -149,6 +190,7 @@ if (!rbp) {
     hint(`instructions navigate the router. Update:  npx skills update remotion-best-practices -g`);
     hint(`(if that claims the skill "was deleted upstream", remove ${rbp}`);
     hint(`and re-run:  npx skills add remotion-dev/skills -g)`);
+    hint(`orchestrator: you can run either command yourself — confirm with the user first.`);
     problems++;
   } else {
     const skillVersion = m[1];
@@ -195,6 +237,8 @@ if (ff) {
   hint(`without it, render-strip silently degrades to UNIFORM sampling (no held/mid roles) —`);
   hint(`the critic loop then loses the validated frame-selection. Do NOT run the pipeline until ffmpeg is installed.`);
   hint(`  Windows: winget install Gyan.FFmpeg   |   macOS: brew install ffmpeg   |   Linux: apt install ffmpeg`);
+  hint(`  orchestrator: offer to RUN the install yourself — it writes to the system PATH,`);
+  hint(`  so get the user's one confirmation first. Consent, not labor.`);
   problems++;
 }
 

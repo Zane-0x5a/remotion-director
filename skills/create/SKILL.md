@@ -45,6 +45,16 @@ It checks three things and tells you exactly what to do for any that are missing
 
 **Gate**: engine deps resolve at the pinned version, RBP is reachable in router form (skill–engine version drift is surfaced as a warning to act on, not silently ignored), ffmpeg is present.
 
+(On a **first run against a fresh workspace** the engine-deps item is missing by definition — that's not a blocker to escalate, it's Step 1's job: scaffold, or `--fix` right away, then re-run until green. The gate must be green before any draw.)
+
+> **Repairing the engine gate is YOUR job, never the user's.** If check-env reports missing deps or version drift — the classic case is a workspace created by an older plugin release — repair it in place, deterministically:
+> ```bash
+> node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <the-workspace> --fix
+> ```
+> `--fix` merges the plugin's pinned dependency blocks into the workspace `package.json` (the user's own entries are preserved — only pinned keys are set) and runs `npm install`, then the same run re-verifies. Do NOT hand this mechanical step to the user, and do NOT freelance a different repair (e.g. `npm install remotion@latest` — that breaks the pin).
+>
+> **Same rule for host-level installs, with one caveat.** Skill missing/old-form and ffmpeg missing aren't "the user's problem" either — **offer to install them yourself and run the install** (`npx skills add remotion-dev/skills -g`; `winget install Gyan.FFmpeg` / `brew install ffmpeg` / `apt install ffmpeg`). The caveat: these write outside the workspace (a global skill dir, the system PATH), so get the user's **one confirmation first** — that's all the user is ever needed for here: consent, not labor.
+
 ## Step 0.5 — Commission (gate; collect before any draw)
 
 A real run starts from the user, not from a guess. **Before scaffolding or drawing, confirm the commission** — the brief, the spec, and the production knobs from `Inputs`. Do not start drawing until this is settled.
