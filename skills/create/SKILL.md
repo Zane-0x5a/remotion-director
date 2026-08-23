@@ -45,6 +45,12 @@ It checks three things and tells you exactly what to do for any that are missing
 
 **Gate**: engine deps resolve at the pinned version, RBP is reachable in router form (skill–engine version drift is surfaced as a warning to act on, not silently ignored), ffmpeg is present.
 
+> **Repairing the engine gate is YOUR job, never the user's.** If check-env reports missing deps or version drift — the classic case is a workspace created by an older plugin release — repair it in place, deterministically:
+> ```bash
+> node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <the-workspace> --fix
+> ```
+> `--fix` merges the plugin's pinned dependency blocks into the workspace `package.json` (the user's own entries are preserved — only pinned keys are set) and runs `npm install`, then the same run re-verifies. Do NOT hand this mechanical step to the user, and do NOT freelance a different repair (e.g. `npm install remotion@latest` — that breaks the pin). Skill/ffmpeg gaps are the only items that may require the user (host-level installs).
+
 ## Step 0.5 — Commission (gate; collect before any draw)
 
 A real run starts from the user, not from a guess. **Before scaffolding or drawing, confirm the commission** — the brief, the spec, and the production knobs from `Inputs`. Do not start drawing until this is settled.

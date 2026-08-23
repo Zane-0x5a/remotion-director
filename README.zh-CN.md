@@ -124,6 +124,10 @@ remotion-director 就是围绕这个赌注造出来的、能跑的管线。你�
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <你的项目目录>
 ```
+若它报出引擎依赖漂移(比如旧版本插件创建的 workspace),`--fix` 会确定性地修复——把锁定的依赖合并进 workspace 的 `package.json`(保留你自己的条目)并执行 `npm install`:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <你的项目目录> --fix
+```
 
 ## 用法
 

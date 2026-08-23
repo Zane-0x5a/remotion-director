@@ -128,6 +128,10 @@ You can run the environment check yourself anytime:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir>
 ```
+If it reports engine-dep drift (e.g. a workspace created by an older release), `--fix` repairs it deterministically — merging the pinned deps into the workspace `package.json` (your own entries are preserved) and running `npm install`:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir> --fix
+```
 
 ## Usage
 
