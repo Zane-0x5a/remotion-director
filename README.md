@@ -117,11 +117,12 @@ This is a Claude Code plugin. Install it directly from this GitHub repo — no m
 - **Node.js** (for the render tooling) and **npm**.
 - **ffmpeg** on your PATH — **required**. The frame-strip sampler uses it to find the *punctuation* of motion (the held vs. in-motion frames the critic reads). Without ffmpeg the sampler silently degrades to uniform sampling, which breaks the validated critic frame-selection — so the pipeline will refuse to run until it's present.
   - Windows: `winget install Gyan.FFmpeg` · macOS: `brew install ffmpeg` · Linux: `apt install ffmpeg`
-- **The `remotion-best-practices` skill** — the builder reads it for the *live* engine capability surface. It is **separately owned and hot-updated** (from [`remotion-dev/skills`](https://github.com/remotion-dev/skills)), **not bundled** in this plugin, so it always tracks upstream Remotion. If it's missing, install it from its official source:
+- **The `remotion-best-practices` skill** — the builder reads it for the *live* engine capability surface. It is **separately owned and hot-updated** (from [`remotion-dev/skills`](https://github.com/remotion-dev/skills)), **not bundled** in this plugin. Since upstream's 2026-07 restructure it is a **router skill** carrying a `version:` frontmatter — the Remotion version it describes. **The skill and the engine are a version pair**: this plugin pins the engine exactly (no `^`) to the version it is validated against, and `check-env` flags any drift between the two (and rejects the pre-restructure monolith). If it's missing, install it from its official source:
   ```bash
-  npx skills add remotion-dev/skills
+  npx skills add remotion-dev/skills -g
   ```
-- **Engine dependencies** (Remotion 4.0.477 + three + tooling) — installed per-piece into your workspace by the `create` skill's scaffold step (a single `npm install`).
+  (`-g` = global; a project-local install under your workspace's `.agents/skills` / `.claude/skills` is also detected by `check-env`.)
+- **Engine dependencies** (Remotion 4.0.515 — pinned exactly — + three + tooling) — installed per-piece into your workspace by the `create` skill's scaffold step (a single `npm install`).
 
 You can run the environment check yourself anytime:
 ```bash
