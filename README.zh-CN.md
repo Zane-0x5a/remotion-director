@@ -120,6 +120,8 @@ remotion-director 就是围绕这个赌注造出来的、能跑的管线。你�
   (`-g` 为全局安装;装在你 workspace 下的 `.agents/skills` / `.claude/skills` 项目级副本同样会被 `check-env` 探测到。)
 - **引擎依赖**(Remotion 4.0.515——精确锁定——+ three + 工具链)——由 `create` skill 的脚手架步逐片装进你的 workspace(一次 `npm install`)。
 
+> **真实运行时,以上这些都不需要你动手。** Step 0 会检查环境并自行修复引擎依赖漂移(`--fix`);剩下的项(技能、ffmpeg)agent 会**主动提出替你安装,只向你请求一次确认**(因为它们要写到你的项目目录之外)。上面的命令仅供你想提前装好时使用。
+
 你也可以随时自己跑环境检查:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <你的项目目录>

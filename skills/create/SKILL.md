@@ -45,6 +45,8 @@ It checks three things and tells you exactly what to do for any that are missing
 
 **Gate**: engine deps resolve at the pinned version, RBP is reachable in router form (skill–engine version drift is surfaced as a warning to act on, not silently ignored), ffmpeg is present.
 
+(On a **first run against a fresh workspace** the engine-deps item is missing by definition — that's not a blocker to escalate, it's Step 1's job: scaffold, or `--fix` right away, then re-run until green. The gate must be green before any draw.)
+
 > **Repairing the engine gate is YOUR job, never the user's.** If check-env reports missing deps or version drift — the classic case is a workspace created by an older plugin release — repair it in place, deterministically:
 > ```bash
 > node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <the-workspace> --fix

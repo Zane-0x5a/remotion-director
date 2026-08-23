@@ -170,6 +170,8 @@ if (!rbp) {
   hint(`    npx skills add remotion-dev/skills -g`);
   hint(`  (-g = global; a project-local install under <workspace>/.agents|claude/skills is also`);
   hint(`   detected. Or use the host's skill-install flow.) The builder reads it for the live surface.`);
+  hint(`  orchestrator: offer to RUN this install yourself — it writes outside the workspace,`);
+  hint(`  so get the user's one confirmation first. Consent, not labor.`);
   problems++;
 } else {
   // Since the 2026-07 upstream restructure the skill is a ROUTER whose frontmatter
@@ -188,6 +190,7 @@ if (!rbp) {
     hint(`instructions navigate the router. Update:  npx skills update remotion-best-practices -g`);
     hint(`(if that claims the skill "was deleted upstream", remove ${rbp}`);
     hint(`and re-run:  npx skills add remotion-dev/skills -g)`);
+    hint(`orchestrator: you can run either command yourself — confirm with the user first.`);
     problems++;
   } else {
     const skillVersion = m[1];
@@ -234,6 +237,8 @@ if (ff) {
   hint(`without it, render-strip silently degrades to UNIFORM sampling (no held/mid roles) —`);
   hint(`the critic loop then loses the validated frame-selection. Do NOT run the pipeline until ffmpeg is installed.`);
   hint(`  Windows: winget install Gyan.FFmpeg   |   macOS: brew install ffmpeg   |   Linux: apt install ffmpeg`);
+  hint(`  orchestrator: offer to RUN the install yourself — it writes to the system PATH,`);
+  hint(`  so get the user's one confirmation first. Consent, not labor.`);
   problems++;
 }
 

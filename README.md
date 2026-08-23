@@ -124,6 +124,8 @@ This is a Claude Code plugin. Install it directly from this GitHub repo — no m
   (`-g` = global; a project-local install under your workspace's `.agents/skills` / `.claude/skills` is also detected by `check-env`.)
 - **Engine dependencies** (Remotion 4.0.515 — pinned exactly — + three + tooling) — installed per-piece into your workspace by the `create` skill's scaffold step (a single `npm install`).
 
+> **In a real run you don't have to do any of this by hand.** Step 0 checks the environment and repairs engine-dep drift itself (`--fix`); for the remaining items (the skill, ffmpeg) the agent **offers to run the install for you and asks only for one confirmation**, since those write outside your project. The commands above are for setting up ahead of time.
+
 You can run the environment check yourself anytime:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir>
