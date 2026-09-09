@@ -3,7 +3,7 @@
   "version": "0.3.1",
   "private": true,
   "license": "MIT",
-  "description": "Remotion engine + render harnesses for the remotion-director 甲乙环 pipeline. The design knowledge lives in skills/; this package provides the engine deps and the render/strip tooling.",
+  "description": "Remotion engine + render harnesses for the remotion-director \u7532\u4e59\u73af pipeline. The design knowledge lives in skills/; this package provides the engine deps and the render/strip tooling.",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "prepare-environment": "node tools/check-env.mjs",
@@ -34,5 +34,76 @@
     "@types/react": "^19.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.4.0"
+  },
+  "overrides": {
+    "@babel/core": {
+      "browserslist": "4.28.7"
+    },
+    "@babel/helper-compilation-targets": {
+      "browserslist": "4.28.7"
+    },
+    "@babel/helper-module-transforms": {
+      "browserslist": "4.28.7"
+    },
+    "@remotion/bundler": {
+      "browserslist": "4.28.7"
+    },
+    "@remotion/cli": {
+      "browserslist": "4.28.7"
+    },
+    "@remotion/studio-server": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-add-jsx-attribute": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-remove-jsx-attribute": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-remove-jsx-empty-expression": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-replace-jsx-attribute-value": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-svg-dynamic-title": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-svg-em-dimensions": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-transform-react-native-svg": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-plugin-transform-svg-component": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/babel-preset": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/core": {
+      "browserslist": "4.28.7"
+    },
+    "@svgr/plugin-jsx": {
+      "browserslist": "4.28.7"
+    },
+    "browserslist": {
+      "browserslist": "4.28.7"
+    },
+    "css-loader": {
+      "browserslist": "4.28.7"
+    },
+    "style-loader": {
+      "browserslist": "4.28.7"
+    },
+    "terser-webpack-plugin": {
+      "browserslist": "4.28.7"
+    },
+    "update-browserslist-db": {
+      "browserslist": "4.28.7"
+    },
+    "webpack": {
+      "browserslist": "4.28.7"
+    }
   }
 }
