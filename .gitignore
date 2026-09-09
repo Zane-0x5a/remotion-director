@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Per-workspace upstream skills and resolved engineering environment.
+.remotion-director/
+
 # Rendered output — never commit the pipeline's throwaway pixels.
 # Scope this to the OUTPUT DIRS the harness writes, not a blanket *.png/*.mp4 ban
 # (that would also reject the repo's own front-of-house assets in docs/assets/).

@@ -15,47 +15,22 @@ You (the agent reading this skill) are the **orchestrator**. You spawn the sub-a
 
 ## Inputs
 
-The pipeline needs a **brief** and a **spec** before any draw. Collect both in Step 0.5 (below); for any you can't get, propose a sensible default and let the user accept it in one line.
+The pipeline needs a **brief** and a **spec** before any draw. Collect both in Step 0 (below); for any you can't get, propose a sensible default and let the user accept it in one line.
 
 - **brief**: the piece's job — audience, takeaway, tone. **Required.** If not given, ask for it.
 - **spec** — the finished-video parameters:
   - **aspect / resolution**: vertical **1080×1920** (default — social/portrait), landscape **1920×1080**, or square **1080×1080**. Propose vertical as the default; the user may pick another.
-  - **duration** — offer it as a *choice*, not a blank (see Step 0.5): a couple of sensible second-counts for this brief, "I'll name one", or **"don't constrain it — the designer decides"**. Whichever second-count the user picks or states, it is **locked**; only the explicit "don't constrain it" option makes it **free**. This authority is carried all the way to Step 4.5.
+  - **duration** — offer it as a *choice*, not a blank (see Step 0): a couple of sensible second-counts for this brief, "I'll name one", or **"don't constrain it — the designer decides"**. Whichever second-count the user picks or states, it is **locked**; only the explicit "don't constrain it" option makes it **free**. This authority is carried all the way to Step 4.5.
   - **fps** (default 30).
   - **on-screen copy**: is there required text/wording, or is it the designer's call?
-  - **audio intent**: does the user want sound (music / SFX / VO)? **Note honestly if asked**: audio is **experimental** here — the engine can mount `<Audio>`, but the design equipment and the critic loop are **visual-only** (no audio dimension in the 3-step process, nothing in §4 / the 甲乙环 judges sound). So an audio request is best-effort and **unverified by the pipeline**; surface that before committing to it. If the user still insists on sound, the minimal tool-chain pointer is: consult the `remotion-best-practices` skill's `remotion-markup` node (`audio.md` / `sfx.md` — `<Audio>`, `remotion.media` remote SFX) for what the engine supports, and source CC0 assets yourself — the pipeline neither provides nor validates audio. (Note: `sfx.md` uses `@remotion/sfx`, which is deliberately NOT in the base dep set — audio being experimental, the builder installs it on demand with `npx remotion add @remotion/sfx`, which resolves the version matching the pinned engine.)
-- **target-project port (only if asked)**: if the user intends to *port the finished piece back into an existing Remotion project* rather than ship the standalone workspace render, **ask for that project's Remotion version and whether it has `three` / `@remotion/media` installed** up front. The workspace builds on Remotion **4.0.515** + three (the version the pipeline is validated against — see the plugin's `package.json` for the current pin); an older/leaner target can drift on API, so knowing the target version before drawing avoids a port-time surprise. (Porting is a user-side activity the pipeline doesn't itself verify.)
+  - **audio intent**: does the user want sound (music / SFX / VO)? **Note honestly if asked**: audio is **experimental** here — the engine can mount `<Audio>`, but the design equipment and the critic loop are **visual-only** (no audio dimension in the 3-step process, nothing in §4 / the 甲乙环 judges sound). So an audio request is best-effort and **unverified by the pipeline**; surface that before committing to it. If the user still insists on sound, the minimal tool-chain pointer is: consult the `remotion-best-practices` skill's `remotion-markup` node (`audio.md` / `sfx.md` — `<Audio>`, `remotion.media` remote SFX) for what the engine supports, and source CC0 assets yourself — the pipeline neither provides nor validates audio. (Note: `sfx.md` uses `@remotion/sfx`, which is deliberately NOT in the base dep set — audio being experimental, the builder installs it on demand with `npx remotion add @remotion/sfx`, which resolves the version matching the prepared engine.)
+- **target-project port (only if asked)**: if the user intends to *port the finished piece back into an existing Remotion project* rather than ship the standalone workspace render, **ask for that project's Remotion version and whether it has `three` / `@remotion/media` installed** up front. The workspace automatically prepares the latest stable Remotion + three before drawing; an older/leaner target can drift on API, so knowing the target version before drawing avoids a port-time surprise. (Porting is a user-side activity the pipeline doesn't itself verify.)
 - **N (draws)**: independent draws before blind-select. Default **3**. (More draws = higher ceiling; N is the user's knob.)
 - **workspace**: a user-side project dir (NOT under the plugin). Default `./<piece-slug>/` in the user's CWD.
 
 The critic loop has **no round knob** — it runs until 甲 reports `CONVERGED: YES`, then the user's eyes are the final gate.
 
-## Step 0 — Environment check (gate; do this first)
-
-The pipeline renders real frames and reads the live engine capability surface. Confirm the environment, and install what's missing:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs"
-```
-
-It checks three things and tells you exactly what to do for any that are missing:
-1. **Engine deps** (`node_modules` + the @remotion/* set, three, tsx, bundler/renderer) in the workspace — install with `npm install` in the workspace (Step 1 scaffolds the `package.json`).
-2. **`remotion-best-practices` skill** — the builder's §2 第三步 reads it for the live engine capability surface. It is a **separately-owned, hot-updated** skill (not vendored here), and since upstream's 2026-07 restructure it is a **router** carrying a `version:` frontmatter = the Remotion version it describes. **The skill and the engine are a version pair**: this plugin pins the engine exactly (no `^`) to the version the pipeline is validated against, and check-env fails/warns when the two drift. If the skill is absent, install it from its official source: `npx skills add remotion-dev/skills -g` (or the host's skill-install flow; a project-local install under the workspace is also detected); if it's the old pre-router monolith or a newer version than the pinned engine, follow check-env's hints (update the skill, or bump the plugin's pin and re-validate — never let them float apart silently).
-3. **ffmpeg** on PATH — render-strip uses it to measure motion for the **punctuated** frame sampling the critic depends on. **If ffmpeg is missing, do NOT proceed**: render-strip would silently fall back to uniform sampling, which drops the held/mid roles the critic protocol relies on — a degraded, non-validated regime. Install ffmpeg first.
-
-**Gate**: engine deps resolve at the pinned version, RBP is reachable in router form (skill–engine version drift is surfaced as a warning to act on, not silently ignored), ffmpeg is present.
-
-(On a **first run against a fresh workspace** the engine-deps item is missing by definition — that's not a blocker to escalate, it's Step 1's job: scaffold, or `--fix` right away, then re-run until green. The gate must be green before any draw.)
-
-> **Repairing the engine gate is YOUR job, never the user's.** If check-env reports missing deps or version drift — the classic case is a workspace created by an older plugin release — repair it in place, deterministically:
-> ```bash
-> node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <the-workspace> --fix
-> ```
-> `--fix` merges the plugin's pinned dependency blocks into the workspace `package.json` (the user's own entries are preserved — only pinned keys are set) and runs `npm install`, then the same run re-verifies. Do NOT hand this mechanical step to the user, and do NOT freelance a different repair (e.g. `npm install remotion@latest` — that breaks the pin).
->
-> **Same rule for host-level installs, with one caveat.** Skill missing/old-form and ffmpeg missing aren't "the user's problem" either — **offer to install them yourself and run the install** (`npx skills add remotion-dev/skills -g`; `winget install Gyan.FFmpeg` / `brew install ffmpeg` / `apt install ffmpeg`). The caveat: these write outside the workspace (a global skill dir, the system PATH), so get the user's **one confirmation first** — that's all the user is ever needed for here: consent, not labor.
-
-## Step 0.5 — Commission (gate; collect before any draw)
+## Step 0 — Commission (gate; collect before any draw)
 
 A real run starts from the user, not from a guess. **Before scaffolding or drawing, confirm the commission** — the brief, the spec, and the production knobs from `Inputs`. Do not start drawing until this is settled.
 
@@ -78,19 +53,27 @@ Carry the resolved spec forward: it sets the composition's `width`/`height`/`dur
 
 > The pipeline is **validated at 1080×1920**. Landscape/square are supported by the same harnesses but are **not yet smoke-tested**; if the user picks one, say so (it's a first-class option, just less-trodden) and watch the first render closely.
 
-## Step 1 — Scaffold the workspace (user-side, self-contained)
+## Step 1 — Prepare the latest engineering environment
 
-In the user's chosen dir, create a self-contained Remotion project so the bundler resolves both the builder's `index.tsx` imports and the harness imports from one `node_modules`:
+Engine and skill versions are engineering inputs owned by upstream, not design constraints imposed by this plugin. After the commission has resolved the workspace, run once before starting any builders:
 
-- Write a `package.json` mirroring the plugin's engine deps **verbatim** (the @remotion/* 4.0.515 set — pinned exactly, no `^` — incl. `@remotion/bundler` + `@remotion/renderer` + `@remotion/effects`, `three`, `@react-three/fiber`, `react`, `react-dom`, `remotion`, `zod`; devDep `tsx`, `typescript`). Copy `${CLAUDE_PLUGIN_ROOT}/package.json`'s dependency block.
-- Run `npm install` once in the workspace.
-- Each draw is a subdir: `<workspace>/<piece-slug>/draw-1/`, `draw-2/`, … each will hold `index.tsx`, `DESIGN.md`, `FIXES.md`, `out/rN/`.
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace "<WORKSPACE>"
+```
 
-`⟨RUN_DIR⟩` for a draw = the absolute path to that draw dir. `⟨WORKDIR⟩` (the cwd in protocol prompts) = the workspace root.
+This creates a missing workspace, resolves npm’s stable `latest` Remotion release, updates all declared `remotion` / `@remotion/*` packages together, and installs missing tooling. For RBP, it compares the full official upstream skill with an existing global installation and updates that installation in place only when contents differ; without a global installation it installs under the workspace’s `.remotion-director/`. Existing unrelated dependencies and manifest fields are preserved. Exact versions in the workspace manifest and lockfile record this run’s resolved environment; the next new piece queries upstream again. `--fix` remains an alias for this automatic preparation.
+
+Use the printed **`RBP_SKILL_PATH`** (also recorded with the upstream revision in `<WORKSPACE>/.remotion-director/environment.json`) in every builder task. The builder reads that exact synchronized installation, including when it is global. Upstream owns the skill layout and its release schedule; an RBP/engine version difference is informational, and actual installed exports determine API availability.
+
+Node.js, npm, Git and a full ffmpeg build must be available. The check exercises ffmpeg rawvideo, scale and crop support. Install missing host tools as needed under the host’s permission policy. Engineering preparation includes updating an existing global RBP installation; follow host filesystem permissions, with no separate design approval. If network access, install or verification fails, repair the engineering problem and rerun; do not claim the environment is current or start drawing after a failed preparation.
+
+Prepare the environment before parallel draws; a global RBP update is shared by other projects using it. During a run, use `check-env.mjs --workspace "<WORKSPACE>" --check` for a read-only check without updating. If an engineering issue requires another upgrade, coordinate it through the orchestrator while affected builders are stopped, then re-render affected outputs. This prevents parallel dependency writes; it is not a fixed-version design policy.
+
+Each draw is `<workspace>/<piece-slug>/draw-i/`, holding `index.tsx`, `DESIGN.md`, `FIXES.md` and `out/`. `⟨RUN_DIR⟩` is that draw’s absolute directory; `⟨WORKDIR⟩` / `<WORKSPACE>` is the absolute project root holding `package.json` and `node_modules` (pass it explicitly; it need not be the draw’s immediate parent).
 
 ## Step 2 — N draws (乙), in parallel
 
-Spawn **N `builder` agents** (one per draw), each with: the brief, the resolved **spec** from Step 0.5 (aspect/resolution, duration, fps, copy + audio intent), its absolute `<RUN_DIR>` (`…/draw-i`), the absolute **`<WORKSPACE>` root** (the dir holding `node_modules` + `package.json` — `<RUN_DIR>`'s parent; the builder needs it for the `NODE_PATH` prefix on every render command, without which the first render crashes `Cannot find module '@remotion/bundler'`), and the product contract (register `<Composition id="piece">` with the spec's `width`/`height`/`durationInFrames`/`fps`). Each builder's first act is to **Read the design-equipment in full** and obey it (you do not restate it). Each runs the full 3-step process → §4 self-check → renders R1 (render-arm then render-strip) to its `out/r1`.
+Spawn **N `builder` agents** (one per draw), each with: the brief, the resolved **spec** from Step 0 (aspect/resolution, duration, fps, copy + audio intent), its absolute `<RUN_DIR>` (`…/draw-i`), the absolute **`<WORKSPACE>` root** (the dir holding `node_modules` + `package.json`;  the builder needs it for the `NODE_PATH` prefix on every render command, without which the first render crashes `Cannot find module '@remotion/bundler'`), the prepared **`RBP_SKILL_PATH`**, and the product contract (register `<Composition id="piece">` with the spec's `width`/`height`/`durationInFrames`/`fps`). Each builder's first act is to **Read the design-equipment in full** and obey it (you do not restate it). Each runs the full 3-step process → §4 self-check → renders R1 (render-arm then render-strip) to its `out/r1`.
 
 - Keep each builder instance **alive** after R1 — the winner continues into the critic loop in the SAME context (do not start a fresh agent there).
 - Verify each draw rendered non-white (read 2-3 stills).
@@ -102,12 +85,12 @@ Spawn **N `builder` agents** (one per draw), each with: the brief, the resolved 
 
 ## Step 4 — Critic loop (甲乙环), run to convergence
 
-Run the **critic-loop** skill's loop, ferrying verbatim:
+Run the **critic-loop** skill's loop, ferrying verbatim. Apply the **版本交接** rules in `CRITIC-PROTOCOL.md`: keep the review round separate from the render version, take canonical from explicit completion reports, and allocate unused output directories for re-renders.
 
-1. Spawn ONE `aesthetic-critic` (甲) instance, design-blind, with the brief + **the winner's canonical strip** (`out/r⟨canonical⟩/strip/` as the builder reported it — *not* a hardcoded `out/r1/strip/`; the winner may have self-checked past r1) paths only (no DESIGN.md, no code). Fill the protocol slots: `⟨BRIEF⟩`, `⟨RUN_DIR⟩` (the winner draw dir, absolute), `⟨WORKDIR⟩` (workspace root).
-2. Take 甲's verdict **verbatim** → send to the winning **builder** instance's conversation (the same continuous-context 乙), and archive it to `⟨RUN_DIR⟩/CRITIC-VERDICTS.md`. The builder adjudicates per §5 环纪律 (fix / fulfill / pixel-grounded rebuttal), re-renders to `out/r⟨N⟩` (render-arm then render-strip), and **SendMessages you back an explicit `round N done` naming the new strip dir** when its re-render is verified non-white (again: not idle — wait for the message). Ferry the **freshly-reported `out/r⟨N⟩/strip/`** to 甲 — never a stale earlier strip. (A persistent 甲 fed a stale strip will file already-fixed defects as live ones and carry that poison into every later round; if you realize 甲 was fed a stale or wrong strip, the only clean fix is to shut that 甲 down and respawn a fresh one on the correct strip.)
-3. If the builder rebuts an item, ferry the rebuttal **verbatim** → back to 甲 (甲 can't read files; it only re-judges from pixels + your relayed rebuttal). 甲 re-judges that round's frames (the `out/r⟨N⟩/strip/` you just ferried).
-4. **Loop until 甲 reports `CONVERGED: YES`** — there is no round cap. 甲 is a *persistent* instance with cross-round memory, which is exactly what makes it converge fast (typically a few rounds); do not impose an artificial ceiling that stops it while it still has high-/med-severity items. The converged result is the latest `out/rN`.
+1. Spawn ONE `aesthetic-critic` (甲) instance, design-blind, with the brief + **the winner's canonical strip** as the builder reported it (no DESIGN.md, no code). Fill the protocol slots: `⟨BRIEF⟩`, `⟨RUN_DIR⟩` (the winner draw dir, absolute), `⟨WORKDIR⟩` (workspace root), and **`⟨STRIP_DIR⟩` (the absolute canonical strip path)**. This is review round 1 even if the builder self-checked through render r3. Verify the reported video, stills and strip exist before dispatch; missing or conflicting paths require a corrected handoff, never a fallback to r1 or the highest directory number.
+2. Take 甲's verdict **verbatim** → send to the winning **builder** instance's conversation (the same continuous-context 乙), and archive it to `⟨RUN_DIR⟩/CRITIC-VERDICTS.md` with the review round and reviewed strip path. Fill the ferry message's `⟨REVIEW_ROUND⟩`, `⟨STRIP_DIR⟩` and unused **`⟨NEXT_OUT_DIR⟩`** explicitly. The builder adjudicates per §5 环纪律 (fix / fulfill / pixel-grounded rebuttal), re-renders there (render-arm then render-strip), and **SendMessages an explicit `round ⟨REVIEW_ROUND⟩ done` naming its actual final output and strip dir** after verification (again: not idle — wait for the message). Self-check can advance beyond the assigned initial output. Verify that reported output's video, stills and strip, then update canonical and ferry **that exact strip path with the next review round number** to 甲. (A persistent 甲 fed a stale strip will file already-fixed defects as live ones and carry that poison into every later round; if you realize 甲 was fed a stale or wrong strip, the only clean fix is to shut that 甲 down and respawn a fresh one on the correct strip.)
+3. If the builder rebuts an item, ferry the rebuttal **verbatim** → back to 甲 (甲 can't read files; it only re-judges from pixels + your relayed rebuttal). Name the same strip path already handed to 甲 for that round; a rebuttal alone does not select a different render.
+4. **Loop until 甲 reports `CONVERGED: YES`** — there is no round cap. 甲 is a *persistent* instance with cross-round memory, which is exactly what makes it converge fast (typically a few rounds); do not impose an artificial ceiling that stops it while it still has high-/med-severity items. The converged result is the canonical output whose strip 甲 actually reviewed and marked converged.
 
 Throughout: you **only** orchestrate + ferry verbatim + verify pixels landed. You report neutral pixel phenomena if asked, **never aesthetic conclusions** — all visual judgment lives in the design-blind 甲乙环.
 
@@ -118,23 +101,23 @@ Throughout: you **only** orchestrate + ferry verbatim + verify pixels landed. Yo
 Spawn ONE `tempo-pass` agent — **fresh context, deliberately** (see *Hard rules* for why this one is legitimate). Give it:
 
 - the brief, absolute `<RUN_DIR>` (the winner draw) and `<WORKSPACE>` root,
-- the **converged** `out/r⟨canonical⟩` (the latest render — video + strip), and the round number to render into (`r⟨canonical+1⟩`),
-- the **duration authority from Step 0.5, verbatim: `locked ⟨N⟩s` or `free`.** This is the one input only you can supply — the agent cannot derive it from the workspace, and getting it wrong either breaks a promise to the user or needlessly straitjackets the piece.
+- **`⟨CANONICAL_OUT_DIR⟩`**, the absolute converged output (video + strip), and **`⟨NEXT_OUT_DIR⟩`**, an unused absolute render directory allocated by the same version handoff rules (not a directory derived from the critic's round number),
+- the **duration authority from Step 0, verbatim: `locked ⟨N⟩s` or `free`.** This is the one input only you can supply — the agent cannot derive it from the workspace, and getting it wrong either breaks a promise to the user or needlessly straitjackets the piece.
 
 Then **wait for its explicit message** (idle is not done — same delivery protocol as every other sub-agent). Two possible outcomes:
 
-- **`tempo pass done`** — it names the new `out/rN` and states whether the total length changed (only possible under `free`; X→Y with a reason). That render is now canonical; carry it to Step 5.
+- **`tempo pass done`** — it names the actual final output and strip dir (self-check may have advanced beyond `⟨NEXT_OUT_DIR⟩`) and states whether the total length changed (only possible under `free`; X→Y with a reason). Verify that reported output's video, stills and strip, then make it canonical and carry it to Step 5.
 - **`tempo pass blocked`** — `locked` only: redistribution inside the fixed total can't resolve the piece (content genuinely doesn't fit). It reports which beats are unresolvable, at what chars/sec, how many extra seconds would resolve it, and what cutting would. **Surface that to the user and let them decide** — relax the lock (then re-run this step as `free`) or ship the current piece. Do not decide this yourself, and never let a locked total be silently overrun.
 
 The tempo pass does **not** redesign — conceit, narrative subject, copy, palette and layout are out of its scope; it moves time only. If it reports a non-time defect it noticed but did not touch, that is a normal finding: judge whether it's worth one more 甲乙环 round before Step 5.
 
-> **Optional guard, your call:** a re-time can open new seams (an element now clipped at a beat's end, a stagger collapsed into simultaneous entry). 甲 is still alive with its cross-round memory, so ferrying the new `out/rN/strip/` for one more round is cheap insurance. Take it when the re-time was structural (beats moved, total length changed); skip it when it was a few dwell tweaks. If 甲 comes back `CONVERGED: NO`, that's just an ordinary round — hand it to 乙 as usual.
+> **Optional guard, your call:** a re-time can open new seams (an element now clipped at a beat's end, a stagger collapsed into simultaneous entry). 甲 is still alive with its cross-round memory, so ferrying the post-tempo canonical strip path with the next review round number is cheap insurance. Take it when the re-time was structural (beats moved, total length changed); skip it when it was a few dwell tweaks. If 甲 comes back `CONVERGED: NO`, that's just an ordinary round — hand it to 乙 with that reviewed strip path and an unused `⟨NEXT_OUT_DIR⟩`, following Step 4's version handoff.
 
 ## Step 5 — User eyeball (final gate)
 
 Present the piece as it stands after Step 4.5 — **the post-tempo-pass render, not the pre-tempo one** — for the user's own eyes, the **final gate, outranking every VLM judge**:
-- key stills: `⟨RUN_DIR⟩/out/rN/still-*.png`
-- the video: `⟨RUN_DIR⟩/out/rN/video.mp4`
+- key stills: `⟨CANONICAL_OUT_DIR⟩/still-*.png`
+- the video: `⟨CANONICAL_OUT_DIR⟩/video.mp4`
 
 The version the user judges must be the version that ships; never re-time after this gate. If the duration authority was `free` and the tempo pass changed the total length, say so here (X→Y seconds) — the user picked "leave it to the designer", not "surprise me".
 
@@ -145,13 +128,13 @@ Do not declare the piece shipped on 甲's `CONVERGED: YES` alone. The user's ver
 - **Delegate by Read, never paraphrase.** The builder Reads the equipment; 甲/blind-selector ARE the verbatim protocols. You never restate tuned wording.
 - **乙 is continuous context.** One builder instance per draw, alive through design→build→render→self-check→critic-loop. Never a fresh read-back agent mid-loop (that's the degraded rescue form only).
 - **Fresh context is legitimate in exactly one place: Step 4.5.** The continuous-context rule above protects *design adjudication* — a fresh agent dropped into the loop would re-litigate a conceit it doesn't own. The tempo pass is not design adjudication: it is a bounded re-balancing of an already-converged piece, and unlike aesthetics, **time is written exactly in the source** (`<Sequence from durationInFrames>`, interpolate domains, springs), so a fresh reader gets complete, precise data rather than a lossy read-back. There, fresh context is the *asset*: 乙's context is saturated by N rounds of local defect work, which is precisely the state in which the whole-piece time arc is invisible. Do **not** read this as license for read-back agents anywhere else.
-- **A locked duration is a promise.** If the user picked or stated a second-count at Step 0.5, no later step may change the total length — Step 4.5 redistributes inside it or reports back. Only an explicit "don't constrain it" makes the length 乙's own (and therefore movable).
+- **A locked duration is a promise.** If the user picked or stated a second-count at Step 0, no later step may change the total length — Step 4.5 redistributes inside it or reports back. Only an explicit "don't constrain it" makes the length 乙's own (and therefore movable).
 - **甲 is design-blind.** It receives only the brief + frame paths. Never hand it DESIGN.md, code, or notes — that is the exact context-pollution the 甲乙环 exists to prevent.
 - **The orchestrator never judges aesthetics.** Ferry 甲's verdicts verbatim; report only neutral pixel phenomena; all visual defects go to the 甲乙环.
 - **User eyeball is the final gate.** VLM `CONVERGED: YES` is necessary, not sufficient.
-- **Commission before draw.** Don't scaffold or draw until brief + spec + knobs are settled (Step 0.5). Fill blanks with stated defaults and say what you chose — never silently assume the aspect/duration/audio, and **never silently pick N**: surface the draw count and let the user own it. Put the **duration** in front of the user as a pick-list (including "don't constrain it") rather than a blank to type into, and record which authority resulted.
+- **Commission before draw.** Don't scaffold or draw until brief + spec + knobs are settled (Step 0). Fill blanks with stated defaults and say what you chose — never silently assume the aspect/duration/audio, and **never silently pick N**: surface the draw count and let the user own it. Put the **duration** in front of the user as a pick-list (including "don't constrain it") rather than a blank to type into, and record which authority resulted.
 - **Delivery protocol — idle is not done.** Every sub-agent (乙 builders, 甲, blind-selector, tempo-pass) **finishes by SendMessage-ing you an explicit result**, and only that message means it's done. An agent going **idle is a yielded turn, not a delivered task** — a builder is idle between self-check re-renders; 甲 is idle between rounds. Never read disk artifacts to *infer* that an agent finished, which render is canonical, or what a verdict was.
   - **Builders** report `settled` + their **canonical out dir** (which `out/rN` is final — self-check may have moved it past `r1`). Hold blind-select until **all N** report settled; never select on half-baked snapshots (a draw mid-self-check, or one that abandoned its `r1`).
   - **甲 and the blind-selector** must hand their verdict/`{winner,reason}` back to you by message before idling — if a one-shot judge ends its turn without sending the result, ask it for the result; don't go fishing on disk.
-  - **tempo-pass** reports `tempo pass done` (new `out/rN` + whether the total length changed) or `tempo pass blocked` (locked total, unresolvable — the user decides).
+  - **tempo-pass** reports `tempo pass done` (actual final output and strip dir + whether the total length changed) or `tempo pass blocked` (locked total, unresolvable — the user decides).
   - **Always carry the *canonical* artifact.** Whatever you ferry to 甲 (the winner's strip) or to the builder must be the latest reported render, never a stale earlier one — a stale strip makes a persistent 甲 condemn already-fixed defects round after round.

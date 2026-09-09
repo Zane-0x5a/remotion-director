@@ -6,9 +6,9 @@ description: |
   Spawn fresh per selection. The parent fills the per-run specifics (N, brief, candidate list, crops dir) into the spawn message; the parent does NOT judge — it only hands the candidates over and takes back the winner.
 
   <example>
-  Context: N draws of a piece have each rendered to their own out/r1/ (with strip/); the most promising base must be chosen before the critic loop.
+  Context: all N draws have reported settled with their own canonical output dirs (with stills + strip/); self-check may have produced a different final render number for each draw.
   user: (orchestrated by the create skill)
-  assistant: "Spawning blind-selector with the brief + the N candidate dirs. It returns winner + a one-line pixel-grounded reason; I do not pick."
+  assistant: "Spawning blind-selector with the brief + each draw's explicitly reported canonical output dir. It returns winner + a one-line pixel-grounded reason; I do not pick."
   </example>
 model: inherit
 color: yellow

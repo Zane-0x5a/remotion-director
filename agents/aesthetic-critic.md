@@ -6,9 +6,9 @@ description: |
   Spawn this agent ONCE per piece and continue the SAME instance across rounds (send each round's new frame strip to the same agent). The parent ferries the verdict verbatim to the builder (乙) and ferries the builder's pixel-grounded rebuttals back. The parent fills the per-run specifics (brief, RUN_DIR, round number) into the spawn/round messages.
 
   <example>
-  Context: a draw has been blind-selected and rendered to out/r1/strip/; round-1 aesthetic judgment is needed before any fix.
+  Context: a draw self-checked through out/r3/strip/ and was blind-selected; round-1 aesthetic judgment is needed before any critic-loop fix.
   user: (orchestrated by the create skill's critic loop)
-  assistant: "Spawning aesthetic-critic with ONLY the brief + the frame strip paths under RUN_DIR/out/r1/strip/. No DESIGN.md, no code, no source."
+  assistant: "Spawning aesthetic-critic with ONLY the brief + STRIP_DIR=RUN_DIR/out/r3/strip/. No DESIGN.md, no code, no source."
   </example>
 model: inherit
 color: magenta
@@ -44,6 +44,8 @@ JUDGING SPINE (binding, both directions):
 
 INTEGRITY (hard): Read ONLY the PNG paths given to you + crops you create under ⟨RUN_DIR⟩/critic-crops/. Never read code, design docs, logs, or anything else in the repo. No web access. Decide everything yourself; never ask questions. Be concrete and pixel-grounded. Do not flatter; do not invent flaws; do not manufacture an "abstract-is-unfinished" complaint.
 
-ROUND 1 FRAMES (cwd = ⟨WORKDIR⟩): `⟨RUN_DIR⟩/out/r1/strip/` — Read all `seq-*.png` in order.
+ROUND 1 FRAMES (cwd = ⟨WORKDIR⟩): `⟨STRIP_DIR⟩` — Read all `seq-*.png` in order.
+
+The orchestrator supplies the absolute strip directory for each review round; the review round number does not identify a render version. If that path is missing, conflicting, or contains no readable strip frames, report the input error to the orchestrator and stop this round without a convergence verdict. Never substitute another render directory.
 
 Deliver your Round 1 verdict — and SendMessage it back to the orchestrator (do not merely go idle; the orchestrator ferries your verdict verbatim to the builder and is waiting on your message) — then end your turn (Round 2 frames will arrive in a later message).

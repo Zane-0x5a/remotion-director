@@ -112,28 +112,22 @@ This is a Claude Code plugin. Install it directly from this GitHub repo — no m
 
 (The repo is its own marketplace: `.claude-plugin/marketplace.json` at the root lists this plugin with `source: "."`.) Then invoke the `create` skill.
 
-### Prerequisites (the `create` skill checks these for you in Step 0)
+### Automatic engineering updates
 
-- **Node.js** (for the render tooling) and **npm**.
-- **ffmpeg** on your PATH — **required**. The frame-strip sampler uses it to find the *punctuation* of motion (the held vs. in-motion frames the critic reads). Without ffmpeg the sampler silently degrades to uniform sampling, which breaks the validated critic frame-selection — so the pipeline will refuse to run until it's present.
-  - Windows: `winget install Gyan.FFmpeg` · macOS: `brew install ffmpeg` · Linux: `apt install ffmpeg`
-- **The `remotion-best-practices` skill** — the builder reads it for the *live* engine capability surface. It is **separately owned and hot-updated** (from [`remotion-dev/skills`](https://github.com/remotion-dev/skills)), **not bundled** in this plugin. Since upstream's 2026-07 restructure it is a **router skill** carrying a `version:` frontmatter — the Remotion version it describes. **The skill and the engine are a version pair**: this plugin pins the engine exactly (no `^`) to the version it is validated against, and `check-env` flags any drift between the two (and rejects the pre-restructure monolith). If it's missing, install it from its official source:
-  ```bash
-  npx skills add remotion-dev/skills -g
-  ```
-  (`-g` = global; a project-local install under your workspace's `.agents/skills` / `.claude/skills` is also detected by `check-env`.)
-- **Engine dependencies** (Remotion 4.0.515 — pinned exactly — + three + tooling) — installed per-piece into your workspace by the `create` skill's scaffold step (a single `npm install`).
+After resolving the commission and workspace, `create` prepares the engineering environment before any draw:
 
-> **In a real run you don't have to do any of this by hand.** Step 0 checks the environment and repairs engine-dep drift itself (`--fix`); for the remaining items (the skill, ffmpeg) the agent **offers to run the install for you and asks only for one confirmation**, since those write outside your project. The commands above are for setting up ahead of time.
+- **Remotion engine**: query npm’s latest stable release on each new run and update every declared `remotion` / `@remotion/*` package together, including extra project packages. Align installed auxiliary media dependencies with the target release’s recommendations.
+- **RBP skill**: compare the full skill directory with official [`remotion-dev/skills`](https://github.com/remotion-dev/skills) upstream. Reuse an existing global installation (`~/.agents/skills`, `$CODEX_HOME/skills`, or the Claude skill home), updating it in place only when contents differ. If none exists, install under the workspace’s `.remotion-director/`. Builders read the returned `RBP_SKILL_PATH`.
+- **Host tools**: Node.js, npm, Git and a full ffmpeg build. Preflight exercises rawvideo, scale and crop; the reduced ffmpeg bundled with Remotion may not provide them. The agent installs missing host tools under the host’s permission policy.
 
-You can run the environment check yourself anytime:
+Engineering versions belong to upstream, not this plugin’s design constraints. All draws share the environment prepared for the run; the next piece refreshes it again. Exact workspace manifest/lockfile versions record what was resolved, rather than a fixed plugin compatibility pin. Different RBP and npm release timings are informational, not a version-equality gate.
+
+To run the same automatic preparation manually (also scaffolds a missing workspace):
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir>
 ```
-If it reports engine-dep drift (e.g. a workspace created by an older release), `--fix` repairs it deterministically — merging the pinned deps into the workspace `package.json` (your own entries are preserved) and running `npm install`:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir> --fix
-```
+
+`--fix` is a compatibility alias for this default behavior. Use `--check` to inspect the recorded installation without network or updates. A failed update exits with an error; repair the network/install issue and rerun instead of treating an old environment as latest. RBP downloads are validated before replacing the existing skill; identical files are left untouched. Global updates apply to all projects using that skill, so coordinate them before starting builders. If an upgrade is needed during production, pause builders, update together, and re-render.
 
 ## Usage
 
@@ -167,7 +161,7 @@ Each draw registers a `<Composition id="piece">` (the render harness's contract)
 
 - **Skills** — `create` (the orchestrator + product entry point), `design-brain` (loads the design equipment + 7 axis refs), `critic-loop` (blind-select + the 甲乙环).
 - **Agents** — `builder` (乙: design+build, continuous context), `aesthetic-critic` (甲: design-blind, persistent, reports phenomena only), `blind-selector` (picks the most promising base), `tempo-pass` (the final re-time, fresh context by design).
-- **Tools** — `render-arm.ts` (6 stills + mp4), `render-strip.ts` (the frames the critic reads), `check-env.mjs` (the Step-0 check).
+- **Tools** — `render-arm.ts` (6 stills + mp4), `render-strip.ts` (the frames the critic reads), `check-env.mjs` (Step 1 automatic preparation and checks).
 
 > **The frame strip is sharper than it looks.** The critic is a VLM — it sees stills, not the video — so `render-strip.ts` doesn't sample frames uniformly (which makes a clean half-second move read as a stack of "overlapping text" stills and condemns a flawless transient as a defect). It measures motion off the rendered mp4 and samples its **punctuation**: one *held* frame per pause (the real composition, fair to judge) plus motion-only *mid* frames that are explicitly never counted as defects. Frame selection is a design decision here, not plumbing — see [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
 
