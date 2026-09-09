@@ -8,6 +8,15 @@
 - **降级形态**:无 mp4 时脚本回退均匀采样并在 stderr 告警(role-less 帧名 `seq-NN_fNNN.png`,无 held/mid);`--step N` 强制均匀(兼容入口,同样 role-less)。**均匀/legacy 条带不得配 punctuated 措辞**(无 role 帧,裁判收不到 held/mid 区分)——此时 MATERIAL 段须换回旧 "sampled evenly" 版本,两套措辞不得混用。
 - **摆渡与信道**:每 run **两只持续上下文**——甲(后台 agent,轮间续话)与乙(=设计并施工这支片子的那只 agent 本人,续话进环,不新开)。parent 逐字摆渡:判词→乙的对话(并归档 `⟨RUN_DIR⟩/CRITIC-VERDICTS.md`);乙写的 `⟨RUN_DIR⟩/REBUTTAL.md` →甲(甲的 INTEGRITY 只许读帧与自己的 crop,不自己翻文件)。
 
+## 版本交接(parent 填槽;评审轮次与渲染版本独立)
+
+乙在首次送审前可能已自检重渲多次。因此甲的第 1 轮可能评的是 `out/r3`。把评审轮次当渲染编号,会让甲读到废弃帧,或让乙覆盖历史产物;一次看似完成的评审就没有覆盖实际交付版本。
+
+- `⟨REVIEW_ROUND⟩` 只表示甲的评审轮次。`⟨CANONICAL_OUT_DIR⟩` 是当前施工者(乙或节奏刀)最近一次明确报告已完成、且 parent 核验过产物的绝对输出目录;`⟨STRIP_DIR⟩` 是其中的 `strip/`。首轮和续轮均显式传入,不能从评审轮次拼路径。甲重判反驳时,仍使用本轮已交接的条带。
+- `⟨NEXT_OUT_DIR⟩` 是 parent 为下一次重渲分配的绝对目录:在同一 draw 的 `out/` 内,从当前渲染编号加一开始,跳过已存在的目录。检查目录存在只用于避免覆盖,不能据此推断哪个版本完成。该规则也适用于节奏刀。
+- 乙从 `⟨NEXT_OUT_DIR⟩` 开始渲染;同轮若再次自检重渲,继续使用更大编号的未用目录。已完成版和失败尝试均保留。缺少明确的输入/输出目录,或开始渲染时目标目录已被占用,先回报 parent 纠正交接,不猜目录、不覆盖。
+- parent 只在收到明确完成回报(`settled` / `round ⟨REVIEW_ROUND⟩ done` / `tempo pass done`)及实际最终输出目录、并核验其中的 `video.mp4`、静帧和 `strip/` 后更新 canonical。失败、idle、半成品和编号更大的目录均不使 canonical 前移。判词按评审轮次与实际受评条带路径归档,正文逐字保留。
+
 ---
 
 ## 甲方 prompt(逐字使用;⟨…⟩=槽位,其余一字不改)
@@ -41,7 +50,9 @@ JUDGING SPINE (binding, both directions):
 
 INTEGRITY (hard): Read ONLY the PNG paths given to you + crops you create under ⟨RUN_DIR⟩/critic-crops/. Never read code, design docs, logs, or anything else in the repo. No web access. Decide everything yourself; never ask questions. Be concrete and pixel-grounded. Do not flatter; do not invent flaws; do not manufacture an "abstract-is-unfinished" complaint.
 
-ROUND 1 FRAMES (cwd = ⟨WORKDIR⟩): `⟨RUN_DIR⟩/out/r1/strip/` — Read all `seq-*.png` in order.
+ROUND 1 FRAMES (cwd = ⟨WORKDIR⟩): `⟨STRIP_DIR⟩` — Read all `seq-*.png` in order.
+
+The orchestrator supplies the absolute strip directory for each review round; the review round number does not identify a render version. If that path is missing, conflicting, or contains no readable strip frames, report the input error to the orchestrator and stop this round without a convergence verdict. Never substitute another render directory.
 
 Deliver your Round 1 verdict — and SendMessage it back to the orchestrator (do not merely go idle; the orchestrator ferries your verdict verbatim to the builder and is waiting on your message) — then end your turn (Round 2 frames will arrive in a later message).
 
@@ -63,21 +74,21 @@ Deliver your Round 1 verdict — and SendMessage it back to the orchestrator (do
 
 > 本节纪律已逐字回填进乙的常驻装备(`skills/design-brain/reference/design-equipment.md` §5),乙加载装备即自带,不再靠首轮摆渡补给;本文件保留为该纪律的权威措辞源。
 
-### 每轮摆渡消息(parent 发进乙的对话;⟨N⟩=本轮序号)
+### 每轮摆渡消息(parent 发进乙的对话;槽位按上面的版本交接填写)
 
-甲方环 Round ⟨N⟩ — 甲方判词(逐字):
+甲方环 Round ⟨REVIEW_ROUND⟩ — 受评条带: `⟨STRIP_DIR⟩` — 甲方判词(逐字):
 ```
 ⟨判词原文⟩
 ```
-按你的环纪律处置(逐条判断每个现象:该改的改、要兑现的实现到读得出来、站得住的带像素证据驳;修复落执行层、§A 可被像素实践修正非焊死)。修完重渲(两条都跑,输出到 r⟨N⟩;`NODE_PATH=<workspace>/node_modules` 是命令的一部分,不可省——harness 住 plugin 目录无 node_modules,引擎依赖在 workspace 根,漏前缀首渲即崩 `Cannot find module @remotion/bundler`;⟨WORKSPACE⟩=⟨RUN_DIR⟩ 的上一级):
-- `NODE_PATH="⟨WORKSPACE⟩/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir ⟨RUN_DIR⟩ --out ⟨RUN_DIR⟩/out/r⟨N⟩`
-- `NODE_PATH="⟨WORKSPACE⟩/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir ⟨RUN_DIR⟩ --out ⟨RUN_DIR⟩/out/r⟨N⟩/strip`(默认标点化 punctuated,自动取 `out/r⟨N⟩/video.mp4` 做运动分析——所以先跑上一条;产出 `seq-NN_fNNN_held.png`/`_mid.png`)
-渲完抽看 2-3 帧确认非白屏,并把本轮修复逐条追加到 `⟨RUN_DIR⟩/FIXES.md`(标 "round ⟨N⟩")。
+按你的环纪律处置(逐条判断每个现象:该改的改、要兑现的实现到读得出来、站得住的带像素证据驳;修复落执行层、§A 可被像素实践修正非焊死)。修完重渲(两条都跑,输出到指定的未用目录 `⟨NEXT_OUT_DIR⟩`;`NODE_PATH=<workspace>/node_modules` 是命令的一部分,不可省——harness 住 plugin 目录无 node_modules,引擎依赖在 workspace 根,漏前缀首渲即崩 `Cannot find module @remotion/bundler`;⟨WORKSPACE⟩ 为 parent 给定的 workspace 根):
+- `NODE_PATH="⟨WORKSPACE⟩/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir "⟨RUN_DIR⟩" --out "⟨NEXT_OUT_DIR⟩"`
+- `NODE_PATH="⟨WORKSPACE⟩/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir "⟨RUN_DIR⟩" --out "⟨NEXT_OUT_DIR⟩/strip" --video "⟨NEXT_OUT_DIR⟩/video.mp4"`(默认标点化 punctuated,分析本次 mp4——所以先跑上一条;产出 `seq-NN_fNNN_held.png`/`_mid.png`)
+渲完抽看 2-3 帧确认非白屏,并把本轮修复逐条追加到 `⟨RUN_DIR⟩/FIXES.md`(标 "round ⟨REVIEW_ROUND⟩" 及实际输出目录)。同轮再次自检重渲时使用更大编号的未用目录,两条命令保持同一版本。结束时 SendMessage `round ⟨REVIEW_ROUND⟩ done`,写明实际最终输出目录及其 `strip/`,不能从评审轮次推导路径。
 
 ### 降级救援形态(仅当乙的上下文死亡:渠道闪断/超限;使用须记录为偏离)
 
 新 agent 逐字恢复上下文(此救援形态实证可用),后接上面同一套环纪律与渲染指令:
 
-> 你是乙 — 这支片子的设计师/施工者,正在甲方环里收尾。工区:`⟨RUN_DIR⟩/`(cwd = ⟨WORKDIR⟩)。先读你自己的 `DESIGN.md`、代码与 out/r⟨N-1⟩ 渲染帧,恢复全部上下文。
+> 你是乙 — 这支片子的设计师/施工者,正在甲方环里收尾。工区:`⟨RUN_DIR⟩/`(cwd = ⟨WORKDIR⟩)。先读你自己的 `DESIGN.md`、代码与 parent 明确交接的 `⟨CANONICAL_OUT_DIR⟩` 渲染帧,恢复全部上下文。若代码包含尚未完成的修改,先向 parent 回报差异,不能把它视作该渲染版的已验证代码。
 
 边界(随救援开场一并给):只许读写自己工区与上述渲染命令;禁读工区之外的目录与文件;不 git commit。

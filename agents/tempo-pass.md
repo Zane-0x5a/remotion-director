@@ -37,7 +37,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 - `<RUN_DIR>/DESIGN.md` —— 拿 beat 结构与每拍的叙事意图(哪拍是 thesis、哪拍是 whisper)。**这是你要的信息,不是污染**:节奏判断本来就需要知道哪一拍该停最久。
 - `<RUN_DIR>/index.tsx` —— 真实时间数据的唯一权威。
 - `<RUN_DIR>/FIXES.md` —— 环里改过什么(有些 hold 是被修出来的,别一刀砍回去)。
-- 收敛版 `<RUN_DIR>/out/r⟨收敛轮⟩/` 的 held 帧 + `video.mp4` —— 看每一段停留期间**屏上到底是什么、有多少字要读**。
+- 上层明确交接的收敛版 `⟨CANONICAL_OUT_DIR⟩` 的 held 帧 + `video.mp4` —— 看每一段停留期间**屏上到底是什么、有多少字要读**。这是绝对输出目录,不能用甲的评审轮次推导。
 
 ## 先列表,再判
 
@@ -72,12 +72,12 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 
 ## 改完必须重渲,并亲眼验
 
-在工区根 cwd 下跑(输出到上层给你的 `r⟨N⟩`,即收敛轮的下一轮):
+在工区根 cwd 下跑,输出到上层明确分配的绝对目录 `⟨NEXT_OUT_DIR⟩`。输入/输出目录缺失、冲突或目标在开始渲染前已被占用,先回报上层纠正交接。自检若需再次重渲,使用更大编号的未用目录,保留已完成版与失败尝试;两条命令始终指向同一版本:
 
-- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r⟨N⟩`
-- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r⟨N⟩/strip`
+- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir "<RUN_DIR>" --out "⟨NEXT_OUT_DIR⟩"`
+- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir "<RUN_DIR>" --out "⟨NEXT_OUT_DIR⟩/strip" --video "⟨NEXT_OUT_DIR⟩/video.mp4"`
 
-> **`NODE_PATH` 不是可选项,是命令的一部分。** 渲染 harness 住在 plugin 目录(那里**没有** `node_modules`),引擎依赖装在 workspace 根(`<RUN_DIR>` 的上一级)。漏掉前缀 → 首条渲染必崩 `Cannot find module '@remotion/bundler'`。改 cwd 治不了。PowerShell 下写成 `$env:NODE_PATH="<WORKSPACE>\node_modules"; npx tsx ...`。
+> **`NODE_PATH` 不是可选项,是命令的一部分。** 渲染 harness 住在 plugin 目录(那里**没有** `node_modules`),引擎依赖装在上层明确传入的 workspace 根。漏掉前缀 → 首条渲染必崩 `Cannot find module '@remotion/bundler'`。改 cwd 治不了。PowerShell 下写成 `$env:NODE_PATH="<WORKSPACE>\node_modules"; npx tsx ...`。
 
 **回归自查(必做)**——retiming 最容易在别处割出新口子,而你眼睛盯着"刚调的那拍"时正好看不见。重渲后逐条扫:
 1. 有没有元素现在被拍尾**切掉**了(改了拍长或推迟了入场)。
@@ -92,7 +92,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 
 做完必须**显式 SendMessage 回上层编排者**——上层无法把"我还在渲"和"我做完了"区分开。两种结局,报其一:
 
-- `tempo pass done` —— 写明:新的 `out/r⟨N⟩` 路径、**总时长是否变化**(变了写 X→Y 秒并说明为什么、授权是 free)、逐条改了什么(哪拍从多少调到多少、为什么)、回归自查结果、以及任何你发现但**没有**动的非时间域问题。
+- `tempo pass done` —— 写明:实际最终输出目录及其 `strip/` 的绝对路径(自检可能已超出初始分配的目录)、**总时长是否变化**(变了写 X→Y 秒并说明为什么、授权是 free)、逐条改了什么(哪拍从多少调到多少、为什么)、回归自查结果、以及任何你发现但**没有**动的非时间域问题。
 - `tempo pass blocked` —— 仅限**锁死**模式下重分配无解:写明哪几拍无解、当前是多少字/秒、放宽到多少秒能解、砍什么内容能解。**不要自己拍板**,交给用户。
 
 边界:只读写自己的工区 `<RUN_DIR>` + 上述 `${CLAUDE_PLUGIN_ROOT}/tools/` 渲染命令 + `tempo.md`;不 git commit。

@@ -45,7 +45,7 @@ BRIEF: ⟨BRIEF⟩
 
 - ⟨N⟩ = 候选数(未来用户旋钮)
 - ⟨BRIEF⟩ = brief 原文
-- ⟨CANDIDATE_LIST⟩ = 候选清单(每行 "候选 X: <工区>/out/r1/ (含 strip/)",X=A/B/C/...)
+- ⟨CANDIDATE_LIST⟩ = 候选清单(每行 "候选 X: <该候选明确报告的 canonical 输出目录的绝对路径> (含 still-*.png 和 strip/)",X=A/B/C/...)。等全部候选报告 settled、核验产物后填写;各候选的渲染编号可以不同,不统一拼成 r1,也不按磁盘最大编号猜定稿。
 - ⟨CROPS_DIR⟩ = 裁切产物目录(工区下,如 `⟨RUN_DIR⟩/_pick-crops/`)
 - 输出 schema:`{ winner: enum[A/B/C/...], reason: string }`(reason=一句像素落地理由,现象语言)
 

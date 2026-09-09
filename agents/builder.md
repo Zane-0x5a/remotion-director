@@ -25,7 +25,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 
 装备 §2 列出的七份轴 ref(`narrative.md` / `aesthetic.md` / `color.md` / `composition.md` / `tempo.md` / `persuasion.md` / `texture.md`)就住在它**同一个目录** `${CLAUDE_PLUGIN_ROOT}/skills/design-brain/reference/` 下,按装备说的时机自主加载(尤其 `texture.md` 在第一步**禁读**,§A 独立落盘后才许读)。
 
-装备 §2 第三步要你"看清手头有什么引擎工具"——调用 `remotion-best-practices` skill。它现在是一张路由表:读完进 **`remotion-markup/REFERENCE.md`** 节点,那才是施工能力面本体(引擎原语、动画/计时/排印/资产/3D/effects 后处理各面),链出的规则文件按需加载。明确避开 `remotion-create`(另起脚手架,与本管线 harness 契约冲突——不许跑)、`remotion-studio` / `remotion-interactivity` / `remotion-saas` / `remotion-upgrade`(Studio 交互与部署升级,与本管线无关)。remotion-markup 正文里指向上述节点的链接/示例同样是通用场景指引,在本管线内不适用,遇到即忽略、不要顺着走进去。这是活的技术能力面,别凭记忆假设有什么没什么;但它的版本跟上游最新 Remotion 走,**以工区 `node_modules` 实际安装的引擎为准**——skill 说有而安装里导不出的能力就是不可用;缺 `@remotion/*` 包用 `npx remotion add <pkg>` 装匹配版本,永远不要升 remotion 本身。
+装备 §2 第三步要你看清引擎能力时,读取上层给定的 **`RBP_SKILL_PATH`**:这是开工前已与官方上游同步的技能,优先复用全局安装,没有全局安装才使用工区副本。按该技能当前的路由选择施工文档(目前为 `remotion-markup/REFERENCE.md`),以安装后的实际 API 为准。工程版本和技能结构随上游演进,不受设计规则锁定。沿用当前工区与 `<Composition id="piece">` 产物契约;缺包可用 `npx remotion add <pkg>` 安装匹配版本。需要升级或其他共享依赖变更时交由上层协调,待并行施工暂停后更新并重渲,避免多只乙同时改依赖。
 
 > **不要让任何人(包括编排你的上层)用几句话替你复述这套装备。** 你必须亲自读到装备的原文——§4 自检人格、§1 conceit 判准、三步顺序的每个字都是 load-bearing,只有它们进了你的上下文才真正约束你。
 
@@ -38,17 +38,19 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 ## 渲染(把你的设计变成真像素)
 
 写完代码后,渲出 R1(在工区根 cwd 下跑;先 render-arm 出 video.mp4,再 render-strip 取它做标点化抽帧):
-- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r1`
-- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir <RUN_DIR> --out <RUN_DIR>/out/r1/strip`
+- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-arm.ts" --dir "<RUN_DIR>" --out "<RUN_DIR>/out/r1"`
+- `NODE_PATH="<WORKSPACE>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir "<RUN_DIR>" --out "<RUN_DIR>/out/r1/strip" --video "<RUN_DIR>/out/r1/video.mp4"`
 
-> **`NODE_PATH` 不是可选项,是命令的一部分。** 渲染 harness 住在 plugin 目录(那里**没有** `node_modules`),而引擎依赖(`@remotion/bundler` 等)装在 workspace 根(`<RUN_DIR>` 的上一级)。`npx tsx` 解析这些 bare import 时从**脚本所在目录**向上找、找不到 —— **改 cwd 治不了**,只有 `NODE_PATH=<workspace>/node_modules` 能让它解析到。漏掉前缀 → 首条渲染必崩 `Cannot find module '@remotion/bundler'`。`<WORKSPACE>` = 你工区 `<RUN_DIR>` 的上一级(那个有 `node_modules` 和 `package.json` 的根);上层会把它的绝对路径给你。PowerShell 下写成 `$env:NODE_PATH="<WORKSPACE>\node_modules"; npx tsx ...`。
+> **`NODE_PATH` 不是可选项,是命令的一部分。** 渲染 harness 住在 plugin 目录(那里**没有** `node_modules`),而引擎依赖(`@remotion/bundler` 等)装在 workspace 根。`npx tsx` 解析这些 bare import 时从**脚本所在目录**向上找、找不到 —— **改 cwd 治不了**,只有 `NODE_PATH=<workspace>/node_modules` 能让它解析到。漏掉前缀 → 首条渲染必崩 `Cannot find module '@remotion/bundler'`。`<WORKSPACE>` = 上层明确给定的、含 `node_modules` 和 `package.json` 的工区根(不一定是 `<RUN_DIR>` 的直接上一级);上层会把它的绝对路径给你。PowerShell 下写成 `$env:NODE_PATH="<WORKSPACE>\node_modules"; npx tsx ...`。
 
 渲完抽看 2-3 帧确认非白屏。然后**别急着交**——按装备 §4 做渲染自检(你本人验收,带原标准,拿真帧喂,该改实现改实现、该改设计改设计、拒签"可接受残差")。自检过了,才轮到 design-盲的甲方看效果。
 
-进甲乙环后:每轮你会收到甲方判词(由上层逐字摆渡进来),按装备 §5 环纪律逐条处置(该改的改、要兑现的实现到读得出来、站得住的带像素证据驳),修完重渲到 `out/r⟨N⟩`、抽看非白屏、把本轮修复追加进 FIXES.md。
+自检重渲时,每版使用更大编号的未用输出目录,保留已完成版与失败尝试;两条渲染命令指向同一版本,抽帧时用 `--video` 明确指定该版 mp4。
+
+进甲乙环后:每轮你会收到甲方判词、评审轮次 `⟨REVIEW_ROUND⟩`、受评条带 `⟨STRIP_DIR⟩` 和下一次渲染的绝对目录 `⟨NEXT_OUT_DIR⟩`。按装备 §5 环纪律逐条处置(该改的改、要兑现的实现到读得出来、站得住的带像素证据驳),两条渲染命令分别输出到 `⟨NEXT_OUT_DIR⟩` 及其 `strip/`,抽帧显式使用 `⟨NEXT_OUT_DIR⟩/video.mp4`。自检再渲沿用上面的未用目录规则。输入/输出目录缺失、冲突或目标在开始渲染前已被占用,先回报上层纠正交接。评审轮次不决定渲染编号:第 1 轮评 r3,修复可从 r4 开始。抽看非白屏,把本轮修复及实际输出目录追加进 FIXES.md。
 
 **交付靠回报,不靠 idle。** 你每完成一个阶段,必须**显式 SendMessage 回上层编排者**——别只是停下让回合(上层无法把"我还在自检"和"我做完了"区分开)。两个交付点必报:
 - **定稿(settled)**:你自己的 §4 渲染自检全部过了、不再主动重渲,回报一句 `draw 定稿`,并写明**哪个 `out/rN` 是你的 canonical 版本**(自检可能已把它推到 r2/r3,不一定是 r1)。上层靠这条决定何时盲选——不报,它就不知道你定稿了,可能拿你的半成品去评。
-- **每轮(round N done)**:环里每轮重渲+验非白屏后,回报 `round N done` 并写明新的 `out/rN/strip` 路径,让上层把当前帧摆渡给甲。
+- **每轮(round ⟨REVIEW_ROUND⟩ done)**:环里每轮重渲+验非白屏后,回报 `round ⟨REVIEW_ROUND⟩ done` 并写明实际最终输出目录及其 `strip/` 的绝对路径(同轮自检可能已再渲多次),让上层把当前帧摆渡给甲。
 
 边界:只读写自己的工区 `<RUN_DIR>` + 上述 `${CLAUDE_PLUGIN_ROOT}/tools/` 渲染命令 + 你的装备/轴 ref + RBP skill;不 git commit。

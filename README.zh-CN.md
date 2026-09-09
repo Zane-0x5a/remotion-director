@@ -108,28 +108,22 @@ remotion-director 就是围绕这个赌注造出来的、能跑的管线。你�
 
 (本仓库自身即 marketplace:根目录的 `.claude-plugin/marketplace.json` 以 `source: "."` 列出了这个插件。)然后调用 `create` skill。
 
-### 前置依赖(`create` skill 的 Step 0 会替你检查)
+### 工程环境自动更新
 
-- **Node.js**(给渲染工具用)和 **npm**。
-- **ffmpeg** 在你的 PATH 上——**必需**。帧条采样器靠它找出运动的*标点*(批判家要读的「持定帧 vs 运动中帧」)。缺了 ffmpeg,采样器会静默退化成均匀采样,破坏经验证的批判家选帧机制——所以在它就位前,管线会拒绝运行。
-  - Windows:`winget install Gyan.FFmpeg` · macOS:`brew install ffmpeg` · Linux:`apt install ffmpeg`
-- **`remotion-best-practices` skill**——builder 读它来获取*实时*的引擎能力面。它**单独所有、随上游热更新**(来自 [`remotion-dev/skills`](https://github.com/remotion-dev/skills)),**不打包**进本插件。自上游 2026-07 重构起,它是一个**路由技能**,frontmatter 里的 `version:` 即它所描述的 Remotion 版本。**技能与引擎是一对版本配对**:本插件把引擎精确锁定(不用 `^`)在管线验证过的版本上,`check-env` 会对两者的漂移告警(并拒收重构前的旧版单体形态)。若缺失,从其官方源安装:
-  ```bash
-  npx skills add remotion-dev/skills -g
-  ```
-  (`-g` 为全局安装;装在你 workspace 下的 `.agents/skills` / `.claude/skills` 项目级副本同样会被 `check-env` 探测到。)
-- **引擎依赖**(Remotion 4.0.515——精确锁定——+ three + 工具链)——由 `create` skill 的脚手架步逐片装进你的 workspace(一次 `npm install`)。
+`create` 在确认委托与工区后、开始任何抽卡前,自动准备工程环境:
 
-> **真实运行时,以上这些都不需要你动手。** Step 0 会检查环境并自行修复引擎依赖漂移(`--fix`);剩下的项(技能、ffmpeg)agent 会**主动提出替你安装,只向你请求一次确认**(因为它们要写到你的项目目录之外)。上面的命令仅供你想提前装好时使用。
+- **Remotion 引擎**:每次开工查询 npm 的最新稳定版,统一更新所有 `remotion` / `@remotion/*` 依赖,包括项目额外安装的包,并按目标版本建议调整已有的相关媒体依赖。
+- **RBP 技能**:每次与官方 [`remotion-dev/skills`](https://github.com/remotion-dev/skills) 上游的完整技能目录比对。优先复用全局安装(`~/.agents/skills`、`$CODEX_HOME/skills` 或 Claude 技能目录),内容不同时原位更新;没有全局安装才放到工区的 `.remotion-director/` 下。builder 读取检查器输出的 `RBP_SKILL_PATH`。
+- **本机工具**:需要 Node.js、npm、Git 和完整 ffmpeg。检查器实际验证 ffmpeg 的 rawvideo、scale、crop 能力;Remotion 自带的裁剪版 ffmpeg 不一定满足要求。缺少时由 agent 按宿主权限策略安装。
 
-你也可以随时自己跑环境检查:
+工程版本由上游维护,不作为本插件的设计限制。同一轮制作共享开工时准备好的环境;下一支片再次自动追新。工区的 `package.json` / lockfile 记录本次实际解析版本,不是插件固定支持版本。RBP 与 npm 发版时间不一致时提示实际版本,不因版本号不等而阻止使用。
+
+手动触发同一自动准备流程(缺失工区也会创建):
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <你的项目目录>
 ```
-若它报出引擎依赖漂移(比如旧版本插件创建的 workspace),`--fix` 会确定性地修复——把锁定的依赖合并进 workspace 的 `package.json`(保留你自己的条目)并执行 `npm install`:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <你的项目目录> --fix
-```
+
+`--fix` 是上述默认行为的兼容别名。只检查已记录的当前安装、不联网更新时使用 `--check`。更新失败会报错退出;修复网络或安装问题后重跑,不会把旧环境冒充最新。RBP 下载校验通过后才替换现有技能,内容相同则不写入。全局更新会影响共用该技能的其他项目,应在开始并行施工前协调;制作途中若确需升级,由编排者暂停相关施工后统一更新并重渲。
 
 ## 用法
 
@@ -163,7 +157,7 @@ node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <你的项目目录
 
 - **Skills** —— `create`(编排器 + 产品入口)、`design-brain`(装载设计装备 + 7 份轴 ref)、`critic-loop`(盲选 + 甲乙环)。
 - **Agents** —— `builder`(乙:设计施工一体、连续上下文)、`aesthetic-critic`(甲:对设计盲、持续、只报现象)、`blind-selector`(挑出最有潜力的基底)、`tempo-pass`(收尾的节奏刀,刻意用新上下文)。
-- **Tools** —— `render-arm.ts`(6 静帧 + mp4)、`render-strip.ts`(批判家要读的那些帧)、`check-env.mjs`(Step 0 的检查)。
+- **Tools** —— `render-arm.ts`(6 静帧 + mp4)、`render-strip.ts`(批判家要读的那些帧)、`check-env.mjs`(Step 1 的自动更新与检查)。
 
 > **这条帧条比看上去更讲究。** 批判家是个 VLM——它看的是静帧,不是视频——所以 `render-strip.ts` 不做均匀采样(均匀采样会把一个干净的半秒位移抽成一摞「叠字」静帧,把一个完美的瞬态判成缺陷)。它从渲好的 mp4 上量运动,只抽运动的**标点**:每个停顿给一张*持定(held)*帧(真正的构图,可以拿来判),外加只属于运动的*中途(mid)*帧——后者被明确规定永不计为缺陷。在这里,选帧是一个设计决策,不是水管活——详见 [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md)。
 
