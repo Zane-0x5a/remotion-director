@@ -3,7 +3,7 @@
   "version": "0.3.1",
   "private": true,
   "license": "MIT",
-  "description": "Remotion engine + render harnesses for the remotion-director 甲乙环 pipeline. The design knowledge lives in skills/; this package provides the engine deps and the render/strip tooling.",
+  "description": "Remotion engine + render harnesses for the remotion-director \u7532\u4e59\u73af pipeline. The design knowledge lives in skills/; this package provides the engine deps and the render/strip tooling.",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "prepare-environment": "node tools/check-env.mjs",
@@ -34,5 +34,8 @@
     "@types/react": "^19.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.4.0"
+  },
+  "overrides": {
+    "browserslist": "4.28.7"
   }
 }
