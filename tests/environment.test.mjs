@@ -35,6 +35,10 @@ function fixture(t) {
           writeJson(join(workspace, 'node_modules', ...name.split('/'), 'package.json'), { name, version: spec.replace(/^[^\d]*/, '') });
         }
       }
+      for (const [name, spec] of Object.entries(pkg.overrides ?? {})) {
+        if (typeof spec !== 'string') continue;
+        writeJson(join(workspace, 'node_modules', ...name.split('/'), 'package.json'), { name, version: spec.replace(/^[^\d]*/, '') });
+      }
       writeJson(join(workspace, 'package-lock.json'), { lockfileVersion: 3 });
     } else assert.fail(`Unexpected command: ${args}`);
     return '';
@@ -52,7 +56,7 @@ test('updates all Remotion dependency sections and preserves unrelated project s
   const result = planDependencies(current, defaults, '4.0.900', { mediabunny: '1.99.0', zod: '^4.5.0' });
   assert.deepEqual(current, snapshot);
   assert.deepEqual(result.scripts, current.scripts);
-  assert.deepEqual(result.overrides, current.overrides);
+  assert.deepEqual(result.overrides, { ...current.overrides, ...defaults.overrides });
   assert.equal(result.dependencies.react, '^19.1.0');
   assert.equal(result.dependencies.custom, 'file:../custom');
   assert.equal(result.dependencies.remotion, undefined);
@@ -61,6 +65,12 @@ test('updates all Remotion dependency sections and preserves unrelated project s
   assert.equal(result.optionalDependencies['@remotion/sfx'], '4.0.900');
   assert.equal(result.peerDependencies['@remotion/media'], '4.0.900');
   assert.equal(result.optionalDependencies['@mediabunny/aac-encoder'], '1.99.0');
+});
+
+test('planDependencies enforces the plugin security override while preserving unrelated ones', () => {
+  const current = { overrides: { 'existing-package': '1.2.3', browserslist: '4.28.2' } };
+  const result = planDependencies(current, defaults, '4.0.900', {});
+  assert.deepEqual(result.overrides, { 'existing-package': '1.2.3', browserslist: '4.28.7' });
 });
 
 for (const value of ['4.1.0-alpha1', 'latest', '4.0.900 & echo bad', null]) {
@@ -187,6 +197,20 @@ test('mixed engine versions are rejected by local check', async (t) => {
   const f = fixture(t); await f.sync();
   writeJson(join(f.workspace, 'node_modules', '@remotion', 'renderer', 'package.json'), { version: '4.0.1' });
   assert.ok(checkEnvironment(f.workspace, f.execute).errors.some(error => error.includes('@remotion/renderer')));
+});
+
+test('an existing workspace on the vulnerable browserslist is updated by sync', async (t) => {
+  const f = fixture(t);
+  writeJson(join(f.workspace, 'node_modules', 'browserslist', 'package.json'), { name: 'browserslist', version: '4.28.2' });
+  await f.sync();
+  assert.equal(JSON.parse(readFileSync(join(f.workspace, 'node_modules', 'browserslist', 'package.json'), 'utf8')).version, '4.28.7');
+  assert.deepEqual(checkEnvironment(f.workspace, f.execute).errors, []);
+});
+
+test('an unresolved override is rejected by local check', async (t) => {
+  const f = fixture(t); await f.sync();
+  writeJson(join(f.workspace, 'node_modules', 'browserslist', 'package.json'), { name: 'browserslist', version: '4.28.2' });
+  assert.ok(checkEnvironment(f.workspace, f.execute).errors.some(error => error.includes('browserslist')));
 });
 
 test('ffmpeg that lacks rawvideo or crop cannot pass preflight', async (t) => {

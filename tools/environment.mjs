@@ -53,6 +53,9 @@ export function planDependencies(current, defaults, version, studioDependencies)
       throw new Error(`Invalid ${section} in package.json`);
     }
   }
+  if (planned.overrides != null && (typeof planned.overrides !== 'object' || Array.isArray(planned.overrides))) {
+    throw new Error('Invalid overrides in package.json');
+  }
   // Existing packages stay in their original sections; add only absent toolchain dependencies.
   for (const section of ['dependencies', 'devDependencies']) {
     for (const [name, spec] of Object.entries(defaults[section] ?? {})) {
@@ -70,6 +73,10 @@ export function planDependencies(current, defaults, version, studioDependencies)
         if (spec) planned[section][name] = spec;
       }
     }
+  }
+  // Enforce the plugin's own security constraints in the generated workspace, without discarding the workspace's overrides.
+  if (defaults.overrides) {
+    planned.overrides = { ...(planned.overrides ?? {}), ...defaults.overrides };
   }
   return planned;
 }
@@ -90,6 +97,11 @@ function engineErrors(workspace, manifest, expected) {
   }
   for (const name of ['remotion', '@remotion/bundler', '@remotion/renderer', '@remotion/cli', 'tsx', 'typescript', 'react', 'react-dom', 'three', '@react-three/fiber']) {
     if (!installedVersion(workspace, name)) errors.push(`Required dependency missing or unreadable: ${name}`);
+  }
+  for (const [name, spec] of Object.entries(manifest.overrides ?? {})) {
+    if (typeof spec !== 'string') continue; // skip nested per-parent override shapes
+    const actual = installedVersion(workspace, name);
+    if (actual !== spec) errors.push(`${name}: override ${spec}, installed ${actual ?? 'missing'}`);
   }
   return errors;
 }
