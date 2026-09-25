@@ -1,18 +1,19 @@
 {
-  "name": "remotion-director",
-  "version": "0.3.2",
+  "name": "remotion-director-codex",
+  "version": "0.4.0",
   "private": true,
+  "type": "module",
   "license": "MIT",
-  "description": "Remotion engine + render harnesses for the remotion-director 甲乙环 pipeline. The design knowledge lives in skills/; this package provides the engine deps and the render/strip tooling.",
-  "scripts": {
-    "build:plugins": "node tools/generate-claude-plugin.mjs && node tools/generate-codex-plugin.mjs",
-    "check:plugins": "node tools/generate-claude-plugin.mjs --check && node tools/generate-codex-plugin.mjs --check",
-    "test": "node --test tests/*.test.mjs",
-    "prepare-environment": "node tools/check-env.mjs",
-    "render-arm": "tsx tools/render-arm.ts",
-    "render-strip": "tsx tools/render-strip.ts",
-    "typecheck": "tsc --noEmit"
-  },
+  "description": "Runtime dependency snapshot used by the remotion-director Codex launcher; dependencies install into each user workspace.",
+  "files": [
+    "plugin.json",
+    ".codex-plugin",
+    "skills",
+    "internal",
+    "tools",
+    "SOURCE-PROVENANCE.json",
+    "CODEX-HOST-SEAMS.json"
+  ],
   "dependencies": {
     "@react-three/fiber": "^9.6.1",
     "@remotion/bundler": "4.0.523",

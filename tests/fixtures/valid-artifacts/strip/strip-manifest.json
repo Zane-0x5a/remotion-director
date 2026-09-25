@@ -1,0 +1,100 @@
+{
+  "mode": "punctuated",
+  "video": "video.mp4",
+  "pHigh": 0.9,
+  "lowFrac": 0.5,
+  "shortMax": 12,
+  "spanPerMid": 15,
+  "high": 18.006,
+  "low": 9.003,
+  "counts": {
+    "held": 4,
+    "mid": 2
+  },
+  "segments": [
+    {
+      "kind": "pause",
+      "start": 0,
+      "end": 36,
+      "reps": [
+        0
+      ]
+    },
+    {
+      "kind": "motion",
+      "start": 37,
+      "end": 42,
+      "reps": [
+        41
+      ]
+    },
+    {
+      "kind": "pause",
+      "start": 43,
+      "end": 48,
+      "reps": [
+        45
+      ]
+    },
+    {
+      "kind": "motion",
+      "start": 49,
+      "end": 51,
+      "reps": [
+        50
+      ]
+    },
+    {
+      "kind": "pause",
+      "start": 52,
+      "end": 89,
+      "reps": [
+        52
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "role": "held",
+      "dIn": 0,
+      "dOut": 0,
+      "file": "seq-00_f000_held.png"
+    },
+    {
+      "frame": 41,
+      "role": "mid",
+      "dIn": 21.847,
+      "dOut": 22.91,
+      "file": "seq-01_f041_mid.png"
+    },
+    {
+      "frame": 45,
+      "role": "held",
+      "dIn": 0.009,
+      "dOut": 0,
+      "file": "seq-02_f045_held.png"
+    },
+    {
+      "frame": 50,
+      "role": "mid",
+      "dIn": 214.836,
+      "dOut": 214.837,
+      "file": "seq-03_f050_mid.png"
+    },
+    {
+      "frame": 52,
+      "role": "held",
+      "dIn": 0,
+      "dOut": 0,
+      "file": "seq-04_f052_held.png"
+    },
+    {
+      "frame": 89,
+      "role": "held",
+      "dIn": 0,
+      "dOut": 0,
+      "file": "seq-05_f089_held.png"
+    }
+  ]
+}

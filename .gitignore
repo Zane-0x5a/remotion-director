@@ -23,6 +23,7 @@ node_modules/
 
 # Strip manifests are tiny JSON but live beside output dirs; keep them out too
 **/strip-manifest.json
+!tests/fixtures/valid-artifacts/strip/strip-manifest.json
 
 # OS / editor
 .DS_Store

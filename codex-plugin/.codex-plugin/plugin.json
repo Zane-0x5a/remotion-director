@@ -1,0 +1,28 @@
+{
+  "name": "remotion-director",
+  "version": "0.4.0",
+  "description": "The remotion-director 甲乙环 pipeline for Codex: one public entry skill with bundled design equipment, native role lifecycle guidance, and cross-platform rendering tools.",
+  "interface": {
+    "displayName": "Remotion Director",
+    "shortDescription": "Build and refine short Remotion motion pieces from a brief.",
+    "longDescription": "Run the remotion-director 甲乙环 pipeline in Codex: independent builder draws, blind selection, persistent pixel critique, a fresh tempo pass, and final user visual acceptance.",
+    "developerName": "Zane",
+    "category": "Creativity",
+    "capabilities": [
+      "motion design",
+      "Remotion rendering",
+      "visual critique"
+    ],
+    "defaultPrompt": "Create a finished Remotion motion piece from this brief: "
+  },
+  "author": {
+    "name": "Zane"
+  },
+  "keywords": [
+    "remotion",
+    "motion-graphics",
+    "critic-loop",
+    "codex"
+  ],
+  "skills": "./skills/"
+}

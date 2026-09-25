@@ -1,5 +1,7 @@
 # remotion-director
 
+> **Codex 适配（待验收）：**生成包位于 `codex-plugin/`。参见[安装与使用](docs/CODEX-INSTALL.md)、[移植计划](docs/CODEX-MIGRATION-PLAN.md)和[验收记录](docs/CODEX-VALIDATION.md)。已验证安装后的渲染路径；完整创作验收仍是发布阻塞项。
+
 <div align="center">
 
 
@@ -106,7 +108,34 @@ remotion-director 就是围绕这个赌注造出来的、能跑的管线。你�
 /plugin install remotion-director@remotion-director
 ```
 
-(本仓库自身即 marketplace:根目录的 `.claude-plugin/marketplace.json` 以 `source: "."` 列出了这个插件。)然后调用 `create` skill。
+(本仓库自身即 marketplace:根目录的 `.claude-plugin/marketplace.json` 指向生成的 `./claude-plugin` 发布包。)然后调用 `create` skill。安装包只包含 Claude 所需的技能、角色、运行工具和依赖默认值，不包含 Codex 包、测试、移植文档及宣传视频。
+
+独立发布包目前位于移植分支。要提前试用，并同时缩小 marketplace 仓库检出范围，在终端运行：
+
+```sh
+claude plugin marketplace add Zane-0x5a/remotion-director#codex/codex-plugin-migration --sparse .claude-plugin claude-plugin
+claude plugin install remotion-director@remotion-director
+```
+
+合并后去掉 `#codex/codex-plugin-migration`。`--sparse` 避免在 marketplace 的工作树里检出另一宿主的发布包；普通 GitHub 市场注册仍可能单独缓存整仓，这与实际安装的插件目录是两层。已有用户需刷新市场并将插件更新到 `0.3.2`，才能切换到独立包。详见[分发与更新说明](docs/PLUGIN-DISTRIBUTION.md)。
+
+### Codex
+
+Codex 使用仓库里独立的 marketplace 条目，条目指向 `./codex-plugin`，对外的插件名仍是 `remotion-director`。当前预览位于移植分支：
+
+```
+codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
+codex plugin add remotion-director@remotion-director-codex
+```
+
+PR 合并后省略 `--ref`，让 Codex 从默认分支读取：
+
+```
+codex plugin marketplace add Zane-0x5a/remotion-director
+codex plugin add remotion-director@remotion-director-codex
+```
+
+安装或更新后请开启新 task，或重启宿主，让 skill 重新发现。两套市场各自安装生成的发布目录：Claude 使用 `./claude-plugin`，Codex 使用 `./codex-plugin`；根目录 `skills/` 和 `agents/` 仍是共用的编辑源。共享的 `render-strip` manifest 只新增了 `file` 字段，这是两边实际共用的运行时变化；共享的全局 RBP 更新也会按原有策略影响两边。完整的 Codex 工区要求见 [`docs/CODEX-INSTALL.md`](docs/CODEX-INSTALL.md)。
 
 ### 工程环境自动更新
 

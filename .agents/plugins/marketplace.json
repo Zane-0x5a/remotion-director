@@ -1,0 +1,20 @@
+{
+  "name": "remotion-director-codex",
+  "interface": {
+    "displayName": "Remotion Director for Codex"
+  },
+  "plugins": [
+    {
+      "name": "remotion-director",
+      "source": {
+        "source": "local",
+        "path": "./codex-plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Creativity"
+    }
+  ]
+}
