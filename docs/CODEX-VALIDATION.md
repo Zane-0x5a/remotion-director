@@ -38,12 +38,14 @@ Final post-review results on 2026-09-25:
 | Installed package content comparison | 28 non-manifest files matched byte-for-byte; only the two test-install manifests carry the same local cachebuster |
 | Final installed fixture render and artifact verification | Passed: 1080×1920, 30fps, 6 seconds, six stills and eight strip frames |
 | Repository marketplace installation | Local repository registration and installation passed in a separate temporary Codex profile; selected `./codex-plugin`, version `0.4.0` |
+| GitHub preview installation and discovery | Documented `marketplace add ... --ref codex/codex-plugin-migration` and `plugin add` succeeded from remote commit `e512f14`; app-server found exactly one enabled plugin-owned skill |
 | Claude marketplace validation | `claude plugin validate .` selected `.claude-plugin/marketplace.json` and passed; root skills, agents and Claude manifests match the source baseline |
 
 The artifact tests require a working `ffprobe` on PATH and use the committed media in `tests/fixtures/valid-artifacts`; they need no network, global RBP writes or ignored local render files. On this Windows host the final unit suite used the installed Remotion compositor's `ffprobe`. Starting the separate full FFmpeg binary inside the sandbox returned `EPERM`; using the existing compositor binary at the same permission level worked. Full rendering and strip extraction used the approved elevated full-FFmpeg path, as noted below.
 
 ## Installed execution observed
 
+- Direct GitHub installation was also checked in a fresh temporary Codex profile. The repository marketplace `remotion-director-codex` selected the generated `codex-plugin/` package, installed version `0.4.0`, and exposed only `remotion-director:remotion-director`. The probe used a separate empty workspace and did not modify the normal user profile. Windows Git TLS returned `SEC_E_NO_CREDENTIALS` inside the sandbox; the same documented install succeeded with approved elevated execution and the command-local proxy. Discovery then succeeded inside the sandbox.
 - Host: Windows; bundled Codex CLI `0.155.0-alpha.16.4`.
 - Test profile and local marketplace were isolated under the system temporary directory. The source plugin was copied into that marketplace, then installed into the profile cache.
 - `plugin add`, `plugin list`, and app-server `skills/list` discovered exactly one plugin skill: `remotion-director:remotion-director`. Internal design/critic references were not separately discoverable skills.
