@@ -1,5 +1,7 @@
 # remotion-director
 
+> **Codex adaptation (draft):** the generated package is in `codex-plugin/`. See [installation and usage](docs/CODEX-INSTALL.md), the [migration plan](docs/CODEX-MIGRATION-PLAN.md), and [validation status](docs/CODEX-VALIDATION.md). Installed rendering has been exercised; complete creative acceptance remains a release blocker.
+
 <div align="center">
 
 

@@ -1,5 +1,7 @@
 # remotion-director
 
+> **Codex 适配（待验收）：**生成包位于 `codex-plugin/`。参见[安装与使用](docs/CODEX-INSTALL.md)、[移植计划](docs/CODEX-MIGRATION-PLAN.md)和[验收记录](docs/CODEX-VALIDATION.md)。已验证安装后的渲染路径；完整创作验收仍是发布阻塞项。
+
 <div align="center">
 
 

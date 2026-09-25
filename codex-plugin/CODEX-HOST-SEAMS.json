@@ -1,0 +1,16 @@
+{
+  "allowed": [
+    "CLAUDE_PLUGIN_ROOT -> <PLUGIN_ROOT> (the orchestrator resolves this from the installed skill path)",
+    "AskUserQuestion -> host request-user-input operation",
+    "SendMessage -> host continuation/follow-up operation; the final message is a report only when the host cannot send a continuation",
+    "bash NODE_PATH=<workspace>/node_modules npx tsx -> node <PLUGIN_ROOT>/tools/codex-launcher.mjs render-* --workspace <WORKSPACE>",
+    "Claude agent frontmatter/tool lists -> native Codex role lifecycle guidance in internal/roles"
+  ],
+  "forbiddenResiduals": [
+    "${CLAUDE_PLUGIN_ROOT}",
+    "AskUserQuestion",
+    "SendMessage",
+    "NODE_PATH=\""
+  ],
+  "note": "This is a host adapter. Prompt blindness is a protocol constraint plus observed access evidence, not filesystem isolation."
+}

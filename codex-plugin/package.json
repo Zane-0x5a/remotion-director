@@ -1,0 +1,41 @@
+{
+  "name": "remotion-director-codex",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Runtime dependency snapshot used by the remotion-director Codex launcher; dependencies install into each user workspace.",
+  "files": [
+    "plugin.json",
+    ".codex-plugin",
+    "skills",
+    "internal",
+    "tools",
+    "SOURCE-PROVENANCE.json",
+    "CODEX-HOST-SEAMS.json"
+  ],
+  "dependencies": {
+    "@react-three/fiber": "^9.6.1",
+    "@remotion/bundler": "4.0.523",
+    "@remotion/cli": "4.0.523",
+    "@remotion/effects": "4.0.523",
+    "@remotion/google-fonts": "4.0.523",
+    "@remotion/layout-utils": "4.0.523",
+    "@remotion/light-leaks": "4.0.523",
+    "@remotion/media": "4.0.523",
+    "@remotion/motion-blur": "4.0.523",
+    "@remotion/renderer": "4.0.523",
+    "@remotion/three": "4.0.523",
+    "@types/three": "^0.184.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.523",
+    "three": "^0.184.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.4.0"
+  }
+}

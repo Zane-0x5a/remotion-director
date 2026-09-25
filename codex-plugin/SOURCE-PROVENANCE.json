@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-09-25T10:31:05.992Z",
+  "sourceRoot": "skills/, agents/, tools/",
+  "source": {
+    "skills": {
+      "hash": "4e3cb0c18815045894b473e8c3a659363673779656f621da9d54f35f562533ef",
+      "count": 13
+    },
+    "agents": {
+      "hash": "faac74c510c3bc4aad96ff578feb060bb1dfbf240c1e70ef19d0cfa09e1e0d44",
+      "count": 4
+    },
+    "tools": {
+      "hash": "b3d89a49c823b8fa1fbe85d4c15895ddc5004ce4e39bd538f468d7e30b199372",
+      "count": 7
+    }
+  },
+  "output": {
+    "publicSkills": [
+      "remotion-director"
+    ],
+    "internalSkills": [
+      "design-brain",
+      "critic-loop"
+    ],
+    "internalRoles": [
+      "builder",
+      "aesthetic-critic",
+      "blind-selector",
+      "tempo-pass"
+    ],
+    "runtimeTools": [
+      "check-env.mjs",
+      "environment.mjs",
+      "rbp.mjs",
+      "render-arm.ts",
+      "render-strip.ts",
+      "codex-runtime.mjs",
+      "codex-launcher.mjs"
+    ]
+  }
+}
