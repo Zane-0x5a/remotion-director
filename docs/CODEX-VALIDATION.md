@@ -9,8 +9,8 @@ This record separates engineering checks from acceptance of the creative product
 From the repository root:
 
 ```text
-node tools/generate-codex-plugin.mjs
-node tools/generate-codex-plugin.mjs --check
+npm run build:plugins
+npm run check:plugins
 npm test
 npm run typecheck
 ```
@@ -30,8 +30,8 @@ Final post-review results on 2026-09-25:
 | --- | --- |
 | Full distribution regeneration and `--check` | Passed; complete output tree matches source plus declared host transforms |
 | Plugin and public-skill validators | Passed |
-| `npm test` | 63/63 passed, including 12 independent primary-review boundary tests and the repository marketplace routing check |
-| Clean export of staged files | Regeneration check and all 62 tests passed with no ignored workspace files or local `node_modules`; only an external `ffprobe` was supplied on PATH |
+| `npm test` | 69/69 passed after separate Claude packaging, including six distribution tests, 12 independent primary-review boundary tests and marketplace routing |
+| Clean export of staged files | Both generation checks and all 69 tests passed with no ignored workspace files or local `node_modules`; only an external `ffprobe` was supplied on PATH |
 | `npm run typecheck` | Passed |
 | JavaScript syntax and staged whitespace checks | Passed, allowing the existing trailing blank line preserved from source `texture.md`; ordinary `git diff --check` reports that one copied-source whitespace warning |
 | Final isolated reinstall and skill discovery | Passed; exactly one plugin-owned public skill |
@@ -55,6 +55,24 @@ The artifact tests require a working `ffprobe` on PATH and use the committed med
 - The final rerun used `fixture/out/r7`; its MP4 SHA-256 is `6ccb7a190fb6e59d3c7f69d253dea20c355f898ada978192b2a46370357ea2cf`. The installed launcher verified source binding, dimensions, duration, video, all six stills and all eight strip frames. This is an engineering fixture, not creative acceptance.
 - Full ffmpeg 8.1.1 was supplied on the command-local PATH. Chromium 149.0.7790.0 came from an existing local cache after the original download failed. The successful render used an approved elevated process; sandbox-only rendering was not established.
 - Environment preparation resolved stable Remotion 4.0.529 and upstream RBP version 4.0.529 at the time of the run. Existing global RBP was updated in place and reused on a second check; no workspace RBP copy was created. These are observations, not supported-version pins.
+
+## Separate Claude installation follow-up
+
+The root-source install was reproduced with Claude Code `2.1.281`, remote branch commit `8d18a07`, in a temporary profile. Its `0.3.1` active cache included `codex-plugin/`, docs, tests, media, the root lockfile and an automatically installed `node_modules`: 23,031 files and 365,718,431 bytes on this host, including Claude's cache marker. These numbers describe the observed install, not a fixed download size.
+
+The `6f715cb` distribution change was tested through GitHub using two isolated profiles:
+
+- Fresh sparse registration: `claude plugin marketplace add Zane-0x5a/remotion-director#codex/codex-plugin-migration --sparse .claude-plugin claude-plugin`, then `claude plugin install remotion-director@remotion-director --json` succeeded.
+- Existing full registration: `claude plugin marketplace update remotion-director`, then `claude plugin update remotion-director@remotion-director --json` reported an actual `0.3.1` to `0.3.2` update.
+- Both active caches contained exactly the 27 distribution files, 199,767 bytes, plus Claude's `.in_use` marker. File-by-file comparison matched the generated package after normalizing only Git checkout line endings. No Codex package/runtime, tests, docs, lockfile or `node_modules` was installed.
+- `plugin details` still listed the original three skills and four agents. Both catalog and nested plugin manifest passed Claude CLI validation. Original source skills, agents and shared runtime text remain unchanged by the packaging change.
+- The fresh marketplace working tree had only `.claude-plugin/`, `claude-plugin/`, `.git/` and Git sparse-checkout's retained top-level files. It had no `codex-plugin/`, `docs/`, `tests/` or root skill/agent directories. The old full marketplace checkout and old `0.3.1` cache remain separate; upgrading does not purge them.
+- The installed `check-env.mjs --help` worked from an unrelated directory. `--check` validated the already prepared production workspace without network or global RBP changes.
+- The new installed Claude `render-arm.ts` and `render-strip.ts` ran with `NODE_PATH` pointing to that workspace's dependencies, with no dependencies in the plugin cache. They produced a 6-second 1080×1920, 30fps MP4, six stills and eight strip frames at `fixture/out/claude-package-r1`. Metadata, strip filenames and a rendered still were inspected. The full renderer used approved elevated execution, existing Chromium and full FFmpeg as in the prior fixture; this proves package dependency resolution, not creative acceptance.
+
+The initial remote registration hit the known Windows Git TLS sandbox error `SEC_E_NO_CREDENTIALS`; approved elevated registration, installation and update succeeded through the command-local proxy. Normal user profiles were not changed. Both generators and all 69 tests also passed from a clean LF export of the staged repository, with no local `node_modules`. Final Windows-case guard cleanup passed the focused seven packaging/routing tests and generation check.
+
+Primary review corrected platform-dependent provenance hashes and strengthened output replacement checks against source directories and symlink/junction ancestors. The generator rejects missing/changed/extra output; Claude source content is copied without host transformations. Installation/update commands and cache boundaries are documented in [PLUGIN-DISTRIBUTION.md](PLUGIN-DISTRIBUTION.md).
 
 ## Primary review
 

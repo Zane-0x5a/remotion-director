@@ -22,7 +22,7 @@ import {
 } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -148,10 +148,15 @@ function assertSourceReady() {
   }
 }
 
+function comparablePath(path) {
+  const value = resolve(path).replaceAll('\\', '/');
+  return process.platform === 'win32' ? value.toLowerCase() : value;
+}
+
 function isWithin(path, parent) {
-  const value = resolve(path);
-  const root = resolve(parent);
-  return value === root || value.startsWith(root + sep);
+  const value = comparablePath(path);
+  const root = comparablePath(parent);
+  return value === root || value.startsWith(root + '/');
 }
 
 /**
@@ -185,8 +190,8 @@ function assertSafeOutput(target) {
       const stat = lstatSync(current);
       // Junctions on Windows can be reported differently from POSIX symlinks;
       // realpath comparison catches both kinds of redirecting ancestor.
-      const canonical = resolve(realpathSync(current));
-      if (stat.isSymbolicLink() || canonical !== resolve(current)) {
+      const canonical = comparablePath(realpathSync(current));
+      if (stat.isSymbolicLink() || canonical !== comparablePath(current)) {
         throw new Error(`Refusing to replace a symlink output path: ${current}`);
       }
     } catch (error) {
