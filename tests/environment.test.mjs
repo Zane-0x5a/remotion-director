@@ -213,6 +213,23 @@ test('an unresolved override is rejected by local check', async (t) => {
   assert.ok(checkEnvironment(f.workspace, f.execute).errors.some(error => error.includes('browserslist')));
 });
 
+test('an unrelated valid range override stays usable while the browserslist security override is still enforced', async (t) => {
+  const f = fixture(t);
+  writeJson(join(f.workspace, 'package.json'), {
+    name: 'user-piece',
+    dependencies: { 'some-lib': '^1.1.1' },
+    overrides: { 'some-lib': '^1.1.1' },
+  });
+  await f.sync();
+  const manifest = JSON.parse(readFileSync(join(f.workspace, 'package.json'), 'utf8'));
+  assert.equal(manifest.overrides['some-lib'], '^1.1.1');
+  assert.deepEqual(checkEnvironment(f.workspace, f.execute).errors, []);
+  writeJson(join(f.workspace, 'node_modules', 'browserslist', 'package.json'), { name: 'browserslist', version: '4.28.2' });
+  const errors = checkEnvironment(f.workspace, f.execute).errors;
+  assert.ok(errors.some(error => error.includes('browserslist')));
+  assert.ok(!errors.some(error => error.includes('some-lib')));
+});
+
 test('ffmpeg that lacks rawvideo or crop cannot pass preflight', async (t) => {
   const f = fixture(t); await f.sync();
   const result = checkEnvironment(f.workspace, () => { throw new Error('rawvideo muxer not found'); });

@@ -1,10 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, delimiter, dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { globalRbpPaths, inspectRbpPath, RBP_SOURCE, rbpPath, syncRbp } from './rbp.mjs';
 
 export { inspectRbpPath, rbpPath } from './rbp.mjs';
 
+const PLUGIN_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const SECTIONS = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 const isRemotion = (name) => name === 'remotion' || name.startsWith('@remotion/');
 const stableVersion = (version) => typeof version === 'string' && /^\d+\.\d+\.\d+$/.test(version);
@@ -86,6 +88,15 @@ function installedVersion(workspace, name) {
   catch { return null; }
 }
 
+// Only the plugin's own security-pinned overrides get strict exact-version enforcement.
+// A workspace's own overrides may legitimately be ranges, which npm already resolves and
+// validates during install — re-checking those against npm semver semantics would need a
+// dependency this repo doesn't have, and literal string comparison would reject them.
+function securityOverrides() {
+  const overrides = readJson(join(PLUGIN_ROOT, 'package.json')).overrides;
+  return overrides && typeof overrides === 'object' && !Array.isArray(overrides) ? overrides : {};
+}
+
 function engineErrors(workspace, manifest, expected) {
   const errors = [];
   for (const section of SECTIONS) {
@@ -98,10 +109,10 @@ function engineErrors(workspace, manifest, expected) {
   for (const name of ['remotion', '@remotion/bundler', '@remotion/renderer', '@remotion/cli', 'tsx', 'typescript', 'react', 'react-dom', 'three', '@react-three/fiber']) {
     if (!installedVersion(workspace, name)) errors.push(`Required dependency missing or unreadable: ${name}`);
   }
-  for (const [name, spec] of Object.entries(manifest.overrides ?? {})) {
-    if (typeof spec !== 'string') continue; // skip nested per-parent override shapes
+  for (const [name, pinned] of Object.entries(securityOverrides())) {
+    if (typeof pinned !== 'string') continue; // skip nested per-parent override shapes
     const actual = installedVersion(workspace, name);
-    if (actual !== spec) errors.push(`${name}: override ${spec}, installed ${actual ?? 'missing'}`);
+    if (actual !== pinned) errors.push(`${name}: override ${pinned}, installed ${actual ?? 'missing'}`);
   }
   return errors;
 }
