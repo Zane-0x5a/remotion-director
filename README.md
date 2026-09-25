@@ -114,6 +114,24 @@ This is a Claude Code plugin. Install it directly from this GitHub repo — no m
 
 (The repo is its own marketplace: `.claude-plugin/marketplace.json` at the root lists this plugin with `source: "."`.) Then invoke the `create` skill.
 
+### Codex
+
+Codex uses the repository's separate marketplace entry, which points at `./codex-plugin` and exposes the same plugin name, `remotion-director`. The current preview is on the migration branch:
+
+```
+codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
+codex plugin add remotion-director@remotion-director-codex
+```
+
+After the pull request merges, omit `--ref` so Codex reads the default branch:
+
+```
+codex plugin marketplace add Zane-0x5a/remotion-director
+codex plugin add remotion-director@remotion-director-codex
+```
+
+Start a new task or restart the host after installing or updating. The Claude marketplace remains rooted at `.claude-plugin/marketplace.json` with `source: "."`; its default root `skills/` and `agents/` routes are unchanged. If a Claude cache also contains `codex-plugin/`, those nested files are inert there. The shared `render-strip` manifest's additive `file` field is the common runtime change, and shared global RBP updates can affect both hosts under the existing update policy. For the full Codex workspace requirements, see [`docs/CODEX-INSTALL.md`](docs/CODEX-INSTALL.md).
+
 ### Automatic engineering updates
 
 After resolving the commission and workspace, `create` prepares the engineering environment before any draw:

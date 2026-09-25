@@ -30,13 +30,15 @@ Final post-review results on 2026-09-25:
 | --- | --- |
 | Full distribution regeneration and `--check` | Passed; complete output tree matches source plus declared host transforms |
 | Plugin and public-skill validators | Passed |
-| `npm test` | 62/62 passed, including 12 independent primary-review boundary tests |
+| `npm test` | 63/63 passed, including 12 independent primary-review boundary tests and the repository marketplace routing check |
 | Clean export of staged files | Regeneration check and all 62 tests passed with no ignored workspace files or local `node_modules`; only an external `ffprobe` was supplied on PATH |
 | `npm run typecheck` | Passed |
 | JavaScript syntax and staged whitespace checks | Passed, allowing the existing trailing blank line preserved from source `texture.md`; ordinary `git diff --check` reports that one copied-source whitespace warning |
 | Final isolated reinstall and skill discovery | Passed; exactly one plugin-owned public skill |
 | Installed package content comparison | 28 non-manifest files matched byte-for-byte; only the two test-install manifests carry the same local cachebuster |
 | Final installed fixture render and artifact verification | Passed: 1080×1920, 30fps, 6 seconds, six stills and eight strip frames |
+| Repository marketplace installation | Local repository registration and installation passed in a separate temporary Codex profile; selected `./codex-plugin`, version `0.4.0` |
+| Claude marketplace validation | `claude plugin validate .` selected `.claude-plugin/marketplace.json` and passed; root skills, agents and Claude manifests match the source baseline |
 
 The artifact tests require a working `ffprobe` on PATH and use the committed media in `tests/fixtures/valid-artifacts`; they need no network, global RBP writes or ignored local render files. On this Windows host the final unit suite used the installed Remotion compositor's `ffprobe`. Starting the separate full FFmpeg binary inside the sandbox returned `EPERM`; using the existing compositor binary at the same permission level worked. Full rendering and strip extraction used the approved elevated full-FFmpeg path, as noted below.
 

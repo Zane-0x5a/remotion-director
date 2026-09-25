@@ -110,6 +110,24 @@ remotion-director 就是围绕这个赌注造出来的、能跑的管线。你�
 
 (本仓库自身即 marketplace:根目录的 `.claude-plugin/marketplace.json` 以 `source: "."` 列出了这个插件。)然后调用 `create` skill。
 
+### Codex
+
+Codex 使用仓库里独立的 marketplace 条目，条目指向 `./codex-plugin`，对外的插件名仍是 `remotion-director`。当前预览位于移植分支：
+
+```
+codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
+codex plugin add remotion-director@remotion-director-codex
+```
+
+PR 合并后省略 `--ref`，让 Codex 从默认分支读取：
+
+```
+codex plugin marketplace add Zane-0x5a/remotion-director
+codex plugin add remotion-director@remotion-director-codex
+```
+
+安装或更新后请开启新 task，或重启宿主，让 skill 重新发现。Claude marketplace 仍由 `.claude-plugin/marketplace.json` 管理并保持 `source: "."`；它默认使用仓库根目录的 `skills/` 和 `agents/`，这些路由没有改指向 Codex 子目录。Claude 缓存里即使出现嵌套的 `codex-plugin/`，其中的文件也只是惰性附带文件。共享的 `render-strip` manifest 只新增了 `file` 字段，这是两边实际共用的运行时变化；共享的全局 RBP 更新也会按原有策略影响两边。完整的 Codex 工区要求见 [`docs/CODEX-INSTALL.md`](docs/CODEX-INSTALL.md)。
+
 ### 工程环境自动更新
 
 `create` 在确认委托与工区后、开始任何抽卡前,自动准备工程环境:
