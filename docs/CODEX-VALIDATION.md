@@ -39,7 +39,7 @@ Final post-review results on 2026-09-25:
 | Final installed fixture render and artifact verification | Passed: 1080×1920, 30fps, 6 seconds, six stills and eight strip frames |
 | Repository marketplace installation | Local repository registration and installation passed in a separate temporary Codex profile; selected `./codex-plugin`, version `0.4.0` |
 | GitHub preview installation and discovery | Documented `marketplace add ... --ref codex/codex-plugin-migration` and `plugin add` succeeded from remote commit `e512f14`; app-server found exactly one enabled plugin-owned skill |
-| Claude marketplace validation | `claude plugin validate .` selected `.claude-plugin/marketplace.json` and passed; root skills, agents and Claude manifests match the source baseline |
+| Claude marketplace validation | Before the packaging follow-up, `claude plugin validate .` passed with the original root route. The follow-up selects `./claude-plugin` and increments Claude metadata to `0.3.2`; root skill/agent wording remains unchanged |
 
 The artifact tests require a working `ffprobe` on PATH and use the committed media in `tests/fixtures/valid-artifacts`; they need no network, global RBP writes or ignored local render files. On this Windows host the final unit suite used the installed Remotion compositor's `ffprobe`. Starting the separate full FFmpeg binary inside the sandbox returned `EPERM`; using the existing compositor binary at the same permission level worked. Full rendering and strip extraction used the approved elevated full-FFmpeg path, as noted below.
 

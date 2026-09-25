@@ -30,6 +30,8 @@ GPT-6 Sol implements the bounded adaptation and its verification. The primary ag
 
 ## Active control brief
 
+Distribution follow-up (2026-09-25): installing Claude must copy only a self-contained Claude package. Root-based marketplace routing was observed to install the Codex bundle, development files and an automatically installed dependency tree. Separate `claude-plugin/` and `codex-plugin/` sources protect the user's installation payload without changing shared design or role wording. Verify fresh installation and upgrade from the old root package by inspecting actual cache files, not only loaded components. The separately managed marketplace checkout and historical version caches are distinct from the active plugin payload.
+
 The work plane is host adaptation. Existing design and judging material is the authority. The main contradiction is that a superficially compatible plugin can render a video while losing the context boundaries and continuity that make the product useful. Preserve those behaviors through explicit role inputs, identities and artifact-bound handoffs. Prompt constraints must be described as such; stronger claims require observed or enforced evidence.
 
 Keep the implementation small: no aesthetic scoring service, duplicate design canon, or invented permanent Codex API. Bind role actions to capabilities exposed by the actual host, and fail clearly when required capability is missing. Permission or network failure must not silently pin dependencies or downgrade the requested N.

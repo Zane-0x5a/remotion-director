@@ -112,7 +112,16 @@ This is a Claude Code plugin. Install it directly from this GitHub repo — no m
 /plugin install remotion-director@remotion-director
 ```
 
-(The repo is its own marketplace: `.claude-plugin/marketplace.json` at the root lists this plugin with `source: "."`.) Then invoke the `create` skill.
+(The repo is its own marketplace: `.claude-plugin/marketplace.json` lists the generated `./claude-plugin` distribution.) Then invoke the `create` skill. Its installed package contains only Claude skills, agents, runtime tools and dependency defaults; it excludes the Codex package, tests, migration documents and promotional media.
+
+The separate package is currently on the migration branch. To preview it from a terminal while also limiting the marketplace checkout:
+
+```sh
+claude plugin marketplace add Zane-0x5a/remotion-director#codex/codex-plugin-migration --sparse .claude-plugin claude-plugin
+claude plugin install remotion-director@remotion-director
+```
+
+After merge, omit `#codex/codex-plugin-migration`. `--sparse` keeps the other distribution out of the marketplace working tree; an ordinary GitHub marketplace registration may still cache the full repository separately from the installed plugin. Existing users must refresh the marketplace and update the plugin to `0.3.2` to switch to the separate package. See [distribution and update details](docs/PLUGIN-DISTRIBUTION.md).
 
 ### Codex
 
@@ -130,7 +139,7 @@ codex plugin marketplace add Zane-0x5a/remotion-director
 codex plugin add remotion-director@remotion-director-codex
 ```
 
-Start a new task or restart the host after installing or updating. The Claude marketplace remains rooted at `.claude-plugin/marketplace.json` with `source: "."`; its default root `skills/` and `agents/` routes are unchanged. If a Claude cache also contains `codex-plugin/`, those nested files are inert there. The shared `render-strip` manifest's additive `file` field is the common runtime change, and shared global RBP updates can affect both hosts under the existing update policy. For the full Codex workspace requirements, see [`docs/CODEX-INSTALL.md`](docs/CODEX-INSTALL.md).
+Start a new task or restart the host after installing or updating. Each marketplace installs its own generated directory: Claude uses `./claude-plugin`, Codex uses `./codex-plugin`. Root `skills/` and `agents/` remain the shared authoring sources. The shared `render-strip` manifest's additive `file` field is the common runtime change, and shared global RBP updates can affect both hosts under the existing update policy. For the full Codex workspace requirements, see [`docs/CODEX-INSTALL.md`](docs/CODEX-INSTALL.md).
 
 ### Automatic engineering updates
 

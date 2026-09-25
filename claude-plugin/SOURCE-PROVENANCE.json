@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-09-25T11:13:41.088Z",
+  "sourceRoot": ".claude-plugin/plugin.json, skills/, agents/, tools/, package.json, LICENSE, tsconfig.json",
+  "runtimeTools": [
+    "check-env.mjs",
+    "environment.mjs",
+    "rbp.mjs",
+    "render-arm.ts",
+    "render-strip.ts"
+  ],
+  "source": {
+    "manifest": {
+      "hash": "f59d53e0b100d0a5aee5050122b4ce4966402c7b79bfc7feefa15ff33073ab38",
+      "count": 1
+    },
+    "skills": {
+      "hash": "4e3cb0c18815045894b473e8c3a659363673779656f621da9d54f35f562533ef",
+      "count": 13
+    },
+    "agents": {
+      "hash": "faac74c510c3bc4aad96ff578feb060bb1dfbf240c1e70ef19d0cfa09e1e0d44",
+      "count": 4
+    },
+    "tools": {
+      "hash": "db026853bca74c138a6bb0248b037a70566f77911333a38889b2ab4dc098774f",
+      "count": 5
+    },
+    "package": {
+      "hash": "1aa4d3aea807eb23373b08b622affb9a727502740647503d5f9b49a962a7f7e2",
+      "count": 1
+    },
+    "license": {
+      "hash": "bfa14ef6ccdeabe2964e7272c367794f3d47bbfa3836bcb4e96eded668a5bb67",
+      "count": 1
+    },
+    "tsconfig.json": {
+      "hash": "33ec9323d54051153a37e7173c4d07288e469b83ea7629bb72156cef9518c555",
+      "count": 1
+    }
+  },
+  "output": {
+    "manifest": ".claude-plugin/plugin.json",
+    "skills": "skills/",
+    "agents": "agents/",
+    "tools": [
+      "tools/check-env.mjs",
+      "tools/environment.mjs",
+      "tools/rbp.mjs",
+      "tools/render-arm.ts",
+      "tools/render-strip.ts"
+    ],
+    "rootFiles": [
+      "LICENSE",
+      "tsconfig.json"
+    ],
+    "package": "package.json"
+  }
+}

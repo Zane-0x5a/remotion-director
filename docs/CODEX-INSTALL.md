@@ -1,6 +1,6 @@
 # Codex installation and usage
 
-The Codex distribution is `codex-plugin/`. The original Claude plugin remains at the repository root. This adaptation is a draft: read [validation status](CODEX-VALIDATION.md) before relying on it for production delivery.
+The Codex distribution is `codex-plugin/`; Claude installs the separate generated `claude-plugin/` distribution. Shared authoring sources remain at the repository root. This adaptation is a draft: read [validation status](CODEX-VALIDATION.md) before relying on it for production delivery.
 
 ## Build the distribution
 
@@ -31,7 +31,7 @@ codex plugin add remotion-director@remotion-director-codex
 
 Start a new task, or restart the host, after installing or updating so skill discovery reloads. The installed plugin exposes one public skill, `remotion-director`; its internal role and design files are bundled references. Do not register the repository root as the Codex plugin or install the internal references as separate public skills.
 
-The original Claude marketplace remains independent. `.claude-plugin/marketplace.json` keeps `source: "."`, so Claude continues to use the repository root's default `skills/` and `agents/` routes. A Claude cache may contain the nested `codex-plugin/` directory as inert extra files; that directory is selected only by the Codex marketplace entry. The additive `file` field in the shared `render-strip` manifest is the common runtime change. Shared global RBP updates can affect both hosts by the existing intended policy.
+The Claude marketplace remains independent. `.claude-plugin/marketplace.json` selects `./claude-plugin`, version `0.3.2`. Its installed package excludes Codex files, tests and migration documents. Claude's separate marketplace repository cache may still contain other directories unless registered with a sparse checkout; see [distribution and update details](PLUGIN-DISTRIBUTION.md). The additive `file` field in the shared `render-strip` manifest is the common runtime change. Shared global RBP updates can affect both hosts by the existing intended policy.
 
 ## Install in a local Codex host
 

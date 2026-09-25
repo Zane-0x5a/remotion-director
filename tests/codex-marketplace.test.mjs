@@ -17,7 +17,7 @@ function publicSkillDirs(root) {
     .sort();
 }
 
-test('Codex marketplace routes the isolated package and preserves the Claude root route', () => {
+test('Codex and Claude marketplaces route their isolated packages', () => {
   const codexMarketplace = readJson('.agents', 'plugins', 'marketplace.json');
   assert.equal(codexMarketplace.name, 'remotion-director-codex');
   assert.ok(Array.isArray(codexMarketplace.plugins));
@@ -41,14 +41,15 @@ test('Codex marketplace routes the isolated package and preserves the Claude roo
   assert.ok(Array.isArray(claudeMarketplace.plugins));
   const claudeEntry = claudeMarketplace.plugins.find((plugin) => plugin.name === 'remotion-director');
   assert.ok(claudeEntry, 'Claude marketplace must keep remotion-director');
-  assert.equal(claudeEntry.source, '.');
-  const claudeManifest = readJson('.claude-plugin', 'plugin.json');
+  assert.equal(claudeEntry.source, './claude-plugin');
+  const claudeRoot = resolve(ROOT, claudeEntry.source);
+  assert.equal(claudeRoot, join(ROOT, 'claude-plugin'));
+  const claudeManifest = readJson('claude-plugin', '.claude-plugin', 'plugin.json');
   assert.equal(claudeEntry.name, claudeManifest.name);
   assert.equal(claudeEntry.version, claudeManifest.version);
 
-  // The Claude marketplace continues to discover the source-of-truth root.
-  assert.deepEqual(publicSkillDirs(join(ROOT, 'skills')), ['create', 'critic-loop', 'design-brain']);
+  assert.deepEqual(publicSkillDirs(join(claudeRoot, 'skills')), ['create', 'critic-loop', 'design-brain']);
   for (const role of ['aesthetic-critic', 'blind-selector', 'builder', 'tempo-pass']) {
-    assert.ok(existsSync(join(ROOT, 'agents', `${role}.md`)), `missing Claude role ${role}`);
+    assert.ok(existsSync(join(claudeRoot, 'agents', `${role}.md`)), `missing Claude role ${role}`);
   }
 });
