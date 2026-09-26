@@ -18,6 +18,9 @@
  *       motion); `low` = lowFrac*high, kept HIGH so every true pause (far below it)
  *       is captured — anti-false-negative: the line's only job is "anything above it
  *       definitely isn't a pause".
+ *     - A PAUSE shorter than `minPause` frames between two motions is not a pause a
+ *       viewer can read (cursor blink, gap between pen strokes); it is merged into
+ *       the surrounding MOTION instead of becoming a held frame.
  *     - PAUSE block -> one HELD frame at its quietest point (a held composition the
  *       reviewer MAY adjudicate for layout/finish).
  *     - MOTION block -> MID frame count adapts to DURATION: a SHORT discrete move
@@ -26,7 +29,21 @@
  *       ends, so smoothness shows across a short series instead of one blurry peak.
  *       MID frames are "read-for-motion-logic only", NEVER a held defect.
  *     - First & last frame are forced HELD anchors (entry/settle are pauses).
- *     - DEGENERATE (no real motion structure) -> a few evenly spaced HELD, no MID.
+ *   Three regimes, chosen from the motion distribution:
+ *     - PEAKED (peak > 1.5*high): the "hold + transition" piece the thresholds above
+ *       were tuned on. Used as-is.
+ *     - PLATEAU (not peaked, but high >= MOTION_FLOOR): motion fills more than
+ *       (1-pHigh) of the timeline — continuous camera moves, typing, scrolling,
+ *       large-area dynamic imagery — so the pHigh quantile lands INSIDE the motion
+ *       and the peak test fails. `high` is re-derived as the split between the quiet
+ *       and moving frames (Otsu on log motion, floored at MOTION_FLOOR), and a pause's
+ *       quietest frame is only HELD if it is actually still (m <= HOLD_CEIL); a
+ *       relatively calm but still-moving point becomes a MID.
+ *     - STATIC (not peaked and high < MOTION_FLOOR): nothing really moves -> a few
+ *       evenly spaced HELD, no MID.
+ *   Before PLATEAU existed, continuous-motion pieces fell into the STATIC branch and
+ *   came out as 8 evenly spaced frames all labelled HELD, so reviewers judged
+ *   mid-motion frames (scroll blur, half-typed text) by a finish standard.
  *   The SEGMENT is the unit of weight (not the frame), so neither long holds nor
  *   dense bursts inflate the count. Selection is written to <out>/strip-manifest.json.
  *
@@ -40,7 +57,7 @@
  * frames keep the role-less seq-NN_fNNN.png name.
  *
  * Usage: NODE_PATH="<workspace>/node_modules" npx tsx "${CLAUDE_PLUGIN_ROOT}/tools/render-strip.ts" --dir <armDir> --out <dir>
- *        [--p-high 0.9] [--low-frac 0.5] [--short-max 12] [--span-per-mid 15]
+ *        [--p-high 0.9] [--low-frac 0.5] [--short-max 12] [--span-per-mid 15] [--min-pause 8]
  *        [--video <mp4>] [--step N] [--plan]
  *        --plan: analyze + write manifest only, render nothing (cheap preview).
  *   NODE_PATH is required (same reason as render-arm.ts): engine deps live in the
@@ -62,6 +79,12 @@ const AH = 96; // analysis raster height
 // aspect-correct, derive AW/AH from the real composition aspect (and re-validate by render).
 const BW = 9; // block width  -> 6x8 = 48 blocks
 const BH = 12; // block height
+// Motion scale (same units as d[]: 0..255 grey levels on the analysis raster).
+// Calibrated on 9 pieces rendered with claude-opus-5-5 (2026-09 equipment ablation): quiet
+// holds, including animated grain and ambient WebGL shimmer, sit at 0.0-0.8; real
+// transitions, scrolls and typing sit at 2-30.
+const MOTION_FLOOR = 1.0; // below this even the pHigh-quantile frame is not really moving
+const HOLD_CEIL = 1.5; // PLATEAU only: a pause point above this is still moving -> MID
 
 function extractGray(video: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -114,6 +137,32 @@ function frameDiffs(buf: Buffer): number[] {
 
 type Picked = { frame: number; role: "held" | "mid" };
 type Seg = { kind: "pause" | "motion"; start: number; end: number; reps: number[] };
+type Regime = "peaked" | "plateau" | "static";
+
+/**
+ * Otsu split of per-frame motion, on log(m + eps) because motion is heavy-tailed
+ * (quiet frames near 0, transitions spanning an order of magnitude). Returns the
+ * motion level that best separates the quiet frames from the moving ones.
+ */
+function otsuSplit(m: number[]): number {
+  const eps = 0.05;
+  const v = m.map((x) => Math.log(x + eps)).sort((a, b) => a - b);
+  const n = v.length;
+  if (n < 2) return 0;
+  const sum = v.reduce((a, b) => a + b, 0);
+  let best = -1;
+  let split = v[0];
+  let s0 = 0;
+  for (let i = 0; i < n - 1; i++) {
+    s0 += v[i];
+    const w0 = (i + 1) / n;
+    const mu0 = s0 / (i + 1);
+    const mu1 = (sum - s0) / (n - i - 1);
+    const between = w0 * (1 - w0) * (mu0 - mu1) ** 2;
+    if (between > best) { best = between; split = (v[i] + v[i + 1]) / 2; }
+  }
+  return Math.exp(split) - eps;
+}
 
 /**
  * Punctuated selection via a hysteresis state machine. See file header for the full
@@ -128,7 +177,8 @@ function selectPunctuated(
   lowFrac: number,
   shortMax: number,
   spanPerMid: number,
-): { picks: Picked[]; high: number; low: number; segments: Seg[] } {
+  minPause: number,
+): { picks: Picked[]; high: number; low: number; segments: Seg[]; regime: Regime } {
   const total = last + 1;
 
   const m: number[] = new Array(total).fill(0);
@@ -145,12 +195,17 @@ function selectPunctuated(
     const idx = Math.min(sorted.length - 1, Math.max(0, Math.round(p * (sorted.length - 1))));
     return sorted[idx];
   };
-  const high = q(pHigh);
-  const low = high * lowFrac;
+  let high = q(pHigh);
   const peakAll = sorted[sorted.length - 1] ?? 0;
-
-  // DEGENERATE: no frame is clearly "in motion" -> evenly spaced held, no mid.
+  let regime: Regime = "peaked";
   if (peakAll <= high * 1.5 || high <= 1e-9) {
+    regime = high < MOTION_FLOOR ? "static" : "plateau";
+    if (regime === "plateau") high = Math.max(otsuSplit(m), MOTION_FLOOR);
+  }
+  const low = high * lowFrac;
+
+  // STATIC: no frame is clearly "in motion" -> evenly spaced held, no mid.
+  if (regime === "static") {
     const k = Math.min(8, total);
     const picks: Picked[] = [];
     const seen = new Set<number>();
@@ -158,7 +213,7 @@ function selectPunctuated(
       const f = Math.round((last * i) / Math.max(1, k - 1));
       if (!seen.has(f)) { seen.add(f); picks.push({ frame: f, role: "held" }); }
     }
-    return { picks, high, low, segments: [] };
+    return { picks, high, low, segments: [], regime };
   }
 
   // Hysteresis segmentation -> raw alternating blocks.
@@ -176,9 +231,20 @@ function selectPunctuated(
   }
   blocks.push({ kind: state, start: segStart, end: last });
 
+  // An interior pause shorter than minPause is a flicker inside one motion, not a
+  // readable hold: fold it into its neighbours, then coalesce adjacent motion.
+  const merged: typeof blocks = [];
+  blocks.forEach((b, i) => {
+    const interior = i > 0 && i < blocks.length - 1;
+    const kind = b.kind === "pause" && interior && b.end - b.start + 1 < minPause ? "motion" : b.kind;
+    const prev = merged[merged.length - 1];
+    if (prev && prev.kind === kind) prev.end = b.end;
+    else merged.push({ kind, start: b.start, end: b.end });
+  });
+
   // Representatives per block (duration-adaptive MID count; see header).
   const segments: Seg[] = [];
-  for (const b of blocks) {
+  for (const b of merged) {
     if (b.kind === "pause") {
       let rep = b.start, v = Infinity;
       for (let k = b.start; k <= b.end; k++) if (m[k] < v) { v = m[k]; rep = k; }
@@ -206,15 +272,17 @@ function selectPunctuated(
   const heldSet = new Set<number>([0, last]);
   const midSet = new Set<number>();
   for (const s of segments) {
-    if (s.kind === "pause") for (const r of s.reps) heldSet.add(r);
-    else for (const r of s.reps) midSet.add(r);
+    for (const r of s.reps) {
+      const still = s.kind === "pause" && (regime !== "plateau" || m[r] <= HOLD_CEIL);
+      (still ? heldSet : midSet).add(r);
+    }
   }
 
   const picks: Picked[] = [];
   for (const fr of heldSet) picks.push({ frame: fr, role: "held" });
   for (const fr of midSet) if (!heldSet.has(fr)) picks.push({ frame: fr, role: "mid" });
   picks.sort((a, b) => a.frame - b.frame);
-  return { picks, high, low, segments };
+  return { picks, high, low, segments, regime };
 }
 
 function resolveVideo(explicit: string | undefined, out: string, dir: string): string | undefined {
@@ -239,7 +307,7 @@ async function main() {
   const out = get("--out");
   if (!dir || !out) {
     console.error(
-      "usage: --dir <armDir> --out <dir> [--p-high 0.9] [--low-frac 0.5] [--short-max 12] [--span-per-mid 15] [--video <mp4>] [--step N] [--plan]",
+      "usage: --dir <armDir> --out <dir> [--p-high 0.9] [--low-frac 0.5] [--short-max 12] [--span-per-mid 15] [--min-pause 8] [--video <mp4>] [--step N] [--plan]",
     );
     process.exit(1);
   }
@@ -248,10 +316,13 @@ async function main() {
   //   to-pause line; kept high so every true pause is captured = no false negative).
   // shortMax: a motion segment this short (frames) is a discrete event -> 1 peak mid;
   //   longer = silky drift -> ceil(len/spanPerMid) mids spread evenly incl. both ends.
+  // minPause: an interior pause shorter than this (frames) is folded into the motion
+  //   around it (8 = ~0.27s at 30fps; cursor blinks and gaps between pen strokes).
   const pHigh = Math.min(0.99, Math.max(0.5, parseFloat(get("--p-high") ?? "0.9")));
   const lowFrac = Math.min(0.95, Math.max(0.1, parseFloat(get("--low-frac") ?? "0.5")));
   const shortMax = Math.max(2, parseInt(get("--short-max") ?? "12", 10));
   const spanPerMid = Math.max(4, parseInt(get("--span-per-mid") ?? "15", 10));
+  const minPause = Math.max(1, parseInt(get("--min-pause") ?? "8", 10));
   const stepRaw = get("--step");
   const plan = args.includes("--plan");
   fs.mkdirSync(out, { recursive: true });
@@ -309,17 +380,19 @@ async function main() {
     manifest = { mode: "uniform-fallback", budget, frames: dedup };
   } else {
     const last = composition ? composition.durationInFrames - 1 : diffs.length; // plan mode: trust mp4
-    const { picks: sel, high, low, segments } = selectPunctuated(diffs, last, pHigh, lowFrac, shortMax, spanPerMid);
+    const { picks: sel, high, low, segments, regime } = selectPunctuated(diffs, last, pHigh, lowFrac, shortMax, spanPerMid, minPause);
     picks = sel;
     const held = sel.filter((p) => p.role === "held").length;
     const mid = sel.filter((p) => p.role === "mid").length;
     manifest = {
       mode: "punctuated",
+      regime,
       video,
       pHigh,
       lowFrac,
       shortMax,
       spanPerMid,
+      minPause,
       high: r3(high),
       low: r3(low),
       counts: { held, mid },
@@ -332,7 +405,7 @@ async function main() {
       })),
     };
     console.error(
-      `[strip] mode=punctuated pHigh=${pHigh} high=${r3(high)} low=${r3(low)} -> ` +
+      `[strip] mode=punctuated regime=${regime} pHigh=${pHigh} high=${r3(high)} low=${r3(low)} -> ` +
         `${sel.length} frames (${held} held + ${mid} mid): ` +
         sel.map((p) => `${p.frame}${p.role === "mid" ? "*" : ""}`).join(","),
     );
