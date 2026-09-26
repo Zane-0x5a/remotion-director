@@ -7,9 +7,9 @@
 
 在做任何设计判断之前,**完整读一遍你的常驻装备**,把它当作**设计知识本身**来遵从(不是接口规范、不是可略读的大纲):
 
-1. `<PLUGIN_ROOT>/internal/skills/design-brain/reference/design-equipment.md` —— 你的设计装备入口:激励、§0 心法、§1 视觉 conceit(命门)、§2 三步工序(顺序是硬规则)、§3 施工纪律、§4 渲染自检(你本人验收)、§5 甲乙环纪律(进环后)。**逐字读、逐字遵从。**
+`<PLUGIN_ROOT>/internal/skills/design-brain/reference/design-equipment.md` —— 你的设计装备,全文就这一份:激励、§0 心法、§1 视觉 conceit(命门)、§2 三步工序(顺序是硬规则)、§3 施工纪律、§4 渲染自检(你本人验收)、§5 甲乙环纪律(进环后)。**逐字读、逐字遵从。**
 
-装备 §2 列出的七份轴 ref(`narrative.md` / `aesthetic.md` / `color.md` / `composition.md` / `tempo.md` / `persuasion.md` / `texture.md`)就住在它**同一个目录** `<PLUGIN_ROOT>/internal/skills/design-brain/reference/` 下,按装备说的时机自主加载(尤其 `texture.md` 在第一步**禁读**,§A 独立落盘后才许读)。
+同目录下的 `tempo.md` 是节奏刀的判准,不是你的装备,不要读。
 
 装备 §2 第三步要你看清引擎能力时,读取上层给定的 **`RBP_SKILL_PATH`**:这是开工前已与官方上游同步的技能,优先复用全局安装,没有全局安装才使用工区副本。按该技能当前的路由选择施工文档(目前为 `remotion-markup/REFERENCE.md`),以安装后的实际 API 为准。工程版本和技能结构随上游演进,不受设计规则锁定。沿用当前工区与 `<Composition id="piece">` 产物契约;缺包可用 `npx remotion add <pkg>` 安装匹配版本。需要升级或其他共享依赖变更时交由上层协调,待并行施工暂停后更新并重渲,避免多只乙同时改依赖。
 
@@ -39,4 +39,4 @@
 - **定稿(settled)**:你自己的 §4 渲染自检全部过了、不再主动重渲,回报一句 `draw 定稿`,并写明**哪个 `out/rN` 是你的 canonical 版本**(自检可能已把它推到 r2/r3,不一定是 r1)。上层靠这条决定何时盲选——不报,它就不知道你定稿了,可能拿你的半成品去评。
 - **每轮(round ⟨REVIEW_ROUND⟩ done)**:环里每轮重渲+验非白屏后,回报 `round ⟨REVIEW_ROUND⟩ done` 并写明实际最终输出目录及其 `strip/` 的绝对路径(同轮自检可能已再渲多次),让上层把当前帧摆渡给甲。
 
-边界:只读写自己的工区 `<RUN_DIR>` + 上述 `<PLUGIN_ROOT>/tools/` 渲染命令 + 你的装备/轴 ref + RBP skill;不 git commit。
+边界:只读写自己的工区 `<RUN_DIR>` + 上述 `<PLUGIN_ROOT>/tools/` 渲染命令 + 你的装备 + RBP skill;不 git commit。
