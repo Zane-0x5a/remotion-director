@@ -510,8 +510,33 @@ export function recordSelection(runDir, { selectorId, selectorContinuationId, wi
   if (typeof reason !== 'string' || !reason.trim()) fail('Blind selection needs a verbatim pixel-grounded reason.', 'INVALID_SELECTION');
   const winnerCandidate = candidates.find((candidate) => candidate.label === winner); const preparedWinner = preparedByLabel.get(winner);
   preparation.consumedAt = new Date().toISOString();
-  state.selection = { selectorId, selectorContinuationId, winner, winnerKey: winnerCandidate.key, candidates: candidates.map((candidate) => ({ label: candidate.label, key: candidate.key, evidenceDir: preparedByLabel.get(candidate.label).evidenceDir })), reason, evidenceDir: resolve(preparation.evidenceDir), recordedAt: new Date().toISOString() };
+  state.selection = { by: 'selector', selectorId, selectorContinuationId, winner, winnerKey: winnerCandidate.key, candidates: candidates.map((candidate) => ({ label: candidate.label, key: candidate.key, evidenceDir: preparedByLabel.get(candidate.label).evidenceDir })), reason, evidenceDir: resolve(preparation.evidenceDir), recordedAt: new Date().toISOString() };
   state.canonical = state.canonicals[preparedWinner.key];
+  state.status = 'selected';
+  return saveState(runDir, touch(state));
+}
+
+// The user may pick the base themselves instead of dispatching a blind selector
+// (to save time and tokens, or out of preference). No selector identity or
+// anonymous evidence is involved: the user watched the draws' videos. The pick
+// still needs every settled canonical accepted and re-verified, so it cannot
+// land on a half-finished or changed draw.
+export function recordUserSelection(runDir, { winnerKey, reason = '' }) {
+  const state = loadState(runDir);
+  if (state.selection) fail('Selection already recorded; a run may have one selection.', 'DUPLICATE_SELECTION');
+  const keys = Object.keys(state.canonicals).sort();
+  if (keys.length !== state.commission.draws) fail(`User selection requires all N=${state.commission.draws} settled canonicals accepted first.`, 'INVALID_SELECTION');
+  if (typeof winnerKey !== 'string' || !keys.includes(winnerKey)) fail(`Winner ${winnerKey} is not an accepted draw (${keys.join(', ')}).`, 'INVALID_SELECTION');
+  for (const key of keys) {
+    const canonical = state.canonicals[key];
+    if (!canonical || canonical.role !== 'builder') fail(`Draw ${key} is not backed by an accepted settled canonical.`, 'INVALID_SELECTION');
+    verifyArtifacts(canonical.outDir, { sourceDir: canonical.artifact?.provenance?.sourceDir ?? null, spec: state.commission.spec ?? null, durationAuthority: state.commission.durationAuthority });
+    assertArtifactSnapshot(canonical);
+  }
+  if (typeof reason !== 'string') fail('User selection reason must be text when given.', 'INVALID_SELECTION');
+  if (state.selectionPreparation && !state.selectionPreparation.consumedAt) state.selectionPreparation.consumedAt = new Date().toISOString();
+  state.selection = { by: 'user', winnerKey, candidates: keys.map((key) => ({ key, outDir: state.canonicals[key].outDir })), reason: reason.trim(), recordedAt: new Date().toISOString() };
+  state.canonical = state.canonicals[winnerKey];
   state.status = 'selected';
   return saveState(runDir, touch(state));
 }

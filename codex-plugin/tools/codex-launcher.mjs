@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   acceptCanonical, captureProvenance, continueRole, initRun, loadState, prepareSelection, recordReport,
-  recordVerdict, recordSelection, recoverRole, registerRole, status, verifyArtifacts, captureVideoProvenance, verifyVideoProvenance,
+  recordVerdict, recordSelection, recordUserSelection, recoverRole, registerRole, status, verifyArtifacts, captureVideoProvenance, verifyVideoProvenance,
 } from './codex-runtime.mjs';
 
 const PACKAGE_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -29,6 +29,7 @@ const help = `remotion-director Codex launcher\n\n` +
   `  record-verdict --run-dir DIR --verdict-id ID --critic-id ID --continuation-id ID --round R --strip-dir DIR (--verdict TEXT|--verdict-file FILE) [--amend-of ID]\n` +
   `  prepare-selection --run-dir DIR --candidates-file JSON [--evidence-dir DIR]\n` +
   `  record-selection --run-dir DIR --selector-id ID --continuation-id ID --candidates-file JSON --winner LABEL --reason TEXT\n` +
+  `  record-user-selection --run-dir DIR --winner-key draw-N [--reason TEXT]   the user picked the base\n` +
   `  recover-role --run-dir DIR --role ROLE --previous-agent-id ID --replacement-agent-id ID --replacement-continuation-id ID --reason TEXT\n` +
   `  verify-artifacts --out DIR [--source DIR] [--allow-unbound]\n` +
   `  status --run-dir DIR\n\n` +
@@ -97,6 +98,7 @@ function command() {
       const candidates = JSON.parse(readFileSync(value('--candidates-file'), 'utf8'));
       return print(recordSelection(value('--run-dir'), { selectorId: value('--selector-id'), selectorContinuationId: value('--continuation-id'), winner: value('--winner'), candidates, reason: value('--reason'), evidenceDir: value('--evidence-dir', null) }));
     }
+    case 'record-user-selection': return print(recordUserSelection(value('--run-dir'), { winnerKey: value('--winner-key'), reason: value('--reason', '') }));
     case 'recover-role': return print(recoverRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), previousAgentId: value('--previous-agent-id'), replacementAgentId: value('--replacement-agent-id'), replacementContinuationId: value('--replacement-continuation-id'), reason: value('--reason') }));
     case 'verify-artifacts': return print(verifyArtifacts(value('--out'), { sourceDir: value('--source', null), requireProvenance: !has('--allow-unbound') }));
     case 'capture-provenance': return print(captureProvenance(value('--out'), value('--source', null)));

@@ -222,3 +222,50 @@ function tinyPng() {
   const header = Buffer.alloc(13); header.writeUInt32BE(1, 0); header.writeUInt32BE(1, 4); header[8] = 8; header[9] = 6;
   return Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', header), chunk('IDAT', deflateSync(Buffer.from([0, 0, 0, 0, 255]))), chunk('IEND', Buffer.alloc(0))]);
 }
+
+test('the user can pick the base instead of a blind selector, and the loop runs on the picked draw', (t) => {
+  const run = createRun(t, 3); settle(run);
+  const picked = runtime.recordUserSelection(run.dir, { winnerKey: 'draw-2', reason: 'the ledger idea could go furthest' });
+  assert.equal(picked.selection.by, 'user');
+  assert.equal(picked.selection.winnerKey, 'draw-2');
+  assert.equal(picked.status, 'selected');
+  assert.equal(picked.canonical.outDir, join(run.candidates[1].source, 'out', 'r1'));
+  assert.equal(picked.roles.selector, null);
+  critic(run); verdict(run, 1);
+  assert.equal(runtime.loadState(run.dir).handoffs.at(-1).to, 'draw-2');
+  const loser = run.candidates[0];
+  assert.throws(() => report(run, loser, output(loser.source, 'r2'), 1), /winning|selected/i);
+});
+
+test('user selection needs every settled canonical, a real draw, and only one selection per run', (t) => {
+  const run = createRun(t, 2);
+  accept(run, run.candidates[0], output(run.candidates[0].source));
+  assert.throws(() => runtime.recordUserSelection(run.dir, { winnerKey: 'draw-1' }), /all N=2|settled/i);
+  accept(run, run.candidates[1], output(run.candidates[1].source));
+  assert.throws(() => runtime.recordUserSelection(run.dir, { winnerKey: 'draw-9' }), /not an accepted draw/i);
+  assert.throws(() => runtime.recordUserSelection(run.dir, { winnerKey: 'draw-1', reason: 42 }), /text/i);
+  runtime.recordUserSelection(run.dir, { winnerKey: 'draw-1' });
+  assert.equal(runtime.loadState(run.dir).selection.reason, '');
+  assert.throws(() => runtime.recordUserSelection(run.dir, { winnerKey: 'draw-2' }), /already/i);
+  assert.throws(() => runtime.prepareSelection(run.dir, { candidates: mapping(run) }), /already/i);
+});
+
+test('a user pick after prepared blind evidence consumes it, and blind selection records its source', (t) => {
+  const prepared = createRun(t, 2); settle(prepared);
+  runtime.prepareSelection(prepared.dir, { candidates: mapping(prepared) });
+  runtime.recordUserSelection(prepared.dir, { winnerKey: 'draw-2' });
+  assert.ok(runtime.loadState(prepared.dir).selectionPreparation.consumedAt);
+  runtime.registerRole(prepared.dir, { role: 'selector', agentId: 'selector', continuationId: 'selector-cont', fresh: true });
+  assert.throws(() => runtime.recordSelection(prepared.dir, { selectorId: 'selector', selectorContinuationId: 'selector-cont', winner: 'A', candidates: mapping(prepared), reason: 'late' }), /already/i);
+  const blind = createRun(t); settle(blind);
+  assert.equal(select(blind).selection.by, 'selector');
+});
+
+test('record-user-selection is reachable through the launcher', (t) => {
+  const run = createRun(t, 2); settle(run);
+  const result = spawnSync(process.execPath, [LAUNCHER, 'record-user-selection', '--run-dir', run.dir, '--winner-key', 'draw-2', '--reason', 'picked after watching both videos'], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  const state = runtime.loadState(run.dir);
+  assert.equal(state.selection.by, 'user');
+  assert.equal(state.selection.reason, 'picked after watching both videos');
+});

@@ -12,6 +12,8 @@ This stage turns N rendered draws into one refined piece. Two protocols govern i
 
 Read **`${CLAUDE_PLUGIN_ROOT}/skills/critic-loop/BLIND-SELECT-PROTOCOL.md`**. Wait for all N builders to report settled, verify each reported output's video, stills and strip, then spawn the `blind-selector` agent (fresh, one-shot) with the brief + those exact canonical candidate dirs (each has 6 `still-*.png` + `strip/`; render numbers can differ). It selects for **potential** (the base whose ceiling after the loop is highest), not fewest current flaws — fixable execution nits must not count against a strong base. It returns `{ winner, reason }`. The orchestrator does NOT judge; it hands over candidates and takes back the winner.
 
+If the user chose to pick the base themselves (create Step 3), skip this section: the user's pick is the winner, and the loop below starts from that draw's canonical.
+
 ## 2 · Critic loop (甲乙环) — refine the winner until it converges
 
 Read **`${CLAUDE_PLUGIN_ROOT}/skills/critic-loop/CRITIC-PROTOCOL.md`** (条带规格 harness contract + 版本交接 + the verbatim 甲 prompt + the per-round ferry message + 乙环纪律). Follow its version handoff rules: review rounds and render versions are independent; fill `⟨STRIP_DIR⟩` from the builder's explicitly reported canonical output and allocate an unused `⟨NEXT_OUT_DIR⟩` for fixes.

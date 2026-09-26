@@ -164,7 +164,7 @@ Invoke the `create` skill with your brief, e.g.:
 
 > /create — a 13s vertical piece for a public library's late-night study space, "The Reading Room — open until 2am." Takeaway: "the quietest place in the city is still awake when you are." Tone: calm, unhurried, a little nocturnal.
 
-It first runs a quick **commission step** — confirming the brief, the spec (aspect/resolution, duration, fps, on-screen copy, audio intent), and the draw count **N** — and proposing defaults for anything you didn't pin down — then draws. You can state any of these up front in the brief, or let it ask.
+It first runs a quick **commission step** — confirming the brief, the spec (aspect/resolution, duration, fps, on-screen copy, audio intent), and the draw count **N** — and proposing defaults for anything you didn't pin down — then draws. When the draws are done, the blind selector picks the base that goes into the loop; if you'd rather save that step's time and tokens, or just want to choose, you can pick one of the N draws yourself. You can state any of these up front in the brief, or let it ask.
 
 Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **duration** (pick a second-count — it's then a promise nothing downstream may break — or choose *"don't constrain it"* and let the designer decide the length, in which case the final tempo pass may adjust it), **workspace** (where your piece is built; default a folder in your CWD). The critic loop has no round knob — it runs until the critic converges, then your eyes decide.
 

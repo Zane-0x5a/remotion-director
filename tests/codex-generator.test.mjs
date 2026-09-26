@@ -80,6 +80,8 @@ test('host guide maps each role to its ledger command and prepares blind evidenc
     assert.match(skill, /same-round correction.*`--amend-of ID`.*`--rebuttal-of ID`/s);
     assert.match(skill, /prepare-selection --run-dir/);
     assert.match(skill, /record-selection.*consuming that preparation/);
+    assert.match(skill, /record-user-selection --run-dir/);
+    assert.match(skill, /who picks the base/);
     assert.match(skill, /post-tempo canonical.*same critic identity/s);
     assert.match(skill, /register every initial role.*`register-role --fresh`/is);
     assert.match(skill, /Handles must be unique across roles and draws/s);
