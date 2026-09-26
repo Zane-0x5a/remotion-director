@@ -1,7 +1,6 @@
 ---
 name: critic-loop
 description: The blind-select + critic-loop (盲选 + 甲乙环) stage of the remotion-director pipeline — how to pick the most promising base among N draws, then run the design-blind aesthetic critic (甲) against the builder (乙), round after round until it converges, with the orchestrator ferrying verdicts verbatim. Loads the two authoritative protocol files (BLIND-SELECT-PROTOCOL.md, CRITIC-PROTOCOL.md). Use when N draws of a piece exist and need selecting + refining; invoked by the create skill.
-version: 0.1.0
 user-invocable: false
 ---
 

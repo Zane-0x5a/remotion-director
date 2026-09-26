@@ -168,8 +168,8 @@ It first runs a quick **commission step** — confirming the brief, the spec (as
 
 Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **duration** (pick a second-count — it's then a promise nothing downstream may break — or choose *"don't constrain it"* and let the designer decide the length, in which case the final tempo pass may adjust it), **workspace** (where your piece is built; default a folder in your CWD). The critic loop has no round knob — it runs until the critic converges, then your eyes decide.
 
-> **Audio is experimental.** The engine can mount an audio track, but the design knowledge and the critic loop are **visual-only** — nothing in the pipeline *judges* sound. If you ask for music/SFX/VO it's best-effort and unverified; the pieces the pipeline is validated on are silent. (Tracked as a known limitation for future work.)
-> **Validated aspect:** the pipeline is validated at **1080×1920**. Landscape/square use the same harnesses but aren't yet smoke-tested.
+> **Audio:** simple sound effects the builder synthesizes itself are supported — basic, but they work. Choosing and scoring full music, and voice-over, are out of scope for now. The design knowledge and the critic loop are **visual-only**, so nothing in the pipeline *judges* sound.
+> **Validated aspects:** the pipeline is validated at **1080×1920** and **1920×1080**. Square uses the same harnesses but isn't yet smoke-tested.
 
 ### Where your piece lives
 
