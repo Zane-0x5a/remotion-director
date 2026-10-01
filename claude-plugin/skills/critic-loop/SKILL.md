@@ -1,18 +1,18 @@
 ---
 name: critic-loop
-description: The blind-select + critic-loop (盲选 + 甲乙环) stage of the remotion-director pipeline — how to pick the most promising base among N draws, then run the design-blind aesthetic critic (甲) against the builder (乙), round after round until it converges, with the orchestrator ferrying verdicts verbatim. Loads the two authoritative protocol files (BLIND-SELECT-PROTOCOL.md, CRITIC-PROTOCOL.md). Use when N draws of a piece exist and need selecting + refining; invoked by the create skill.
+description: The blind-select + critic-loop (盲选 + 甲乙环) stage of the remotion-director pipeline — how the blind selector picks the most promising base among N draws' r1 previews (when the user hands the pick to AI), then, once the picked draw has self-checked and settled, run the design-blind aesthetic critic (甲) against the builder (乙), round after round until it converges, with the orchestrator ferrying verdicts verbatim. Loads the two authoritative protocol files (BLIND-SELECT-PROTOCOL.md, CRITIC-PROTOCOL.md). Use when N draws of a piece exist and need selecting + refining; invoked by the create skill.
 user-invocable: false
 ---
 
 # critic-loop
 
-This stage turns N rendered draws into one refined piece. Two protocols govern it; both are the **authoritative wording** and are used **verbatim** (`⟨…⟩` = slots the orchestrator fills, the rest unchanged). Do NOT paraphrase them — Read the files and use their exact text.
+This stage turns N draws' previews (each draw's first full render, r1) into one refined piece. Two protocols govern it; both are the **authoritative wording** and are used **verbatim** (`⟨…⟩` = slots the orchestrator fills, the rest unchanged). Do NOT paraphrase them — Read the files and use their exact text.
 
 ## 1 · Blind select — pick the most promising base
 
-Read **`${CLAUDE_PLUGIN_ROOT}/skills/critic-loop/BLIND-SELECT-PROTOCOL.md`**. Wait for all N builders to report settled, verify each reported output's video, stills and strip, then spawn the `blind-selector` agent (fresh, one-shot) with the brief + those exact canonical candidate dirs (each has 6 `still-*.png` + `strip/`; render numbers can differ). It selects for **potential** (the base whose ceiling after the loop is highest), not fewest current flaws — fixable execution nits must not count against a strong base. It returns `{ winner, reason }`. The orchestrator does NOT judge; it hands over candidates and takes back the winner.
+Used when the commission handed the pick to AI (交给 AI 挑), or the user says "你替我挑" at pick time. Read **`${CLAUDE_PLUGIN_ROOT}/skills/critic-loop/BLIND-SELECT-PROTOCOL.md`**. Wait for all N builders to report preview ready, verify each reported preview's video, stills and strip, then spawn the `blind-selector` agent (fresh, one-shot) with the brief + those exact preview dirs (each draw's r1, before any self-check; each has 6 `still-*.png` + `strip/`). It selects for **potential** (the base whose ceiling after self-check and the loop is highest), not fewest current flaws — fixable execution nits must not count against a strong base. It returns `{ winner, reason }`. The orchestrator does NOT judge; it hands over candidates and takes back the winner.
 
-If the user chose to pick the base themselves (create Step 3), skip this section: the user's pick is the winner, and the loop below starts from that draw's canonical.
+By default the user picks on the preview videos (create Step 3) and this section is skipped. Either way, only the picked draw's builder then runs its §4 self-check and reports settled with its canonical output (create Step 3.5); the loop below starts from that settled canonical, never from an unsettled preview.
 
 ## 2 · Critic loop (甲乙环) — refine the winner until it converges
 

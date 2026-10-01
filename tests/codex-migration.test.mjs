@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import {
-  acceptCanonical, captureProvenance, captureVideoProvenance, hashTree, initRun, prepareSelection,
+  acceptCanonical, acceptPreview, captureProvenance, captureVideoProvenance, hashTree, initRun, prepareSelection,
   recordReport, recordSelection, recordVerdict, registerRole, continueRole, verifyArtifacts, verifyVideoProvenance,
 } from '../tools/codex-runtime.mjs';
 
@@ -99,11 +99,12 @@ test('run ledger preserves identity and rejects duplicate or stale completion', 
   continueRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'cont-A' });
   assert.throws(() => continueRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-B', continuationId: 'cont-B' }), /IDENTITY|identity/i);
   assert.throws(() => registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-B', continuationId: 'cont-B', fresh: true }), /already registered|IDENTITY/i);
-  assert.throws(() => recordReport(root, { id: 'bad', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'cont-A' }), /outDir/i);
+  assert.throws(() => recordReport(root, { id: 'bad', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'cont-A' }), /outDir/i);
   const out = fixture(root, source);
-  const report = recordReport(root, { id: 'draw-1-settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'cont-A', outDir: out });
-  acceptCanonical(root, { reportId: 'draw-1-settled', role: 'builder', outDir: out, sourceDir: source });
-  assert.throws(() => acceptCanonical(root, { reportId: 'draw-1-settled', role: 'builder', outDir: out, sourceDir: source }), /already consumed|DUPLICATE/i);
+  assert.throws(() => recordReport(root, { id: 'draw-1-settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'cont-A', outDir: out }), /picked/i);
+  recordReport(root, { id: 'draw-1-preview', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'cont-A', outDir: out });
+  acceptPreview(root, { reportId: 'draw-1-preview', outDir: out, sourceDir: source });
+  assert.throws(() => acceptPreview(root, { reportId: 'draw-1-preview', outDir: out, sourceDir: source }), /already/i);
   writeFileSync(join(source, 'index.tsx'), 'export const source = "changed";');
   assert.throws(() => verifyArtifacts(out, { sourceDir: source }), /stale|changed/i);
 });
@@ -115,10 +116,13 @@ test('critic verdict requires persistent identity and rejects stale or duplicate
   registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true });
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
   const out = fixture(root, source); const strip = join(out, 'strip');
-  recordReport(root, { id: 'draw-1-settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
-  acceptCanonical(root, { reportId: 'draw-1-settled', role: 'builder', outDir: out, sourceDir: source });
+  recordReport(root, { id: 'draw-1-preview', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
+  acceptPreview(root, { reportId: 'draw-1-preview', outDir: out, sourceDir: source });
   prepareSelection(root, { candidates: [{ label: 'A', key: 'draw-1' }] });
   recordSelection(root, { selectorId: 'selector-A', selectorContinuationId: 'selector-cont', winner: 'A', candidates: [{ label: 'A', key: 'draw-1' }], reason: 'A has the strongest potential.' });
+  assert.throws(() => recordVerdict(root, { id: 'v0', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, verdict: 'preview only\nOVERALL: no\nCONVERGED: NO' }), /settled/i);
+  recordReport(root, { id: 'draw-1-settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
+  acceptCanonical(root, { reportId: 'draw-1-settled', role: 'builder', outDir: out, sourceDir: source });
   recordVerdict(root, { id: 'v1', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, verdict: 'phenomenon text\nOVERALL: no\nCONVERGED: NO' });
   const afterFirst = JSON.parse(readFileSync(join(root, '.remotion-director', 'codex-run.json'), 'utf8'));
   assert.equal(afterFirst.handoffs.at(-1).to, 'builder-A');
@@ -143,10 +147,12 @@ test('CLI record-report forwards review round for a builder round-done handoff',
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
   registerRole(root, { role: 'critic', agentId: 'critic-A', continuationId: 'critic-cont', fresh: true });
   const out = fixture(root, source); const strip = join(out, 'strip');
-  recordReport(root, { id: 'settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
-  acceptCanonical(root, { reportId: 'settled', role: 'builder', outDir: out, sourceDir: source });
+  recordReport(root, { id: 'preview', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
+  acceptPreview(root, { reportId: 'preview', outDir: out, sourceDir: source });
   prepareSelection(root, { candidates: [{ label: 'A', key: 'draw-1' }] });
   recordSelection(root, { selectorId: 'selector-A', selectorContinuationId: 'selector-cont', winner: 'A', candidates: [{ label: 'A', key: 'draw-1' }], reason: 'A has the strongest potential.' });
+  recordReport(root, { id: 'settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
+  acceptCanonical(root, { reportId: 'settled', role: 'builder', outDir: out, sourceDir: source });
   recordVerdict(root, { id: 'verdict-1', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, verdict: '1 / seq-00 / visible issue / high\nOVERALL: needs work\nCONVERGED: NO' });
 
   const launcher = join(ROOT, 'tools', 'codex-launcher.mjs');
@@ -162,9 +168,9 @@ test('canonical advancement rejects duplicate stages, non-pipeline roles and tra
   initRun({ runDir: root, briefHash: 'd'.repeat(64), draws: 1, durationAuthority: 'locked 3s', spec: { width: 320, height: 568, fps: 30 } });
   registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true });
   const out = fixture(root, source);
-  recordReport(root, { id: 'settled-1', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
-  acceptCanonical(root, { reportId: 'settled-1', role: 'builder', outDir: out, sourceDir: source });
-  assert.throws(() => recordReport(root, { id: 'settled-2', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out }), /DUPLICATE|already/i);
+  recordReport(root, { id: 'preview-1', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
+  acceptPreview(root, { reportId: 'preview-1', outDir: out, sourceDir: source });
+  assert.throws(() => recordReport(root, { id: 'preview-2', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out }), /DUPLICATE|already/i);
   const manifestFile = join(out, 'strip', 'strip-manifest.json');
   const manifest = JSON.parse(readFileSync(manifestFile, 'utf8')); manifest.frames[0].file = '../video.mp4';
   writeFileSync(manifestFile, JSON.stringify(manifest));
@@ -211,7 +217,7 @@ test('source provenance includes nested author files with generated-looking base
   assert.notEqual(hashTree(source), before);
 });
 
-test('selection requires all settled anonymous candidates and preserves mapping outside the child prompt', () => {
+test('selection requires all previewed anonymous candidates and preserves mapping outside the child prompt', () => {
   const root = temp('selection '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   initRun({ runDir: root, briefHash: 'c'.repeat(64), draws: 2, durationAuthority: 'free' });
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
@@ -219,10 +225,10 @@ test('selection requires all settled anonymous candidates and preserves mapping 
   // Register reports after fixture creation so artifact provenance is valid.
   registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-a', fresh: true });
   registerRole(root, { role: 'builder', key: 'draw-2', agentId: 'builder-B', continuationId: 'builder-b', fresh: true });
-  recordReport(root, { id: 'r1', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-a', outDir: a });
-  recordReport(root, { id: 'r2', role: 'builder', key: 'draw-2', status: 'settled', agentId: 'builder-B', continuationId: 'builder-b', outDir: b });
-  acceptCanonical(root, { reportId: 'r1', role: 'builder', outDir: a, sourceDir: join(source, 'a') });
-  acceptCanonical(root, { reportId: 'r2', role: 'builder', outDir: b, sourceDir: join(source, 'b') });
+  recordReport(root, { id: 'r1', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-a', outDir: a });
+  recordReport(root, { id: 'r2', role: 'builder', key: 'draw-2', status: 'preview', agentId: 'builder-B', continuationId: 'builder-b', outDir: b });
+  acceptPreview(root, { reportId: 'r1', outDir: a, sourceDir: join(source, 'a') });
+  acceptPreview(root, { reportId: 'r2', outDir: b, sourceDir: join(source, 'b') });
   const candidates = [{ label: 'A', key: 'draw-1', outDir: a, stripDir: join(a, 'strip'), sourceDir: join(source, 'a') }, { label: 'B', key: 'draw-2', outDir: b, stripDir: join(b, 'strip'), sourceDir: join(source, 'b') }];
   prepareSelection(root, { candidates: candidates.map(({ label, key }) => ({ label, key })) });
   const selected = recordSelection(root, { selectorId: 'selector-A', selectorContinuationId: 'selector-cont', winner: 'B', candidates: candidates.map(({ label, key }) => ({ label, key })), reason: 'B has the strongest potential.' });

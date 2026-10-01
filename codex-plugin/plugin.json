@@ -17,7 +17,7 @@
       "interface": {
         "displayName": "Remotion Director",
         "shortDescription": "Build and refine short Remotion motion pieces from a brief.",
-        "longDescription": "Run the remotion-director 甲乙环 pipeline in Codex: independent builder draws, blind selection, persistent pixel critique, a fresh tempo pass, and final user visual acceptance.",
+        "longDescription": "Run the remotion-director 甲乙环 pipeline in Codex: independent builder draws, a pick at their r1 previews (by the user, or a blind selector), self-check of the picked draw, persistent pixel critique, a fresh tempo pass, and final user visual acceptance.",
         "developerName": "Zane",
         "category": "Creativity",
         "capabilities": [

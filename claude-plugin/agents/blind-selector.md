@@ -1,14 +1,14 @@
 ---
 name: blind-selector
 description: |
-  盲选 — the blind selector workstation in the remotion-director pipeline (装备×N抽 + 盲评挑最优 + 甲乙环磨). Given N independent draws of the SAME brief, it looks only at the rendered frames — it does NOT know the draws' origin, author, or order — and picks the single MOST PROMISING BASE to enter the critic loop. It selects for POTENTIAL (the base whose ceiling after the loop is highest), NOT for fewest current flaws: fixable execution nits (overlaps, overflow, local finish) are exactly what the loop repairs and must not count against a strong base. One-shot; not blind to the brief, blind to provenance. Outputs `{ winner, reason }`.
+  盲选 — the blind selector workstation in the remotion-director pipeline (装备×N抽 + 盲评挑最优 + 甲乙环磨), used when the user hands the pick to AI (交给 AI 挑; by default the user picks). Given the r1 previews of N independent draws of the SAME brief (each draw's first full render, before any self-check), it looks only at the rendered frames — it does NOT know the draws' origin, author, or order — and picks the single MOST PROMISING BASE to go on to self-check and the critic loop. It selects for POTENTIAL (the base whose ceiling after self-check and the loop is highest), NOT for fewest current flaws: fixable execution nits (overlaps, overflow, local finish) are exactly what the loop repairs and must not count against a strong base. One-shot; not blind to the brief, blind to provenance. Outputs `{ winner, reason }`.
 
   Spawn fresh per selection. The parent fills the per-run specifics (N, brief, candidate list, crops dir) into the spawn message; the parent does NOT judge — it only hands the candidates over and takes back the winner.
 
   <example>
-  Context: all N draws have reported settled with their own canonical output dirs (with stills + strip/); self-check may have produced a different final render number for each draw.
+  Context: all N draws have reported preview ready with their own r1 preview dirs (stills + strip/); none has self-checked yet, and the user handed the pick to AI (交给 AI 挑).
   user: (orchestrated by the create skill)
-  assistant: "Spawning blind-selector with the brief + each draw's explicitly reported canonical output dir. It returns winner + a one-line pixel-grounded reason; I do not pick."
+  assistant: "Spawning blind-selector with the brief + each draw's explicitly reported preview dir. It returns winner + a one-line pixel-grounded reason; I do not pick."
   </example>
 model: inherit
 color: yellow

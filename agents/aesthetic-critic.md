@@ -6,7 +6,7 @@ description: |
   Spawn this agent ONCE per piece and continue the SAME instance across rounds (send each round's new frame strip to the same agent). The parent ferries the verdict verbatim to the builder (乙) and ferries the builder's pixel-grounded rebuttals back. The parent fills the per-run specifics (brief, RUN_DIR, round number) into the spawn/round messages.
 
   <example>
-  Context: a draw self-checked through out/r3/strip/ and was blind-selected; round-1 aesthetic judgment is needed before any critic-loop fix.
+  Context: a draw was picked at its r1 preview, then self-checked through out/r3/strip/ and reported settled; round-1 aesthetic judgment is needed before any critic-loop fix.
   user: (orchestrated by the create skill's critic loop)
   assistant: "Spawning aesthetic-critic with ONLY the brief + STRIP_DIR=RUN_DIR/out/r3/strip/. No DESIGN.md, no code, no source."
   </example>

@@ -74,13 +74,15 @@ test('host guide maps each role to its ledger command and prepares blind evidenc
     const output = join(root, 'package');
     generatePackage(output);
     const skill = readFileSync(join(output, 'skills', 'remotion-director', 'SKILL.md'), 'utf8');
-    assert.match(skill, /builders use `settled`.*`round-done`/s);
+    assert.match(skill, /builders use `preview`.*`accept-preview`.*`settled` only after they were picked.*`round-done`/s);
     assert.match(skill, /tempo pass uses `done`/);
     assert.match(skill, /critic delivers verdict text through `record-verdict`/);
+    assert.match(skill, /Review round 1 requires the picked builder's accepted settled canonical/);
     assert.match(skill, /same-round correction.*`--amend-of ID`.*`--rebuttal-of ID`/s);
     assert.match(skill, /prepare-selection --run-dir/);
     assert.match(skill, /record-selection.*consuming that preparation/);
-    assert.match(skill, /record-user-selection --run-dir/);
+    assert.match(skill, /By default the user picks.*only each accepted preview's `video.mp4`.*record-user-selection --run-dir/s);
+    assert.match(skill, /record-redraw --run-dir/);
     assert.match(skill, /who picks the base/);
     assert.match(skill, /post-tempo canonical.*same critic identity/s);
     assert.match(skill, /register every initial role.*`register-role --fresh`/is);

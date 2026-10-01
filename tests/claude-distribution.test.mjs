@@ -175,3 +175,28 @@ test('checked repository payload matches a disposable regeneration', () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('source pipeline picks at the r1 previews and self-checks only the picked draw', () => {
+  const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
+  const create = read('skills', 'create', 'SKILL.md');
+  const order = ['## Step 2', '`draw-i preview ready`', '## Step 3 ', '**Default — the user picks.**', '**交给 AI 挑 — blind select**', '## Step 3.5', '`draw-i settled`', '## Step 4 '];
+  let at = -1;
+  for (const marker of order) {
+    const next = create.indexOf(marker, at + 1);
+    assert.ok(next > at, `create skill is missing or misorders ${marker}`);
+    at = next;
+  }
+  assert.match(create, /only each draw's preview `video\.mp4`/);
+  assert.match(create, /你替我挑/);
+  assert.match(create, /都不要，再抽/);
+  for (const stale of [/opt-in shortcut/, /default: the blind selector/i, /Default — blind select/, /self-check → renders R1/, /Hold blind-select until/]) {
+    assert.doesNotMatch(create, stale);
+  }
+  const builder = read('agents', 'builder.md');
+  assert.ok(builder.indexOf('draw 预览就绪') > -1 && builder.indexOf('draw 预览就绪') < builder.indexOf('通知你**被选中**'), 'builder reports its preview before any self-check');
+  assert.match(builder, /通知你\*\*落选\*\*/);
+  const protocol = read('skills', 'critic-loop', 'BLIND-SELECT-PROTOCOL.md');
+  assert.match(protocol, /<该候选明确报告的预览输出目录的绝对路径>/);
+  assert.doesNotMatch(protocol, /报告 settled/);
+  assert.match(read('skills', 'design-brain', 'reference', 'design-equipment.md'), /渲出 R1、被选中之后,\*\*先别交甲\*\*/);
+});

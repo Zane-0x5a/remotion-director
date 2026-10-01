@@ -17,7 +17,7 @@ Read **`${CLAUDE_PLUGIN_ROOT}/skills/design-brain/reference/design-equipment.md`
 - **§1 视觉 conceit** — the命门: one falsifiable visual/structural mechanism that makes the piece itself; its protagonist is a concrete thing/event, never a light effect or material,
 - **§2 工序** — the 3-step process whose ORDER IS A HARD RULE (earlier step's output is frozen for later steps): 第一步 narrative → §A (§A lands on disk independently first) · 第二步 texture and execution → §B · 第三步 engine plan annotated INLINE next to each beat,
 - **§3 施工纪律** (make the render faithful to your design),
-- **§4 渲染自检** — after R1, before handing to 甲: you-the-designer (with your standards) judge the real pixels, dare to change the DESIGN itself, refuse to sign off "acceptable residue", re-check everything after each fix,
+- **§4 渲染自检** — after the draw is picked at its R1 preview, before handing to 甲: you-the-designer (with your standards) judge the real pixels, dare to change the DESIGN itself, refuse to sign off "acceptable residue", re-check everything after each fix,
 - **§5 甲乙环纪律** — once in the critic loop: phenomena belong to 甲, mechanism/fix belong to you; pixel-verify before declaring FIXED; §A is protected but not welded shut.
 
 The equipment used to add seven design-axis references (narrative, aesthetic, color, composition, tempo, persuasion, texture). A preregistered ablation on the current model found the full set did not beat this shorter equipment, so the builder no longer loads them; six are archived outside the plugin. `tempo.md` stays in this directory only because the tempo pass reads it as its criteria — it is not part of the builder's equipment.

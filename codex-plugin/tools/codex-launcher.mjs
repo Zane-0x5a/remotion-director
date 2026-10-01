@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  acceptCanonical, captureProvenance, continueRole, initRun, loadState, prepareSelection, recordReport,
+  acceptCanonical, acceptPreview, captureProvenance, continueRole, initRun, loadState, prepareSelection, recordRedraw, recordReport,
   recordVerdict, recordSelection, recordUserSelection, recoverRole, registerRole, status, verifyArtifacts, captureVideoProvenance, verifyVideoProvenance,
 } from './codex-runtime.mjs';
 
@@ -24,12 +24,14 @@ const help = `remotion-director Codex launcher\n\n` +
   `  init-run --run-dir DIR --brief-hash HEX --draws N --duration locked:5s|free\n` +
   `  register-role --run-dir DIR --role ROLE --agent-id ID --continuation-id ID --fresh [--key draw-N]\n` +
   `  continue-role --run-dir DIR --role ROLE --agent-id ID --continuation-id ID [--key draw-N]\n` +
-  `  record-report --run-dir DIR --report-id ID --role ROLE --agent-id ID --continuation-id ID --status settled|round-done|done|blocked [--review-round R]\n` +
+  `  record-report --run-dir DIR --report-id ID --role ROLE --agent-id ID --continuation-id ID --status preview|settled|round-done|done|blocked [--review-round R]\n` +
+  `  accept-preview --run-dir DIR --report-id ID --out-dir DIR [--source DIR]   a builder's r1 preview (never canonical)\n` +
   `  accept-canonical --run-dir DIR --report-id ID --role builder|tempo --out-dir DIR [--source DIR]\n` +
   `  record-verdict --run-dir DIR --verdict-id ID --critic-id ID --continuation-id ID --round R --strip-dir DIR (--verdict TEXT|--verdict-file FILE) [--amend-of ID]\n` +
   `  prepare-selection --run-dir DIR --candidates-file JSON [--evidence-dir DIR]\n` +
   `  record-selection --run-dir DIR --selector-id ID --continuation-id ID --candidates-file JSON --winner LABEL --reason TEXT\n` +
-  `  record-user-selection --run-dir DIR --winner-key draw-N [--reason TEXT]   the user picked the base\n` +
+  `  record-user-selection --run-dir DIR --winner-key draw-N [--reason TEXT]   the user picked the base (default)\n` +
+  `  record-redraw --run-dir DIR [--reason TEXT]   the user rejected every preview; end these draws, register new ones\n` +
   `  recover-role --run-dir DIR --role ROLE --previous-agent-id ID --replacement-agent-id ID --replacement-continuation-id ID --reason TEXT\n` +
   `  verify-artifacts --out DIR [--source DIR] [--allow-unbound]\n` +
   `  status --run-dir DIR\n\n` +
@@ -86,6 +88,7 @@ function command() {
     case 'continue-role': return print(continueRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), agentId: value('--agent-id'), continuationId: value('--continuation-id'), messageHash: value('--message-hash', null) }));
     case 'record-report': return print(recordReport(value('--run-dir'), { id: value('--report-id'), role: value('--role'), key: value('--key', null), status: value('--status'), reviewRound: value('--review-round') ? Number(value('--review-round')) : null, agentId: value('--agent-id'), continuationId: value('--continuation-id'), outDir: value('--out-dir', null), stripDir: value('--strip-dir', null), text: value('--text', '') }));
     case 'accept-canonical': return print(acceptCanonical(value('--run-dir'), { reportId: value('--report-id'), role: value('--role'), outDir: value('--out-dir'), sourceDir: value('--source', null), reviewRound: value('--review-round') ? Number(value('--review-round')) : null, stripDir: value('--strip-dir', null) }));
+    case 'accept-preview': return print(acceptPreview(value('--run-dir'), { reportId: value('--report-id'), outDir: value('--out-dir'), sourceDir: value('--source', null), stripDir: value('--strip-dir', null) }));
     case 'prepare-selection': {
       const candidates = JSON.parse(readFileSync(value('--candidates-file'), 'utf8'));
       return print(prepareSelection(value('--run-dir'), { candidates, evidenceDir: value('--evidence-dir', null) }));
@@ -99,6 +102,7 @@ function command() {
       return print(recordSelection(value('--run-dir'), { selectorId: value('--selector-id'), selectorContinuationId: value('--continuation-id'), winner: value('--winner'), candidates, reason: value('--reason'), evidenceDir: value('--evidence-dir', null) }));
     }
     case 'record-user-selection': return print(recordUserSelection(value('--run-dir'), { winnerKey: value('--winner-key'), reason: value('--reason', '') }));
+    case 'record-redraw': return print(recordRedraw(value('--run-dir'), { reason: value('--reason', '') }));
     case 'recover-role': return print(recoverRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), previousAgentId: value('--previous-agent-id'), replacementAgentId: value('--replacement-agent-id'), replacementContinuationId: value('--replacement-continuation-id'), reason: value('--reason') }));
     case 'verify-artifacts': return print(verifyArtifacts(value('--out'), { sourceDir: value('--source', null), requireProvenance: !has('--allow-unbound') }));
     case 'capture-provenance': return print(captureProvenance(value('--out'), value('--source', null)));
