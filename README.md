@@ -90,7 +90,7 @@ The architecture is the same **甲乙环 (critic loop)**: one builder that desig
 - **New:** dealt directions before the draws; the pick on the first full cut (by you by default); the two polish modes; a redraw that can carry your comment into the brief.
 - **Sound is on by default.** The builder makes or finds simple effects. Defaults aren't limits: ask for a voice-over through a TTS, your own music or assets, and the builder works out how.
 
-> **On this repo's age:** the git history here is young because this is a *clean release repo*, split off in mid-2026 from a much longer-running development repo. The actual work spans **~3.5 months across three architectures**, driven by preregistered experiments and a pixel-verified ground-truth registry. The arc is in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md); the reasoning in [`docs/WHY.md`](docs/WHY.md).
+> **On this repo's age:** the git history here is young because this is a *clean release repo*, split off in mid-2026 from a much longer-running development repo. The actual work spans **about seven months**: three architectures in the first three and a half, then production use, then this experiment-driven rebuild on Claude Opus 5.5, all driven by preregistered experiments and a pixel-verified ground-truth registry. The arc is in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md); the reasoning in [`docs/WHY.md`](docs/WHY.md).
 
 ## Install
 
@@ -103,25 +103,18 @@ This is a Claude Code plugin. Install it directly from this GitHub repo; no manu
 
 The repo is its own marketplace: `.claude-plugin/marketplace.json` lists the generated `./claude-plugin` distribution. Then invoke the `create` skill. The installed package contains only Claude skills, agents, runtime tools and dependency defaults. It leaves out the Codex package, tests, research documents and promotional media.
 
-The separate package is currently on the migration branch. To preview it from a terminal while also limiting the marketplace checkout:
+To also limit the marketplace checkout, add it from a terminal:
 
 ```sh
-claude plugin marketplace add Zane-0x5a/remotion-director#codex/codex-plugin-migration --sparse .claude-plugin claude-plugin
+claude plugin marketplace add Zane-0x5a/remotion-director --sparse .claude-plugin claude-plugin
 claude plugin install remotion-director@remotion-director
 ```
 
-After merge, omit `#codex/codex-plugin-migration`. `--sparse` keeps the other distribution out of the marketplace working tree. An ordinary GitHub marketplace registration may still cache the full repository separately from the installed plugin. See [distribution and update details](docs/PLUGIN-DISTRIBUTION.md).
+`--sparse` keeps the other distribution out of the marketplace working tree. An ordinary GitHub marketplace registration may still cache the full repository separately from the installed plugin. See [distribution and update details](docs/PLUGIN-DISTRIBUTION.md).
 
 ### Codex
 
-Codex uses the repository's separate marketplace entry. It points at `./codex-plugin` and exposes the same plugin name, `remotion-director`. The current preview is on the migration branch:
-
-```
-codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
-codex plugin add remotion-director@remotion-director-codex
-```
-
-After the pull request merges, omit `--ref` so Codex reads the default branch:
+Codex uses the repository's separate marketplace entry. It points at `./codex-plugin` and exposes the same plugin name, `remotion-director`:
 
 ```
 codex plugin marketplace add Zane-0x5a/remotion-director

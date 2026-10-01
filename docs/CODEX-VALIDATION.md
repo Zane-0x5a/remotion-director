@@ -4,6 +4,8 @@ Date: 2026-09-25. Source baseline: `28fb82cc437f7bf3b231e2694ace0f65d031b9bd`.
 
 This record separates engineering checks from acceptance of the creative product. The migration is implemented for review; full creative acceptance remains blocked.
 
+> **Update 2026-10-02.** The checks below were run before the source pipeline was rebuilt on Claude Opus 5.5. Stills, strip frames, `render-strip.ts`, the tempo pass and post-tempo review no longer exist: every render now writes `video.mp4` and a `review/` directory (time overview pages, settle frames, `overview.json`), which the ledger (schema 4) verifies. The automated suite now covers the rebuilt runtime (dealt directions, the pick at the previews, redraws, both polish modes, `duration blocked`). Entries below that mention stills, strips or tempo describe that earlier state. Full creative acceptance on Codex remains blocked.
+
 ## Reproducible engineering checks
 
 From the repository root:

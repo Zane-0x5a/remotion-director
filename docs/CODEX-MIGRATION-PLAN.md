@@ -2,19 +2,21 @@
 
 Date: 2026-09-25. Baseline: `28fb82cc437f7bf3b231e2694ace0f65d031b9bd`.
 
+> **Update 2026-10-02.** The source pipeline was rebuilt on Claude Opus 5.5 after this plan was written (see [WHY.md](WHY.md) and [DEVELOPMENT-JOURNEY.md](DEVELOPMENT-JOURNEY.md)): the design equipment, the frame strips and the tempo pass are gone; directions are dealt before the draws; the pick happens on the r1 previews, by the user by default; only the picked draw self-checks; polishing is the critic loop or the user's own comments; every render ships a time overview and settle frames. The protected behavior and acceptance items below are updated to match. The Codex runtime follows the same pipeline (ledger schema 4). Full creative acceptance on Codex is still open.
+
 ## Outcome and ownership
 
-Deliver an installable Codex adaptation that carries the original autonomous design process through rendering, blind selection, persistent critique, tempo adjustment and final user acceptance. The specification is [CODEX-MIGRATION.md](CODEX-MIGRATION.md), grounded in `WHY.md` and the existing role protocols. Packaging or green unit tests alone do not establish a complete migration.
+Deliver an installable Codex adaptation that carries the source design process through dealt directions, rendering, the pick at the previews, persistent critique or the user's own polishing, and final user acceptance. The specification is [CODEX-MIGRATION.md](CODEX-MIGRATION.md), grounded in `WHY.md` and the existing role protocols. Packaging or green unit tests alone do not establish a complete migration.
 
 GPT-6 Sol implements the bounded adaptation and its verification. The primary agent owns acceptance, independent review, corrections and the pull request. Preserve the unrelated untracked `dsh/` and `.dsh-path-backup.txt`. Do not edit global skills or host configuration as a substitute for a portable package.
 
 ## Protected behavior
 
-- The same builder designs, implements, checks pixels and repairs. N independent draws explicitly settle before selection.
-- A fresh, provenance-blind selector chooses potential. The persistent critic receives brief and pixels, never design or code; the orchestrator ferries verbatim without aesthetic judgment.
-- Narrative lands before texture is loaded. Design equipment, the self-check persona, held/mid semantics and native crops retain their original force and wording.
+- The same builder designs, implements, checks pixels and repairs. A fresh direction lister deals each of the N draws one idea-level direction before any builder starts. Every draw stops at its r1 preview; only the picked draw self-checks and explicitly settles.
+- The user picks on the preview videos by default; otherwise a fresh, provenance-blind selector chooses potential on the same previews. The persistent critic receives the brief, the video and its review material, never design or code; the orchestrator ferries verbatim without aesthetic judgment, including the user's comments in user polish.
+- Role and protocol wording keeps its source force. Reviewers judge settled states; a designed transient is not a defect.
 - Canonical advances from an explicit completion report plus verified artifacts, never the largest directory number or an idle event. Review round and render version remain independent.
-- Fresh tempo work follows convergence, changes timing only and obeys locked/free duration. The final deliverable is the verified post-tempo result.
+- A locked duration is the builder's promise: it fits the piece inside it or reports `duration blocked`, and the user decides. The final deliverable is the verified canonical the user accepted.
 - Remotion and RBP continue following upstream stable latest; existing global RBP is updated first. RBP supplies engineering reference, not a replacement creative workflow.
 - User visual acceptance is the final product gate. Clean context and audited reads are not claimed to be a filesystem sandbox.
 
@@ -23,7 +25,7 @@ GPT-6 Sol implements the bounded adaptation and its verification. The primary ag
 | Phase | Deliverable | Completion evidence |
 | --- | --- | --- |
 | 1. Distribution | A generated, self-contained Codex plugin with one public `remotion-director` skill; shared sources, explicit host-only transforms and full source/output verification | Package validation and regeneration checks; no developer-checkout dependency or exposed internal design skill |
-| 2. Role lifecycle | Four role entry paths, clean initial contexts, persistent winning builder and critic, explicit final reports and working idle-agent continuation | A native-agent mechanism exercise including N settlement, selection, two continuations, verbatim rebuttal and tempo handoff |
+| 2. Role lifecycle | Four role entry paths, clean initial contexts, persistent winning builder and critic, explicit final reports and working idle-agent continuation | A native-agent mechanism exercise including N previews, the pick, two continuations and verbatim rebuttal |
 | 3. Runtime handoff | Cross-platform Node launcher, anonymous evidence, minimum run record, artifact and report checks, recovery semantics | Sad-path tests reject stale/duplicate reports, incomplete artifacts, failed higher versions, malformed verdicts and lost identity |
 | 4. Installation and creative acceptance | Separate-workspace installed-package exercise and real creative runs; accurate maturity report | Space/Chinese paths, package without node_modules, read-only install, native image/crop reads, locked/free and N=1/N>1 evidence |
 | 5. Review and delivery | Primary review, corrections, reproducible commands and a PR | Standards and spec review; critical paths personally inspected; validated changes committed without unrelated work |
@@ -40,11 +42,11 @@ Keep the implementation small: no aesthetic scoring service, duplicate design ca
 
 Record actual commands, paths, outcomes and remaining blockers in the implementation's validation report. Each principal capability is missing, partial or verified; verification must name its scope.
 
-1. Source fidelity: generated role/equipment/protocol content differs only at declared host seams, and stale generation fails checks.
-2. Clean execution: installed tools use a separate workspace for dependencies and cache; package paths work with spaces and Chinese. Exercise actual rendering, strip extraction and native crops.
+1. Source fidelity: generated role/protocol content differs only at declared host seams, and stale generation fails checks.
+2. Clean execution: installed tools use a separate workspace for dependencies and cache; package paths work with spaces and Chinese. Exercise actual rendering, the time overview and settle frames, and native crops.
 3. Failures: r3 with failed r4, idle without completion, missing/corrupt/mismatched artifacts, invalid verdicts, stale/duplicate messages, dead agents, interrupted updates, denied global updates, network failure and unusable ffmpeg codecs.
 4. Native lifecycle: preserve actual builder and critic identities across at least two continuations; explicit handoffs use the received verbatim text and verified artifact version.
-5. Blindness: inspect supplied context and actual file/image reads; marker absence in a final response alone is insufficient. Verify held/mid treatment and required native crops.
+5. Blindness: inspect supplied context and actual file/image reads; marker absence in a final response alone is insufficient. Verify that settled-state judging and native crops reach the reviewers.
 6. Creative behavior: complete a real case, then cover different briefs, both duration modes and both draw modes. Track user aesthetic acceptance separately from engineering success.
 
 ## Status
@@ -55,4 +57,5 @@ Record actual commands, paths, outcomes and remaining blockers in the implementa
 - Installation: isolated CLI install, app-server single-skill discovery and installed-cache fixture rendering passed. Final bundle reinstallation is recorded in [CODEX-VALIDATION.md](CODEX-VALIDATION.md).
 - Real creative acceptance: partial. One of two real draws rendered and inspected native crops; the other failed in the sandbox and its elevated retry was rejected. No N=2 selection, full persistent critic/tempo flow or user visual acceptance is claimed.
 - Review: GPT-6 Sol implementation and two review axes completed; primary-agent inspection and independent CLI/boundary tests completed. Findings and exact verification scope are recorded in [CODEX-VALIDATION.md](CODEX-VALIDATION.md).
+- Rebuild sync (2026-10-02): the generator, runtime and launcher follow the rebuilt source pipeline; the earlier entries above describe the pre-rebuild state.
 - Delivery: engineering changes are ready for an explicitly draft PR. Do not merge automatically. Full creative acceptance remains a release blocker.

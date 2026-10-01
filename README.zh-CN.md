@@ -90,7 +90,7 @@ remotion-director 就是去长尾里把那一支捞出来的工作流。你给�
 - **新增：** 抽卡前先分方向；在第一版完整成片上挑选（默认由你挑）；两种打磨方式；再抽时可以把你的话并进 brief。
 - **声音默认开。** 乙自己做或自己找简单音效。默认不是限制：想用 TTS 配旁白、用自己的音乐或素材，提出来，乙会想办法做到。
 
-> **关于本仓库的"年龄"：**这里的 git 历史很短，因为这是 2026 年年中从一个长期开发仓库拆出来的*干净发布仓库*。真正的工作跨越**约 3.5 个月、三代架构**，由预注册实验和一份逐像素核验的事实登记驱动。来龙去脉见 [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md)，背后的思考见 [`docs/WHY.md`](docs/WHY.md)。
+> **关于本仓库的"年龄"：**这里的 git 历史很短，因为这是 2026 年年中从一个长期开发仓库拆出来的*干净发布仓库*。真正的工作跨越**约七个月**：前三个半月走过三代架构，之后是实际使用，再之后是这次在 Claude Opus 5.5 上由实验驱动的重建，全程靠预注册实验和一份逐像素核验的事实登记推进。来龙去脉见 [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md)，背后的思考见 [`docs/WHY.md`](docs/WHY.md)。
 
 ## 安装
 
@@ -103,25 +103,18 @@ remotion-director 就是去长尾里把那一支捞出来的工作流。你给�
 
 本仓库自己就是 marketplace：`.claude-plugin/marketplace.json` 指向生成的 `./claude-plugin` 发布包。装好后调用 `create` 技能。安装的包里只有 Claude 的技能、agent、运行时工具和依赖默认值，不含 Codex 包、测试、研究文档和宣传素材。
 
-独立的发布包目前在迁移分支上。想在终端里预览、同时限制 marketplace 检出的内容：
+想同时限制 marketplace 检出的内容，就在终端里添加：
 
 ```sh
-claude plugin marketplace add Zane-0x5a/remotion-director#codex/codex-plugin-migration --sparse .claude-plugin claude-plugin
+claude plugin marketplace add Zane-0x5a/remotion-director --sparse .claude-plugin claude-plugin
 claude plugin install remotion-director@remotion-director
 ```
 
-合并后去掉 `#codex/codex-plugin-migration`。`--sparse` 让另一个发布包不进入 marketplace 的工作树；普通的 GitHub marketplace 注册仍可能单独缓存整个仓库。详见[发布与更新说明](docs/PLUGIN-DISTRIBUTION.md)。
+`--sparse` 让另一个发布包不进入 marketplace 的工作树；普通的 GitHub marketplace 注册仍可能单独缓存整个仓库。详见[发布与更新说明](docs/PLUGIN-DISTRIBUTION.md)。
 
 ### Codex
 
-Codex 用仓库里单独的 marketplace 条目，指向 `./codex-plugin`，插件名同样是 `remotion-director`。当前预览在迁移分支上：
-
-```
-codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
-codex plugin add remotion-director@remotion-director-codex
-```
-
-PR 合并后去掉 `--ref`，让 Codex 读默认分支：
+Codex 用仓库里单独的 marketplace 条目，指向 `./codex-plugin`，插件名同样是 `remotion-director`：
 
 ```
 codex plugin marketplace add Zane-0x5a/remotion-director

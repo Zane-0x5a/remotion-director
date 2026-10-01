@@ -15,14 +15,7 @@ The generated folder contains a portable root manifest, a Codex compatibility ma
 
 ## Install from this GitHub repository
 
-The repository has a separate Codex marketplace whose entry points at `./codex-plugin`. For the current preview branch, add that marketplace and install the `remotion-director` plugin with:
-
-```text
-codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
-codex plugin add remotion-director@remotion-director-codex
-```
-
-After the change is merged, run the same commands without `--ref`; the default branch will contain the marketplace entry:
+The repository has a separate Codex marketplace whose entry points at `./codex-plugin`. Add that marketplace and install the `remotion-director` plugin with:
 
 ```text
 codex plugin marketplace add Zane-0x5a/remotion-director
