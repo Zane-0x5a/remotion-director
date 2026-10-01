@@ -4,9 +4,9 @@
 
 <div align="center">
 
-<a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/hero-opus-5-5-c.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/hero-opus-5-5-c-thumb.webp" width="860" alt="The plugin's own hero film, made by remotion-director on Claude Opus 5.5 — click to play"></a>
+https://github.com/user-attachments/assets/8b1b1bd1-15cb-4fdd-99d8-b791f8a8e33e
 
-<sub>*This plugin's own hero film, made **by remotion-director on Claude Opus 5.5** from a one-line brief.* The AI listed the directions, designed, built and rendered three films, and self-checked the one picked. The human input was the brief, a slogan, a pick among the three previews, and one comment ("the blind pick in the race chose the dullest of the four drafts?"). No design doc, no reference, no art direction. *(Looping preview — click to play, with sound.)*</sub>
+<sub>*This plugin's own hero film, made **by remotion-director on Claude Opus 5.5** from a one-line brief.* The AI listed the directions, designed, built and rendered three films, and self-checked the one picked. The human input was the brief, a slogan, a pick among the three previews, and one comment ("the blind pick in the race chose the dullest of the four drafts?"). No design doc, no reference, no art direction. *(With sound. If the player doesn't load, [open the mp4](https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/hero-opus-5-5-c.mp4).)*</sub>
 
 <sub>[**中文说明 →**](README.zh-CN.md)</sub>
 

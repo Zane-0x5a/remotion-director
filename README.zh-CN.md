@@ -4,9 +4,9 @@
 
 <div align="center">
 
-<a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/hero-opus-5-5-c.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/hero-opus-5-5-c-thumb.webp" width="860" alt="本插件自己的 hero 片，由 remotion-director 在 Claude Opus 5.5 上做出——点击播放"></a>
+https://github.com/user-attachments/assets/8b1b1bd1-15cb-4fdd-99d8-b791f8a8e33e
 
-<sub>*本插件自己的 hero 片，由 **remotion-director 在 Claude Opus 5.5 上**从一句 brief 做出。* AI 列出方向，设计、施工、渲出三支片，并对选中的那支做了自检。人这边的全部输入是：brief、一句 slogan、在三支预览里挑选，以及一条意见（"盲评阶段选了四个 draw 里面看起来最不出彩的一个？"）。没有设计稿，没有参考，没有美术指导。*（循环预览——点击播放完整影片，有声音。）*</sub>
+<sub>*本插件自己的 hero 片，由 **remotion-director 在 Claude Opus 5.5 上**从一句 brief 做出。* AI 列出方向，设计、施工、渲出三支片，并对选中的那支做了自检。人这边的全部输入是：brief、一句 slogan、在三支预览里挑选，以及一条意见（"盲评阶段选了四个 draw 里面看起来最不出彩的一个？"）。没有设计稿，没有参考，没有美术指导。*（有声音。播放器加载不出来时，可[直接打开 mp4](https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/hero-opus-5-5-c.mp4)。）*</sub>
 
 <sub>[**English →**](README.md)</sub>
 
