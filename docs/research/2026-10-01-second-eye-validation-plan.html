@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第二只眼 · 验证计划</title>
+<title>时间总览 · 验证计划</title>
 <style>
   :root {
     --ground: #f5f6f8; --paper: #ffffff; --ink: #12141a; --ink-2: #474c59; --ink-3: #868c9b;
@@ -123,150 +123,136 @@
   }
 </style>
 <style>
-  .ev { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
-  .evr { display: grid; grid-template-columns: 230px 1.4fr 150px; border-top: 1px solid var(--rule-2); }
-  .evr:first-child { border-top: 0; background: var(--ground); font-size: 12px; font-weight: 700; color: var(--ink-3); }
-  .evr > div { padding: 11px 14px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
-  .evr .nm { color: var(--ink); font-weight: 700; }
-  .tag { display: inline-block; font-size: 12px; font-weight: 800; padding: 1px 9px; border-radius: 999px; }
-  .tag.full { background: var(--accent); color: #fff; }
-  .tag.survey { border: 1.5px solid var(--warm); color: var(--warm); }
-  .tag.no { border: 1.5px solid var(--ink-3); color: var(--ink-3); }
-  .dets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-  .det { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
-  .det.main { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .det .id { font-family: var(--mono); font-weight: 800; color: var(--accent); font-size: 13px; }
-  .det h3 { margin: 2px 0 10px; font-size: 17px; }
-  .det dl { margin: 0; display: grid; grid-template-columns: 64px 1fr; gap: 6px 10px; font-size: 13.2px; line-height: 1.55; }
-  .det dt { color: var(--ink-3); font-weight: 700; }
-  .det dd { margin: 0; color: var(--ink-2); }
-  .det .hard { margin-top: 10px; font-size: 12.5px; color: var(--warm); font-weight: 700; }
-  .pair { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-  .pc { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
-  .pc .big { font-family: var(--mono); font-size: 36px; font-weight: 800; line-height: 1; }
-  .pc b { display: block; margin: 8px 0 4px; }
-  .pc p { margin: 0; font-size: 13.2px; color: var(--ink-2); line-height: 1.55; }
+  .why2 { background: var(--warm-weak); border: 1px solid #f0d2bf; border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink-2); line-height: 1.65; }
+  .why2 b { color: var(--warm); }
+  .ev3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .e3 { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; font-size: 13.4px; color: var(--ink-2); line-height: 1.6; }
+  .e3 b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+  .hyp { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .hy { border-radius: 12px; padding: 14px 16px; font-size: 13.5px; line-height: 1.6; }
+  .hy b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .hy.a { background: var(--ink); color: #e6e8ef; }
+  .hy.a b { color: #aeb5ff; }
+  .hy.q { background: var(--accent); color: #fff; }
+  .hy.r { border: 1px dashed var(--ink-3); color: var(--ink-2); background: var(--paper); }
+  .layers { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .lr { display: grid; grid-template-columns: 54px 170px 1.4fr 1.1fr; border-top: 1px solid var(--rule-2); }
+  .lr:first-child { border-top: 0; background: var(--ground); font-size: 12px; font-weight: 700; color: var(--ink-3); }
+  .lr > div { padding: 10px 14px; font-size: 13.2px; line-height: 1.55; color: var(--ink-2); }
+  .lr .n { font-family: var(--mono); font-weight: 800; color: var(--accent); }
+  .lr .nm { color: var(--ink); font-weight: 700; }
+  .shot { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px; margin-top: 14px; }
+  .shot img { width: 100%; display: block; border-radius: 6px; }
+  .shot p { margin: 8px 4px 2px; font-size: 13px; color: var(--ink-2); }
+  .shot2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ver { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .vr { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; font-size: 13.4px; color: var(--ink-2); line-height: 1.6; }
+  .vr b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+  .tests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .ts { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
+  .ts .id { font-family: var(--mono); font-weight: 800; color: var(--accent); }
+  .ts h3 { margin: 2px 0 8px; font-size: 16px; }
+  .ts dl { margin: 0; display: grid; grid-template-columns: 44px 1fr; gap: 6px 8px; font-size: 13px; line-height: 1.55; }
+  .ts dt { color: var(--ink-3); font-weight: 700; }
+  .ts dd { margin: 0; color: var(--ink-2); }
   .gate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
   .g { background: var(--paper); padding: 16px 18px; }
-  .g .big { font-family: var(--mono); font-size: 38px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .g .big { font-family: var(--mono); font-size: 34px; font-weight: 800; color: var(--accent); line-height: 1; }
   .g b { display: block; margin-top: 8px; }
   .g p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
-  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .stp { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
-  .stp .n { font-family: var(--mono); font-weight: 800; color: var(--accent); font-size: 12px; }
-  .stp h3 { margin: 3px 0 6px; font-size: 15px; }
-  .stp p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
   .qs { display: grid; gap: 12px; }
   .qq { background: var(--paper); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; }
   .qq b { font-size: 15.5px; }
   .qq p { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-2); }
   .qq .rec { color: var(--accent-ink); font-weight: 700; }
-  .scope { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-  .sc { border-radius: 12px; padding: 14px 16px; font-size: 13.2px; line-height: 1.55; }
-  .sc.in { background: var(--accent); color: #fff; }
-  .sc.out { border: 1px dashed var(--ink-3); color: var(--ink-2); }
-  .sc b { display: block; font-size: 15px; margin-bottom: 4px; }
 </style>
 </head>
 <body>
 <div class="wrap">
 <header class="top">
   <div>
-    <h1>第二只眼<br><span class="second">先验证，再接进自检</span></h1>
-    <p class="sub">管线里做判断的 agent 只能读静帧和条带，时间上的缺陷在构造上看不见。γ M 定镜里字在抽搐，你一眼看出，管线全漏。这份计划用带真值的合成片，测每种像素检测的命中率和误报率，再决定接不接进乙的自检。</p>
+    <h1>时间总览<br><span class="second">让评审看见时间</span></h1>
+    <p class="sub">管线里做判断的 agent 只拿到静帧和条带，一个停顿不管多长都只出一帧，时间在构造上就丢了。这份计划给每支片做一份"时间总览"，然后验证：有了它，评审对时间的判断是不是更接近看视频的人。</p>
   </div>
-  <div class="status"><div class="pill">验证计划草案 · 已更正</div><br>地图票 12 · 只覆盖局部现象<br>是否改成"时间总览"待你定<br>不花模型生成成本，不需要你打分</div>
+  <div class="status"><div class="pill">验证计划第二版 · 待你确认</div><br>地图票 12<br>不跑 builder，不需要你打分</div>
 </header>
 
 <section>
-  <h2>只管哪一类信息</h2>
-  <p class="lede">设计稿把一支片的信息分成三类。这一轮只验证第一类。</p>
-  <div class="scope">
-    <div class="sc in"><b>2a · 成片像素能测出</b>定镜里还在变的像素、闪光、运动模糊的阶梯纹、黑场。可以交给盲评，因为信息本来就在视频里。</div>
-    <div class="sc out"><b>2b · 代码能读出</b>停留时长、节拍表。会把意图带给评审，归 C3 和节奏刀，不在这里。</div>
-    <div class="sc out"><b>3 · 脚本判不了</b>运动品质本身：缓动舒不舒服、节奏爽不爽。读图模型能不能看懂图像编码，另做一轮。</div>
+  <div class="why2"><b>为什么有第二版。</b>第一版只列了几种局部像素现象，因为它沿用了设计稿的一句话："读图模型能不能读懂没有证据，先不做。"你指出这种思路本身就有问题：证据要靠实验得来；按常识，现代模型读得懂这类图表，"不成立"只是一个要盯的小风险。第二版把整体的时间视觉化作为主体，第一版的局部检测并进来作为其中一层。</div>
+</section>
+
+<section>
+  <h2>问题有多大</h2>
+  <div class="ev3">
+    <div class="e3"><b>成熟度研究</b>最常见的成熟度缺陷在时间轴上，几乎全部熬过了批评环。甲声明不判时长，V9 约 1.5 秒的黑场以"条带量不出时长"留作 LOW。条带误报又让 V8 白跑了 3 轮渲染。</div>
+    <div class="e3"><b>执行诊断</b>描述员把 pax 的粒子重组读成缺陷，可那正是你说惊艳的地方。它按条带帧数推断时长，6 支全被标了节奏问题，其中 4 支你打了质量 5。逐帧阈值把 tob 整整 12 秒的慢运动量成了零。</div>
+    <div class="e3"><b>管线</b>AI 盲选在 r1 上"模拟人眼"，可它看不到时间；你是看视频选的。乙在 r1 上的自检也一样。</div>
   </div>
 </section>
 
 <section>
-  <h2>这些现象在我们的成片里出现过吗</h2>
-  <p class="lede">先查自己的证据，再决定做多少。（更正：原版说后三项"没有记录"，是错的，成熟度研究里都有实例。）</p>
-  <div class="ev">
-    <div class="evr"><div>现象</div><div>我们自己的观察</div><div>本轮</div></div>
-    <div class="evr"><div class="nm">定镜里的像素持续变化（抽搐）</div><div>γ M 收尾定镜 64/64 帧都在变，中位约 2,200 像素；对照的 γ F、γ N、β N 收尾定镜中位都是 0</div><div><span class="tag full">完整验证</span></div></div>
-    <div class="evr"><div class="nm">闪光、闪烁</div><div>V4 颗粒每帧重新播种，可见闪烁；V7 翻页有 9 帧正文全空。都是乙自检接住的</div><div><span class="tag full">完整验证</span></div></div>
-    <div class="evr"><div class="nm">运动模糊阶梯纹</div><div>V7 拖尾比位移长 3 倍，裂成压印式重影，乙自检接住</div><div><span class="tag full">完整验证</span></div></div>
-    <div class="evr"><div class="nm">黑场、空场时长</div><div>V6 1.2 秒纯黑、V9 1.8 秒全黑，都"像播放卡住"；V9 剩约 1.5 秒，甲以"条带量不出时长"留作 LOW</div><div><span class="tag full">完整验证</span></div></div>
-    <div class="evr"><div class="nm">重复帧、跳帧、动画重启</div><div>成熟度研究："既没有实例，也没测过"</div><div><span class="tag no">不在本票</span></div></div>
-  </div>
-  <p class="lede" style="margin-top:14px">普查范围：消融 9 支、本轮执行诊断 6 支、生产语料 8 次运行的胜出片。每条报警由我逐帧核对像素事实，不判是不是缺陷。</p>
-</section>
-
-<section>
-  <h2>四项检测</h2>
-  <p class="lede">每项写明针对的缺陷、时间窗和分母。检测只报现象，不判失败，不拦交付。</p>
-  <div class="dets">
-    <div class="det main"><div class="id">D1</div><h3>定镜内持续变化</h3><dl>
-      <dt>针对</dt><dd>本该静止的元素逐帧在变：亚像素吸附的字形抖动、意外的线条沸腾</dd>
-      <dt>时间窗</dt><dd>render-strip 现有的 PAUSE 段，也就是条带只给它一帧的那一段。小元素的抖动在 54×96 下量成零，正好落在这里</dd>
-      <dt>分母</dt><dd>定镜段内的帧数；每帧在原分辨率上统计灰度变化超过 24 的像素</dd>
-      <dt>报</dt><dd>帧范围、"每帧都在变"的比例、中位像素数、变化区域的包围盒</dd>
-      <dt>误报</dt><dd>有意的颗粒、微光、闪烁；秒针跳动</dd></dl></div>
-    <div class="det"><div class="id">D2 · D2′</div><h3>闪光频率 · 局部来回跳</h3><dl>
-      <dt>针对</dt><dd>D2：大面积亮度来回翻转，按 WCAG 2.3.1，任意 1 秒不超过 3 次。D2′：小元素一帧出现、一帧消失</dd>
-      <dt>时间窗</dt><dd>D2 滑动 1 秒；D2′ 连续三帧</dd>
-      <dt>分母</dt><dd>D2 每秒闪光次数，面积用画面 25% 代替视场角（简化，结果里写明）</dd>
-      <dt>误报</dt><dd>D2 几乎没有，超标本身就是问题。D2′ 特异性低，滚动文字也会触发，只当辅助</dd></dl></div>
-    <div class="det"><div class="id">D3</div><h3>运动模糊阶梯纹</h3><dl>
-      <dt>针对</dt><dd>采样不够，运动物体后面拖出一排离散重影</dd>
-      <dt>时间窗</dt><dd>运动段里的单帧。批评协议不判 mid 帧，所以归第二只眼</dd>
-      <dt>分母</dt><dd>运动段帧数；在运动区域沿运动方向算梯度自相关，看有没有等距次峰</dd>
-      <dt>误报</dt><dd>本身有周期纹理的东西：条纹、网格、多行文字</dd></dl>
-      <div class="hard">最难的一项：调参批达不到门槛就判"不接"</div></div>
-    <div class="det"><div class="id">D4</div><h3>黑场、空场时长</h3><dl>
-      <dt>针对</dt><dd>片头片尾多出的黑帧、段落之间没接上留下的空帧</dd>
-      <dt>时间窗</dt><dd>全片逐帧</dd>
-      <dt>分母</dt><dd>帧数；画面灰度标准差低于阈值记为空场</dd>
-      <dt>误报</dt><dd>有意的淡入淡出、黑场转场</dd></dl></div>
+  <h2>假设与风险</h2>
+  <div class="hyp">
+    <div class="hy a"><b>工作假设</b>当前的多模态模型能读懂等时缩略带、时间轴曲线和数字表。这是常识，不当成要验证的问题。</div>
+    <div class="hy q"><b>要验证的</b>有了时间总览，评审是不是找得出真实的时间缺陷，并且不再把运动中途读成缺陷、把条带帧数读成时长。</div>
+    <div class="hy r"><b>风险项（只监控）</b>读错时间戳或刻度。评审引用的每个时长都和数字表逐条核对，记下误读次数。</div>
   </div>
 </section>
 
 <section>
-  <h2>合成片：成对制作，带真值</h2>
-  <p class="lede">用 Remotion 写一个参数化工程，每支 3–4 秒、30fps，横竖屏各一半。正常片和异常片画面、运动都相同，只差注入的那一个缺陷。</p>
-  <div class="pair">
-    <div class="pc"><div class="big">8 + 8</div><b>每项检测：调参批 8 对，验证批 8 对</b><p>划分由生成器的种子决定。验证批生成后封存，检测参数冻结之后才跑。每种缺陷至少 3 种强度或位置。</p></div>
-    <div class="pc"><div class="big">6</div><b>每项检测：有意效果片 6 支</b><p>动态颗粒、微光、频闪风格、逐格动画、线条沸腾、镜头抖动、淡入淡出、黑场转场。每支附一段事先声明，写法和 DESIGN.md 一样。</p></div>
-    <div class="pc"><div class="big">γ M</div><b>真实阳性</b><p>γ M 原片作为 D1 的额外核对；普查里找到的真实实例也加进来。四项合计约 100 支合成片，本机渲染约 1 小时。</p></div>
+  <h2>时间总览的六层</h2>
+  <p class="lede">从已经渲好的 video.mp4 用一个脚本算出来，结果确定、可复现，不用额外渲染。</p>
+  <div class="layers">
+    <div class="lr"><div></div><div>层</div><div>内容</div><div>补的是什么</div></div>
+    <div class="lr"><div class="n">1</div><div class="nm">等时缩略带</div><div>每 0.25 秒一格，带时间戳，每行 3 秒</div><div>时长直接变成格数：字停多久、定镜多长、空场多长</div></div>
+    <div class="lr"><div class="n">2</div><div class="nm">运动曲线</div><div>和缩略带对齐。相邻帧变化看快动作，0.5 秒窗口变化看慢漂移，都按分区取变化最大的一区；底色标出定镜、慢运动和运动段</div><div>小元素被平均掉、慢运动量成零</div></div>
+    <div class="lr"><div class="n">3</div><div class="nm">变化热区</div><div>每格上用浅红标出这 0.25 秒里在变的位置</div><div>注意力往哪走；不该动的地方是不是在动</div></div>
+    <div class="lr"><div class="n">4</div><div class="nm">关键运动连续帧</div><div>运动峰值处原帧率连续 6 帧，取 2–3 处</div><div>顺不顺、阶梯纹、跳帧</div></div>
+    <div class="lr"><div class="n">5</div><div class="nm">现象标注</div><div>第一版的局部检测：定镜内持续变化、闪光频率、运动模糊阶梯纹、黑场和空场，标在同一条时间轴上</div><div>看得出一个现象是转瞬即逝，还是一直都在</div></div>
+    <div class="lr"><div class="n">6</div><div class="nm">数字表</div><div>分段起止和时长、首个内容出现时间、收尾定镜时长、空场段、闪光次数</div><div>给评审引用，也用来核对它有没有读错</div></div>
+  </div>
+  <div class="ver">
+    <div class="vr"><b>纯像素版 → 盲选、甲、描述员</b>只含从成片像素算出的信息，盲不会被破坏。</div>
+    <div class="vr"><b>加代码版 → 乙自检、节奏刀</b>在同一条时间轴上叠上代码里声明的节拍（各 Sequence 的起止），"代码写的时间"和"成片实际"差在哪里一眼就看得出来。</div>
+  </div>
+</section>
+
+<section>
+  <h2>样张：第 1–3 层原型</h2>
+  <p class="lede">在本轮的片子上直接出的图，阈值还没调。看 v06："6分钟"从 0.5 秒停到约 2.9 秒，粒子散开约 3 秒，"40秒"从 7.0 秒起一直停到结尾；运动中途的那几格夹在前后完整的字形之间，一看就知道是过程，不是缺陷。</p>
+  <div class="shot2">
+    <div class="shot"><img src="assets/2026-10-01-time-overview/sample-v06.jpg" alt=""><p>v06（D L2-4，你评 5/5，"粒子碎裂重组效果惊艳"）。描述员只看静帧和条带时，把这段判成"粒子盖住字"。</p></div>
+    <div class="shot"><img src="assets/2026-10-01-time-overview/sample-v05.jpg" alt=""><p>v05（D L1-1）：绕行线一路被拉直，倒计时一直在走，整支片没有一段真正的定镜。</p></div>
+  </div>
+  <div class="shot"><img src="assets/2026-10-01-time-overview/sample-v03.jpg" alt=""><p>v03（F S1，5/5）：画面淡、变化慢，原来的逐帧阈值把它整支量成零；新曲线和热区能看出云在移动、人物入画、涟漪扩开。"定镜 / 慢运动"的分段还在跳，要靠调参解决。</p></div>
+</section>
+
+<section>
+  <h2>验证：同一个评审，两种材料</h2>
+  <p class="lede">"现行" = 静帧 + 条带；"加总览" = 再加纯像素版时间总览。每个案例用独立的无头评审：只开 Read，提示词固定，顺序随机。</p>
+  <div class="tests">
+    <div class="ts"><div class="id">T1</div><h3>本轮 6 支</h3><dl><dt>真值</dt><dd>你的评分和说明</dd><dt>做法</dt><dd>重跑描述员，只跑"加总览"，现行条件的输出已经封存</dd><dt>看</dt><dd>pax 的粒子重组还会不会被判成缺陷；你打 5/5 的片还有几支被标"开场拖长"</dd></dl></div>
+    <div class="ts"><div class="id">T2</div><h3>重定时的真实成片</h3><dl><dt>素材</dt><dd>6 支原片，每支用 ffmpeg 做 5 种时间缺陷：字停留不到 0.5 秒、收尾只剩 0.3 秒、插入 1.5 秒黑场、开场空等 3 秒、运动中途冻结 0.5 秒</dd><dt>真值</dt><dd>构造出来的，位置和时长都确定</dd><dt>看</dt><dd>命中，以及原片上的误报</dd></dl></div>
+    <div class="ts"><div class="id">T3</div><h3>语料里的前后版</h3><dl><dt>素材</dt><dd>8 例当年记录过的缺陷：V9 小注被切、V9 收束页瞬显、V6 纯黑、RD 和 V3 字幕太快、γ M 抽搐、V4 闪烁、V7 阶梯纹</dd><dt>真值</dt><dd>当时的 FIXES、TEMPO、判词，冻结前逐例核对版本号</dd><dt>看</dt><dd>缺陷版上说不说得出当时的问题；修复版上会不会再报</dd></dl></div>
   </div>
 </section>
 
 <section>
   <h2>建议门槛</h2>
-  <p class="lede">命中要求报出的帧范围和注入位置重叠，前后允许 5 帧。有意效果片预期会被报，不设门槛，靠声明处置，分"只看像素"和"对照声明之后"两种如实报告。</p>
   <div class="gate">
-    <div class="g"><div class="big">≥ 7/8</div><b>验证批命中</b><p>异常片里被报出的比例</p></div>
-    <div class="g"><div class="big">0/8</div><b>正常片误报</b><p>验证批正常片里被报的比例</p></div>
-    <div class="g"><div class="big">必须报出</div><b>γ M（只针对 D1）</b><p>真实片核对</p></div>
+    <div class="g"><div class="big">≥ 24/30</div><b>T2 命中，且多于现行</b><p>原片上的误报不多于现行条件</p></div>
+    <div class="g"><div class="big">≥ 6/8</div><b>T3 说出当时的问题</b><p>加总览的条件，缺陷版上</p></div>
+    <div class="g"><div class="big">先接两处</div><b>盲选和乙自检</b><p>这两处都在 r1 上起作用；然后是甲和节奏刀</p></div>
   </div>
-</section>
-
-<section>
-  <h2>顺序</h2>
-  <div class="steps">
-    <div class="stp"><div class="n">1</div><h3>普查</h3><p>四项检测的粗版扫真实成片，出报警清单和逐条核对，交你看 Q1。</p></div>
-    <div class="stp"><div class="n">2</div><h3>调参</h3><p>写生成器，生成调参批；调好后冻结检测参数和脚本哈希。</p></div>
-    <div class="stp"><div class="n">3</div><h3>验证</h3><p>跑验证批和 γ M，出每项的命中率和误报率。</p></div>
-    <div class="stp"><div class="n">4</div><h3>结论</h3><p>每项"接"或"不接"，结果文档附视觉版，交还地图，你确认后才算数。</p></div>
-  </div>
+  <p class="lede" style="margin-top:14px">没通过，就看是哪一层没起作用，只改那一层再测一次。成本：约 110 次评审调用，按本轮每次约 $0.53 算约 $60；不跑 builder，不需要你打分。</p>
 </section>
 
 <section>
   <h2>待你决定</h2>
   <div class="qs">
-    <div class="qq"><b>Q1 没出现过的现象还验不验？</b><p>普查后，某项现象在全部真实片里一次都没出现。</p><p class="rec">推荐：不做完整验证，标"未观察到"，等出现了再说。</p></div>
-    <div class="qq"><b>Q2 门槛</b><p>验证批命中至少 7/8，正常片误报 0/8；D1 还必须报出 γ M。</p><p class="rec">推荐：按这个门槛。</p></div>
-    <div class="qq"><b>Q3 接到哪里</b><p>"接"的意思是把现象清单交给乙自检，乙是主要的使用方。</p><p class="rec">推荐：这一轮只决定接不接进乙的自检，甲和盲选另外再测。</p></div>
+    <div class="qq"><b>Q1 对照设计和门槛</b><p>同一个评审，"现行"对"加总览"两种材料，门槛按上面。</p><p class="rec">推荐：按这个做。</p></div>
+    <div class="qq"><b>Q2 总览和静帧一起给</b><p>不再沿用"评审先自己看完图，再给测量"那条借来的规则。</p><p class="rec">推荐：一起给，因为它本身就是看片材料，不是事后补上的测量。</p></div>
+    <div class="qq"><b>Q3 成本</b><p>评审调用约 $60。</p><p class="rec">推荐：接受。</p></div>
   </div>
 </section>
 </div>
