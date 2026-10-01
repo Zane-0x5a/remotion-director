@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  acceptCanonical, acceptPreview, captureProvenance, continueRole, initRun, loadState, prepareSelection, recordRedraw, recordReport,
+  acceptCanonical, acceptPreview, captureProvenance, continueRole, initRun, loadState, prepareSelection, recordDirections, recordRedraw, recordReport,
   recordVerdict, recordSelection, recordUserSelection, recoverRole, registerRole, status, verifyArtifacts, captureVideoProvenance, verifyVideoProvenance,
 } from './codex-runtime.mjs';
 
@@ -22,7 +22,8 @@ const help = `remotion-director Codex launcher\n\n` +
   `  render-arm --workspace DIR --dir RUN --out OUT\n` +
   `  render-strip --workspace DIR --dir RUN --out OUT --video MP4\n` +
   `  init-run --run-dir DIR --brief-hash HEX --draws N --duration locked:5s|free\n` +
-  `  register-role --run-dir DIR --role ROLE --agent-id ID --continuation-id ID --fresh [--key draw-N]\n` +
+  `  register-role --run-dir DIR --role ROLE --agent-id ID --continuation-id ID --fresh [--key draw-N --direction K]\n` +
+  `  record-directions --run-dir DIR --lister-id ID --continuation-id ID (--directions TEXT|--directions-file FILE)   the batch's N directions, before any builder\n` +
   `  continue-role --run-dir DIR --role ROLE --agent-id ID --continuation-id ID [--key draw-N]\n` +
   `  record-report --run-dir DIR --report-id ID --role ROLE --agent-id ID --continuation-id ID --status preview|settled|round-done|done|blocked [--review-round R]\n` +
   `  accept-preview --run-dir DIR --report-id ID --out-dir DIR [--source DIR]   a builder's r1 preview (never canonical)\n` +
@@ -84,7 +85,11 @@ function command() {
       const duration = value('--duration'); const durationAuthority = duration === 'free' ? 'free' : duration?.startsWith('locked:') ? `locked ${duration.slice(7)}${duration.slice(-1) === 's' ? '' : 's'}` : duration;
       return print(initRun({ runDir: value('--run-dir'), briefHash: value('--brief-hash'), draws: Number(value('--draws')), durationAuthority, spec: value('--spec') ? JSON.parse(value('--spec')) : {} }));
     }
-    case 'register-role': return print(registerRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), agentId: value('--agent-id'), continuationId: value('--continuation-id'), parentId: value('--parent-id', null), fresh: has('--fresh') }));
+    case 'register-role': return print(registerRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), agentId: value('--agent-id'), continuationId: value('--continuation-id'), parentId: value('--parent-id', null), fresh: has('--fresh'), direction: value('--direction') ? Number(value('--direction')) : null }));
+    case 'record-directions': {
+      const directionsFile = value('--directions-file'); const text = directionsFile ? readFileSync(directionsFile, 'utf8') : value('--directions');
+      return print(recordDirections(value('--run-dir'), { listerId: value('--lister-id'), listerContinuationId: value('--continuation-id'), text }));
+    }
     case 'continue-role': return print(continueRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), agentId: value('--agent-id'), continuationId: value('--continuation-id'), messageHash: value('--message-hash', null) }));
     case 'record-report': return print(recordReport(value('--run-dir'), { id: value('--report-id'), role: value('--role'), key: value('--key', null), status: value('--status'), reviewRound: value('--review-round') ? Number(value('--review-round')) : null, agentId: value('--agent-id'), continuationId: value('--continuation-id'), outDir: value('--out-dir', null), stripDir: value('--strip-dir', null), text: value('--text', '') }));
     case 'accept-canonical': return print(acceptCanonical(value('--run-dir'), { reportId: value('--report-id'), role: value('--role'), outDir: value('--out-dir'), sourceDir: value('--source', null), reviewRound: value('--review-round') ? Number(value('--review-round')) : null, stripDir: value('--strip-dir', null) }));

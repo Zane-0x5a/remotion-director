@@ -14,17 +14,32 @@ const LAUNCHER = join(ROOT, 'tools', 'codex-launcher.mjs');
 const json = (file) => JSON.parse(readFileSync(file, 'utf8'));
 const writeJson = (file, value) => writeFileSync(file, JSON.stringify(value));
 
-function createRun(t, draws = 1) {
+// The lister's list in its own format; the tag makes each batch's text distinct.
+const directionsText = (n, tag = 'lister') => Array.from({ length: n }, (_, i) => `=== 方向 ${i + 1} ===\n${tag} controlled test direction ${i + 1}.\n`).join('\n');
+
+// 分方向: a fresh lister records the batch's N directions before any builder.
+function deal(dir, draws, lister = 'lister') {
+  runtime.registerRole(dir, { role: 'lister', agentId: lister, continuationId: `${lister}-cont`, fresh: true });
+  return runtime.recordDirections(dir, { listerId: lister, listerContinuationId: `${lister}-cont`, text: directionsText(draws, lister) });
+}
+
+function dealtRun(t, draws) {
   const dir = mkdtempSync(join(tmpdir(), 'codex-independent-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   runtime.initRun({ runDir: dir, briefHash: 'a'.repeat(64), draws, durationAuthority: 'locked 3s', spec: { width: 320, height: 568, fps: 30 } });
+  deal(dir, draws);
+  return dir;
+}
+
+function createRun(t, draws = 1) {
+  const dir = dealtRun(t, draws);
   const candidates = [];
   for (let i = 1; i <= draws; i++) {
     const key = `draw-${i}`;
     const source = join(dir, key);
     mkdirSync(source);
     writeFileSync(join(source, 'index.tsx'), `// source ${i}`);
-    runtime.registerRole(dir, { role: 'builder', key, agentId: key, continuationId: `${key}-continuation`, fresh: true });
+    runtime.registerRole(dir, { role: 'builder', key, agentId: key, continuationId: `${key}-continuation`, fresh: true, direction: i });
     candidates.push({ label: String.fromCharCode(64 + i), key, source });
   }
   return { dir, candidates };
@@ -306,17 +321,29 @@ test('a redraw ends every current draw and the pick happens again on N fresh pre
   assert.deepEqual(Object.keys(redrawn.redraws[0].previews).sort(), ['draw-1', 'draw-2']);
   assert.deepEqual(redrawn.roles.builders, {});
   assert.deepEqual(redrawn.previews, {});
+  // The batch's lister and directions are archived with it; the next batch re-lists.
+  assert.equal(redrawn.directions, null);
+  assert.equal(redrawn.roles.lister, null);
+  assert.equal(redrawn.redraws[0].directions.items.length, 2);
+  assert.equal(redrawn.redraws[0].lister.status, 'ended');
   // Ended draws cannot report, and their keys and handles stay reserved.
   const ended = run.candidates[0];
   assert.throws(() => runtime.recordReport(run.dir, { id: 'ended-preview', role: 'builder', key: ended.key, status: 'preview', agentId: ended.key, continuationId: `${ended.key}-continuation`, outDir: previewDir(ended) }), /identity|registered/i);
   assert.throws(() => runtime.registerRole(run.dir, { role: 'builder', key: 'draw-1', agentId: 'new-1', continuationId: 'new-1-cont', fresh: true }), /redraw/i);
   assert.throws(() => runtime.registerRole(run.dir, { role: 'builder', key: 'draw-3', agentId: 'draw-1', continuationId: 'other', fresh: true }), /distinct/i);
+  // No new builder before a fresh list, and the ended lister cannot list again.
+  assert.throws(() => runtime.registerRole(run.dir, { role: 'builder', key: 'draw-3', agentId: 'draw-3', continuationId: 'draw-3-continuation', fresh: true, direction: 1 }), (error) => error.code === 'MISSING_DIRECTIONS');
+  assert.throws(() => runtime.registerRole(run.dir, { role: 'lister', agentId: 'lister', continuationId: 'lister-cont', fresh: true }), /distinct/i);
+  const relisted = deal(run.dir, 2, 'lister-2');
+  assert.equal(relisted.directions.batch, 2);
+  assert.notEqual(relisted.directions.text, redrawn.redraws[0].directions.text);
   const candidates = [3, 4].map((i, index) => {
     const key = `draw-${i}`; const source = join(run.dir, key);
     mkdirSync(source); writeFileSync(join(source, 'index.tsx'), `// source ${i}`);
-    runtime.registerRole(run.dir, { role: 'builder', key, agentId: key, continuationId: `${key}-continuation`, fresh: true });
+    runtime.registerRole(run.dir, { role: 'builder', key, agentId: key, continuationId: `${key}-continuation`, fresh: true, direction: index + 1 });
     return { label: String.fromCharCode(65 + index), key, source };
   });
+  assert.equal(runtime.loadState(run.dir).roles.builders['draw-3'].direction.sha256, relisted.directions.items[0].sha256);
   const next = { dir: run.dir, candidates };
   previewAll(next);
   assert.equal(select(next).selection.winnerKey, 'draw-3');
@@ -346,4 +373,70 @@ test('preview, redraw and user pick are reachable through the launcher', (t) => 
   const state = runtime.loadState(picked.dir);
   assert.equal(state.selection.by, 'user');
   assert.equal(state.selection.reason, 'picked after watching both videos');
+});
+
+test('the directions step precedes every builder: the registered lister records exactly N directions in rank order', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'codex-directions-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  runtime.initRun({ runDir: dir, briefHash: 'b'.repeat(64), draws: 3, durationAuthority: 'free' });
+  assert.throws(() => runtime.registerRole(dir, { role: 'builder', key: 'draw-1', agentId: 'b1', continuationId: 'b1-cont', fresh: true, direction: 1 }), (error) => error.code === 'MISSING_DIRECTIONS');
+  assert.throws(() => runtime.recordDirections(dir, { listerId: 'lister', listerContinuationId: 'lister-cont', text: directionsText(3) }), /identity/i);
+  runtime.registerRole(dir, { role: 'lister', agentId: 'lister', continuationId: 'lister-cont', fresh: true });
+  assert.throws(() => runtime.registerRole(dir, { role: 'lister', agentId: 'lister-b', continuationId: 'lister-b-cont', fresh: true }), /already registered/i);
+  assert.throws(() => runtime.registerRole(dir, { role: 'selector', agentId: 's', continuationId: 's-cont', fresh: true, direction: 1 }), /Only a builder/);
+  const record = (text) => runtime.recordDirections(dir, { listerId: 'lister', listerContinuationId: 'lister-cont', text });
+  assert.throws(() => record(directionsText(2)), /exactly N=3/);
+  assert.throws(() => record('=== 方向 1 ===\nfirst\n\n=== 方向 3 ===\nthird\n\n=== 方向 2 ===\nsecond\n'), /numbered 1\.\.N/);
+  assert.throws(() => record(`Here are the directions:\n${directionsText(3)}`), /before 方向 1/);
+  assert.throws(() => record('=== 方向 1 ===\nfirst\n=== 方向 2 ===\n\n=== 方向 3 ===\nthird\n'), /empty/);
+  const text = directionsText(3).replace(/\n/g, '\r\n');
+  const state = record(text);
+  assert.equal(state.status, 'directions-ready');
+  assert.equal(state.directions.batch, 1);
+  assert.equal(state.directions.text, text);
+  assert.deepEqual(state.directions.items.map((item) => item.index), [1, 2, 3]);
+  assert.equal(state.directions.items[0].text, 'lister controlled test direction 1.');
+  assert.throws(() => record(directionsText(3)), /already has its directions/);
+});
+
+test('each builder holds exactly one different direction, and no direction reaches the blind selector', (t) => {
+  const dir = dealtRun(t, 2);
+  const builder = (key, direction, extra = {}) => runtime.registerRole(dir, { role: 'builder', key, agentId: key, continuationId: `${key}-continuation`, fresh: true, direction, ...extra });
+  assert.throws(() => builder('draw-1', null), /exactly one direction 1\.\.2/);
+  assert.throws(() => builder('draw-1', 3), /exactly one direction 1\.\.2/);
+  builder('draw-1', 1);
+  assert.throws(() => builder('draw-2', 1), /already held/);
+  const state = builder('draw-2', 2);
+  assert.deepEqual(Object.values(state.roles.builders).map((item) => item.direction.index), [1, 2]);
+  assert.equal(state.roles.builders['draw-1'].direction.sha256, state.directions.items[0].sha256);
+  // A recovered builder keeps the direction it was dealt.
+  const recovered = runtime.recoverRole(dir, { role: 'builder', key: 'draw-2', previousAgentId: 'draw-2', replacementAgentId: 'draw-2b', replacementContinuationId: 'draw-2b-cont', reason: 'unavailable child' });
+  assert.equal(recovered.roles.builders['draw-2'].direction.index, 2);
+  const run = createRun(t, 2); previewAll(run);
+  const safe = runtime.prepareSelection(run.dir, { candidates: mapping(run) });
+  for (const candidate of safe.candidates) {
+    assert.doesNotMatch(JSON.stringify(candidate), /direction|方向/i);
+    for (const name of readdirSync(candidate.evidenceDir)) {
+      if (name.endsWith('.json')) assert.doesNotMatch(readFileSync(join(candidate.evidenceDir, name), 'utf8'), /direction|方向/i);
+    }
+  }
+});
+
+test('the directions step and dealt builders are reachable through the launcher', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'codex-directions-cli-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  runtime.initRun({ runDir: dir, briefHash: 'c'.repeat(64), draws: 2, durationAuthority: 'free' });
+  let result = cli('register-role', '--run-dir', dir, '--role', 'lister', '--agent-id', 'lister', '--continuation-id', 'lister-cont', '--fresh');
+  assert.equal(result.status, 0, result.stderr);
+  result = cli('register-role', '--run-dir', dir, '--role', 'builder', '--key', 'draw-1', '--agent-id', 'draw-1', '--continuation-id', 'draw-1-cont', '--fresh', '--direction', '1');
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /MISSING_DIRECTIONS/);
+  const file = join(dir, 'directions.txt'); writeFileSync(file, directionsText(2));
+  result = cli('record-directions', '--run-dir', dir, '--lister-id', 'lister', '--continuation-id', 'lister-cont', '--directions-file', file);
+  assert.equal(result.status, 0, result.stderr);
+  result = cli('register-role', '--run-dir', dir, '--role', 'builder', '--key', 'draw-1', '--agent-id', 'draw-1', '--continuation-id', 'draw-1-cont', '--fresh', '--direction', '1');
+  assert.equal(result.status, 0, result.stderr);
+  const state = runtime.loadState(dir);
+  assert.equal(state.directions.text, directionsText(2));
+  assert.equal(state.roles.builders['draw-1'].direction.index, 1);
 });

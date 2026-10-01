@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import {
   acceptCanonical, acceptPreview, captureProvenance, captureVideoProvenance, hashTree, initRun, prepareSelection,
-  recordReport, recordSelection, recordVerdict, registerRole, continueRole, verifyArtifacts, verifyVideoProvenance,
+  recordDirections, recordReport, recordSelection, recordVerdict, registerRole, continueRole, verifyArtifacts, verifyVideoProvenance,
 } from '../tools/codex-runtime.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -28,6 +28,13 @@ test.afterEach(() => {
   for (const root of TEMP_ROOTS) rmSync(root, { recursive: true, force: true });
   TEMP_ROOTS.clear();
 });
+// 分方向: every run deals its N directions before the first builder registers.
+function deal(root, draws) {
+  registerRole(root, { role: 'lister', agentId: 'lister-A', continuationId: 'lister-cont', fresh: true });
+  const text = Array.from({ length: draws }, (_, i) => `=== 方向 ${i + 1} ===\ncontrolled test direction ${i + 1}.\n`).join('\n');
+  recordDirections(root, { listerId: 'lister-A', listerContinuationId: 'lister-cont', text });
+}
+
 function fixture(root, source) {
   const out = join(root, 'out', 'r1'); const strip = join(out, 'strip'); mkdirSync(strip, { recursive: true });
   writeFileSync(join(root, 'index.tsx'), 'export const source = "v1";');
@@ -60,6 +67,7 @@ test('generated package has one public skill and portable + compatibility manife
   const publicSkills = requireSkillDirs(join(PACKAGE, 'skills'));
   assert.deepEqual(publicSkills, ['remotion-director']);
   assert.ok(existsSync(join(PACKAGE, 'internal', 'roles', 'builder.md')));
+  assert.ok(existsSync(join(PACKAGE, 'internal', 'roles', 'direction-lister.md')));
   assert.ok(existsSync(join(PACKAGE, 'internal', 'skills', 'design-brain', 'reference', 'design-equipment.md')));
 });
 
@@ -95,10 +103,11 @@ test('empty workspace preparation creates the workspace before running check-env
 test('run ledger preserves identity and rejects duplicate or stale completion', () => {
   const root = temp('ledger '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   const state = initRun({ runDir: root, briefHash: 'a'.repeat(64), draws: 2, durationAuthority: 'locked 3s', spec: { width: 320, height: 568, fps: 30 } });
-  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'cont-A', fresh: true });
+  deal(root, 2);
+  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'cont-A', fresh: true, direction: 1 });
   continueRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'cont-A' });
   assert.throws(() => continueRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-B', continuationId: 'cont-B' }), /IDENTITY|identity/i);
-  assert.throws(() => registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-B', continuationId: 'cont-B', fresh: true }), /already registered|IDENTITY/i);
+  assert.throws(() => registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-B', continuationId: 'cont-B', fresh: true, direction: 2 }), /already registered|IDENTITY/i);
   assert.throws(() => recordReport(root, { id: 'bad', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'cont-A' }), /outDir/i);
   const out = fixture(root, source);
   assert.throws(() => recordReport(root, { id: 'draw-1-settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'cont-A', outDir: out }), /picked/i);
@@ -112,8 +121,9 @@ test('run ledger preserves identity and rejects duplicate or stale completion', 
 test('critic verdict requires persistent identity and rejects stale or duplicate rounds', () => {
   const root = temp('critic '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   initRun({ runDir: root, briefHash: 'b'.repeat(64), draws: 1, durationAuthority: 'free' });
+  deal(root, 1);
   registerRole(root, { role: 'critic', agentId: 'critic-A', continuationId: 'critic-cont', fresh: true });
-  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true });
+  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true, direction: 1 });
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
   const out = fixture(root, source); const strip = join(out, 'strip');
   recordReport(root, { id: 'draw-1-preview', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
@@ -143,7 +153,8 @@ test('critic verdict requires persistent identity and rejects stale or duplicate
 test('CLI record-report forwards review round for a builder round-done handoff', () => {
   const root = temp('cli round '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   initRun({ runDir: root, briefHash: 'e'.repeat(64), draws: 1, durationAuthority: 'free' });
-  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true });
+  deal(root, 1);
+  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true, direction: 1 });
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
   registerRole(root, { role: 'critic', agentId: 'critic-A', continuationId: 'critic-cont', fresh: true });
   const out = fixture(root, source); const strip = join(out, 'strip');
@@ -166,7 +177,8 @@ test('CLI record-report forwards review round for a builder round-done handoff',
 test('canonical advancement rejects duplicate stages, non-pipeline roles and traversal evidence', () => {
   const root = temp('canonical guards '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   initRun({ runDir: root, briefHash: 'd'.repeat(64), draws: 1, durationAuthority: 'locked 3s', spec: { width: 320, height: 568, fps: 30 } });
-  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true });
+  deal(root, 1);
+  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true, direction: 1 });
   const out = fixture(root, source);
   recordReport(root, { id: 'preview-1', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
   acceptPreview(root, { reportId: 'preview-1', outDir: out, sourceDir: source });
@@ -220,11 +232,12 @@ test('source provenance includes nested author files with generated-looking base
 test('selection requires all previewed anonymous candidates and preserves mapping outside the child prompt', () => {
   const root = temp('selection '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   initRun({ runDir: root, briefHash: 'c'.repeat(64), draws: 2, durationAuthority: 'free' });
+  deal(root, 2);
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
   const a = fixture(join(source, 'a'), join(source, 'a')); const b = fixture(join(source, 'b'), join(source, 'b'));
   // Register reports after fixture creation so artifact provenance is valid.
-  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-a', fresh: true });
-  registerRole(root, { role: 'builder', key: 'draw-2', agentId: 'builder-B', continuationId: 'builder-b', fresh: true });
+  registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-a', fresh: true, direction: 1 });
+  registerRole(root, { role: 'builder', key: 'draw-2', agentId: 'builder-B', continuationId: 'builder-b', fresh: true, direction: 2 });
   recordReport(root, { id: 'r1', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-a', outDir: a });
   recordReport(root, { id: 'r2', role: 'builder', key: 'draw-2', status: 'preview', agentId: 'builder-B', continuationId: 'builder-b', outDir: b });
   acceptPreview(root, { reportId: 'r1', outDir: a, sourceDir: join(source, 'a') });

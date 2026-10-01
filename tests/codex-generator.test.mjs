@@ -45,7 +45,7 @@ test('generator emits one public skill and strips Claude role frontmatter', () =
     assert.doesNotMatch(skill, /CLAUDE_PLUGIN_ROOT|AskUserQuestion|SendMessage|npx\s+tsx|NODE_PATH="/);
     const publicSkills = readdirSync(skillRoot).filter((name) => existsSync(join(skillRoot, name, 'SKILL.md')));
     assert.deepEqual(publicSkills, ['remotion-director']);
-    for (const role of ['builder', 'aesthetic-critic', 'blind-selector', 'tempo-pass']) {
+    for (const role of ['direction-lister', 'builder', 'aesthetic-critic', 'blind-selector', 'tempo-pass']) {
       const text = readFileSync(join(output, 'internal', 'roles', `${role}.md`), 'utf8');
       assert.doesNotMatch(text, /^---\r?\n(?:name|description|model|color|tools):/m, role);
       assert.doesNotMatch(text, /^(model|color|tools):/m, role);
@@ -83,6 +83,11 @@ test('host guide maps each role to its ledger command and prepares blind evidenc
     assert.match(skill, /record-selection.*consuming that preparation/);
     assert.match(skill, /By default the user picks.*only each accepted preview's `video.mp4`.*record-user-selection --run-dir/s);
     assert.match(skill, /record-redraw --run-dir/);
+    assert.match(skill, /Before any builder of a batch.*`internal\/roles\/direction-lister\.md`.*record-directions --run-dir.*no builder can register before it/s);
+    assert.match(skill, /builder for each draw with `--direction K`/);
+    assert.match(skill, /`--direction i` and put only that direction's text in its spawn message/);
+    assert.match(skill, /fresh direction lister for a fresh, independent list \(do not pass it the earlier directions\)/);
+    assert.match(skill, /no stills, strips, directions, design docs or notes/);
     assert.match(skill, /who picks the base/);
     assert.match(skill, /post-tempo canonical.*same critic identity/s);
     assert.match(skill, /register every initial role.*`register-role --fresh`/is);

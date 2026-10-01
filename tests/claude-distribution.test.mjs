@@ -200,3 +200,42 @@ test('source pipeline picks at the r1 previews and self-checks only the picked d
   assert.doesNotMatch(protocol, /报告 settled/);
   assert.match(read('skills', 'design-brain', 'reference', 'design-equipment.md'), /渲出 R1、被选中之后,\*\*先别交甲\*\*/);
 });
+
+test('source pipeline deals one idea-level direction to each draw before any builder spawns, and re-lists on a redraw', () => {
+  const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
+  const create = read('skills', 'create', 'SKILL.md');
+  const order = ['## Step 1.5', '`direction-lister`', '`<WORKSPACE>/<piece-slug>/DIRECTIONS.md`', '## Step 2', '**its one direction from Step 1.5, verbatim**', '`draw-i preview ready`', '## Step 3 '];
+  let at = -1;
+  for (const marker of order) {
+    const next = create.indexOf(marker, at + 1);
+    assert.ok(next > at, `create skill is missing or misorders ${marker}`);
+    at = next;
+  }
+  assert.match(create, /lister's own \*\*方向 1\*\* always among them/);
+  assert.match(create, /never the other directions or `DIRECTIONS\.md`/);
+  // A redraw runs a fresh, independent list before the new builders.
+  const redraw = create.slice(create.indexOf('**"都不要，再抽"'), create.indexOf('**交给 AI 挑 — blind select**'));
+  assert.ok(redraw.indexOf('run Step 1.5 again') > -1 && redraw.indexOf('run Step 1.5 again') < redraw.indexOf('then run Step 2'), 'redraw re-lists before drawing again');
+  assert.match(redraw, /a \*\*fresh\*\* `direction-lister` and a fresh, independent list/);
+  assert.match(redraw, /Do not hand it the earlier directions/);
+  // Both pick modes see the previews only; directions never reach the pick.
+  assert.match(create, /only each draw's preview `video\.mp4`\*\* — no stills, no DESIGN\.md, no directions/);
+  assert.match(create, /or the later dir the builder named\), and never the directions/);
+  // The lister's prompt asks only for different ideas, never for novelty.
+  const lister = read('agents', 'direction-lister.md');
+  const body = lister.slice(lister.indexOf('\n---', 3) + 4);
+  assert.match(body, /提出 N 个不同的方向,按你判断的潜力从高到低排序/);
+  assert.match(body, /两个方向的核心传达机制和关键动作关系相同,就是同一个想法/);
+  assert.match(body, /题材相同、配色相同、"都很常见",都不算同一个想法/);
+  assert.match(body, /你判断潜力最高的那个,就排第 1/);
+  assert.match(body, /=== 方向 1 ===[\s\S]*=== 方向 N ===/);
+  for (const objective of [/新颖/, /新奇/, /俗套/, /套路/, /反常规/, /出人意料/, /跳出/, /避开/, /避免/, /离开常见/, /novel/i, /clich/i, /unexpected/i, /surpris/i]) {
+    assert.doesNotMatch(body, objective);
+  }
+  // Each builder designs the whole piece from its one direction and never sees the others.
+  const builder = read('agents', 'builder.md');
+  assert.ok(builder.indexOf('## 你这支 draw 的方向') > builder.indexOf('## 第一件事') && builder.indexOf('## 你这支 draw 的方向') < builder.indexOf('## 渲染'), 'builder reads its direction before building');
+  assert.match(builder, /它是种子,不是设计稿:按装备从 §A 起,完整设计这支片/);
+  assert.match(builder, /别把核心机制或关键动作关系换成另一个想法/);
+  assert.match(builder, /你只拿到自己这一个方向/);
+});

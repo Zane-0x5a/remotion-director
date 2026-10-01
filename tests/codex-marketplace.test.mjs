@@ -49,7 +49,7 @@ test('Codex and Claude marketplaces route their isolated packages', () => {
   assert.equal(claudeEntry.version, claudeManifest.version);
 
   assert.deepEqual(publicSkillDirs(join(claudeRoot, 'skills')), ['create', 'critic-loop', 'design-brain']);
-  for (const role of ['aesthetic-critic', 'blind-selector', 'builder', 'tempo-pass']) {
+  for (const role of ['aesthetic-critic', 'blind-selector', 'builder', 'direction-lister', 'tempo-pass']) {
     assert.ok(existsSync(join(claudeRoot, 'agents', `${role}.md`)), `missing Claude role ${role}`);
   }
 });

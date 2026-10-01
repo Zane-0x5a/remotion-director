@@ -4,20 +4,24 @@
  * package.  The ledger is deliberately boring JSON: agents can inspect it in one
  * read, and a completion report is required before canonical output advances.
  *
- * Flow: every builder reports its r1 `preview` (accept-preview); once all N
- * previews are accepted, one pick is recorded (the user by default, or the blind
- * selector), or the user redraws N fresh draws.  Only the picked builder then
- * self-checks and reports `settled`, which is the first canonical output the
- * critic may review.  A preview is never canonical by itself.
+ * Flow: a fresh direction lister records N idea-level directions for the batch
+ * (record-directions) before any builder registers, and each builder holds
+ * exactly one of them.  Every builder reports its r1 `preview` (accept-preview);
+ * once all N previews are accepted, one pick is recorded (the user by default,
+ * or the blind selector), or the user redraws N fresh draws from a fresh list.
+ * Only the picked builder then self-checks and reports `settled`, which is the
+ * first canonical output the critic may review.  A preview is never canonical by
+ * itself, and directions are never pick material.
  */
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 
-// Schema 2: draws are picked at their r1 previews (state.previews) before any
-// self-check; schema-1 ledgers recorded settled draws before selection.
-export const SCHEMA_VERSION = 2;
+// Schema 3: each batch of draws is dealt directions first (state.directions,
+// roles.lister) and every builder holds one.  Schema 2 picked at the r1 previews
+// without directions; schema-1 ledgers recorded settled draws before selection.
+export const SCHEMA_VERSION = 3;
 export const STATE_FILE = '.remotion-director/codex-run.json';
 
 const json = (file) => JSON.parse(readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
@@ -75,9 +79,9 @@ export function initRun({ runDir, briefHash, draws, durationAuthority, spec = {}
     schemaVersion: SCHEMA_VERSION, runId: runId ?? `${basename(root)}-${Date.now()}`,
     createdAt: now, updatedAt: now, status: 'commissioned',
     commission: { briefHash: briefHash.toLowerCase(), draws, durationAuthority, spec },
-    roles: { builders: {}, selector: null, critic: null, tempo: null },
+    roles: { builders: {}, lister: null, selector: null, critic: null, tempo: null },
     reports: [], handoffs: [], verdicts: [], verdictHistory: [], canonical: null, consumedReportIds: [],
-    previews: {}, selection: null, selectionPreparation: null, redraws: [], recoveries: [],
+    directions: null, previews: {}, selection: null, selectionPreparation: null, redraws: [], recoveries: [],
   });
 }
 
@@ -95,12 +99,23 @@ function latestVerdictRound(state) { return latestVerdict(state)?.round ?? 0; }
 function verdictConvergedYes(text) { return typeof text === 'string' && /(?:^|\r?\n)CONVERGED:\s*YES\s*\r?\n?$/.test(text); }
 function unique(state, id, kind = 'report') { if (state[`${kind}s`]?.some((item) => item.id === id)) fail(`Duplicate ${kind} id: ${id}.`, 'DUPLICATE_REPORT'); }
 function roleRecord(state, role, key = role) { return role === 'builder' ? state.roles.builders[key] : state.roles[role]; }
-function liveRoles(state) { return [...Object.values(state.roles.builders), ...['selector', 'critic', 'tempo'].map((name) => state.roles[name]).filter(Boolean)]; }
+const SINGLE_ROLES = ['lister', 'selector', 'critic', 'tempo'];
+function liveRoles(state) { return [...Object.values(state.roles.builders), ...SINGLE_ROLES.map((name) => state.roles[name]).filter(Boolean)]; }
 // Draws ended by a redraw keep their identities reserved: a new batch must use
-// new handles, new draw keys and new draw directories.
-function endedRoles(state) { return (state.redraws ?? []).flatMap((item) => [...Object.values(item.builders ?? {}), ...(item.selector ? [item.selector] : [])]); }
+// new handles, new draw keys and new draw directories (and a fresh lister).
+function endedRoles(state) { return (state.redraws ?? []).flatMap((item) => [...Object.values(item.builders ?? {}), ...['lister', 'selector'].map((name) => item[name]).filter(Boolean)]); }
 
-export function registerRole(runDir, { role, key = role, agentId, continuationId, parentId = null, fresh = false }) {
+// A builder registers only after its batch's directions are recorded and holds
+// exactly one of them; no two builders of a batch share a direction.
+function builderDirection(state, direction) {
+  if (!state.directions) fail('Builders register only after this batch\'s directions are recorded with record-directions; the directions step precedes every builder.', 'MISSING_DIRECTIONS');
+  const count = state.directions.items.length;
+  if (!Number.isInteger(direction) || direction < 1 || direction > count) fail(`A builder must hold exactly one direction 1..${count} of this batch.`, 'INVALID_ROLE');
+  if (Object.values(state.roles.builders).some((item) => item.direction?.index === direction)) fail(`Direction ${direction} is already held by another builder of this batch; each builder holds a different one.`, 'INVALID_ROLE');
+  return { batch: state.directions.batch, index: direction, sha256: state.directions.items[direction - 1].sha256 };
+}
+
+export function registerRole(runDir, { role, key = role, agentId, continuationId, parentId = null, fresh = false, direction = null }) {
   const state = loadState(runDir);
   if (!agentId || !continuationId) fail('agentId and continuationId are required; identity must be explicit.', 'INVALID_ROLE');
   if (!fresh) fail('Initial role registration must assert fresh:true; continuations use continue-role.', 'INVALID_ROLE');
@@ -112,9 +127,11 @@ export function registerRole(runDir, { role, key = role, agentId, continuationId
     if (state.roles.builders[key]) fail(`Builder ${key} is already registered; continue the same agent instead.`, 'IDENTITY_CHANGED');
     if (endedRoles(state).some((item) => item.role === 'builder' && item.key === key)) fail(`Builder ${key} belongs to a draw ended by a redraw; a redraw uses new draw keys and directories.`, 'IDENTITY_CHANGED');
     if (Object.keys(state.roles.builders).length >= state.commission.draws) fail('Builder count exceeds commissioned N.', 'INVALID_ROLE');
+    record.direction = builderDirection(state, direction);
     state.roles.builders[key] = record;
   }
-  else if (['selector', 'critic', 'tempo'].includes(role)) {
+  else if (SINGLE_ROLES.includes(role)) {
+    if (direction !== null) fail('Only a builder holds a direction.', 'INVALID_ROLE');
     if (state.roles[role]) fail(`${role} is already registered; use the existing continuation for follow-up.`, 'IDENTITY_CHANGED');
     state.roles[role] = record;
   } else fail(`Unknown role ${role}.`, 'INVALID_ROLE');
@@ -128,6 +145,39 @@ export function continueRole(runDir, { role, key = role, agentId, continuationId
   if (current.agentId !== agentId || current.continuationId !== continuationId) fail(`Continuation identity mismatch for ${role} ${key}; preserve the original agent and continuation ids.`, 'IDENTITY_CHANGED');
   if (current.status === 'ended') fail(`${role} ${key} has ended (not picked); only the picked builder continues after the pick.`, 'INVALID_ROLE');
   current.continuations += 1; current.lastMessageHash = messageHash; current.status = 'running';
+  return saveState(runDir, touch(state));
+}
+
+// The lister's list, verbatim: "=== 方向 k ===" blocks numbered 1..N in rank order.
+export function parseDirections(text) {
+  if (typeof text !== 'string' || !text.trim()) fail('Directions need the lister\'s verbatim list text.', 'INVALID_DIRECTIONS');
+  const normalized = text.replace(/\r\n?/g, '\n');
+  const headings = [...normalized.matchAll(/^===\s*方向\s*(\d+)\s*===[ \t]*$/gm)];
+  if (!headings.length) fail('The directions list has no "=== 方向 k ===" blocks.', 'INVALID_DIRECTIONS');
+  if (normalized.slice(0, headings[0].index).trim()) fail('The directions list has text before 方向 1; record the list exactly as the lister returned it, in its format.', 'INVALID_DIRECTIONS');
+  return headings.map((match, i) => {
+    const index = Number(match[1]);
+    if (index !== i + 1) fail(`Directions must be numbered 1..N in rank order; found 方向 ${index} at position ${i + 1}.`, 'INVALID_DIRECTIONS');
+    const body = normalized.slice(match.index + match[0].length, headings[i + 1]?.index ?? normalized.length).trim();
+    if (!body) fail(`方向 ${index} is empty.`, 'INVALID_DIRECTIONS');
+    return { index, text: body, sha256: createHash('sha256').update(body).digest('hex') };
+  });
+}
+
+// 分方向: one fresh lister per batch of draws (the first, and each redraw) lists
+// N directions that differ at the idea level.  The list is recorded verbatim
+// before any builder of the batch registers; the lister's own 方向 1 is always
+// dealt because every one of the N directions goes to a builder.
+export function recordDirections(runDir, { listerId, listerContinuationId, text }) {
+  const state = loadState(runDir);
+  const lister = state.roles.lister;
+  if (!lister || lister.agentId !== listerId || lister.continuationId !== listerContinuationId) fail('Directions identity does not match the registered direction lister of this batch.', 'IDENTITY_CHANGED');
+  if (state.directions) fail('This batch already has its directions; a redraw re-lists with a fresh lister.', 'DUPLICATE_DIRECTIONS');
+  const items = parseDirections(text);
+  if (items.length !== state.commission.draws) fail(`The directions list must hold exactly N=${state.commission.draws} directions; got ${items.length}.`, 'INVALID_DIRECTIONS');
+  state.directions = { batch: (state.redraws ?? []).length + 1, listerId, listerContinuationId, text, items, recordedAt: new Date().toISOString() };
+  lister.status = 'done';
+  state.status = 'directions-ready';
   return saveState(runDir, touch(state));
 }
 
@@ -585,19 +635,21 @@ export function recordUserSelection(runDir, { winnerKey, reason = '' }) {
 }
 
 // "都不要，再抽": after seeing every preview the user rejects them all. The
-// current draws end (no self-check) and are archived with their previews; N
-// fresh builders then register under new draw keys and report new previews.
+// current draws end (no self-check) and are archived with their previews and
+// their batch's directions; a fresh lister then records a fresh, independent
+// list, and N fresh builders register under new draw keys, one direction each.
 export function recordRedraw(runDir, { reason = '' } = {}) {
   const state = loadState(runDir);
   if (state.selection) fail('A pick is already recorded; a redraw replaces the draws only before the pick.', 'INVALID_REDRAW');
   const keys = Object.keys(state.previews).sort();
   if (keys.length !== state.commission.draws) fail(`A redraw follows the user seeing all N=${state.commission.draws} previews; accept every preview first.`, 'INVALID_REDRAW');
   if (typeof reason !== 'string') fail('Redraw reason must be text when given.', 'INVALID_REDRAW');
-  const builders = state.roles.builders; const selector = state.roles.selector;
+  const builders = state.roles.builders; const selector = state.roles.selector; const lister = state.roles.lister;
   for (const builder of Object.values(builders)) builder.status = 'ended';
   if (selector) selector.status = 'ended';
-  state.redraws.push({ batch: state.redraws.length + 1, builders, selector, previews: state.previews, selectionPreparation: state.selectionPreparation, reason: reason.trim(), recordedAt: new Date().toISOString() });
-  state.roles.builders = {}; state.roles.selector = null; state.previews = {}; state.selectionPreparation = null;
+  if (lister) lister.status = 'ended';
+  state.redraws.push({ batch: state.redraws.length + 1, lister, directions: state.directions, builders, selector, previews: state.previews, selectionPreparation: state.selectionPreparation, reason: reason.trim(), recordedAt: new Date().toISOString() });
+  state.roles.builders = {}; state.roles.selector = null; state.roles.lister = null; state.directions = null; state.previews = {}; state.selectionPreparation = null;
   state.status = 'redrawing';
   return saveState(runDir, touch(state));
 }
