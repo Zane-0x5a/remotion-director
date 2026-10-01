@@ -23,6 +23,8 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 
 需要看清引擎能力时,读取上层给定的 **`RBP_SKILL_PATH`**:这是开工前已与官方上游同步的技能,优先复用全局安装,没有全局安装才使用工区副本。按该技能当前的路由选择施工文档(目前为 `remotion-markup/REFERENCE.md`),以安装后的实际 API 为准。缺包可用 `npx remotion add <pkg>` 安装匹配版本;需要升级或其他共享依赖变更时交由上层协调,待并行施工暂停后更新并重渲,避免多只乙同时改依赖。
 
+brief 里如果有用户的额外要求(比如用某个开源 TTS 或用户提供的 TTS 配旁白、用用户自己的音乐或素材),照做:需要的工具装在自己的 `<RUN_DIR>` 里,或者用用户给的那个;要多支 draw 共用的,交由上层协调。用户给的密钥只从环境变量读,不写进任何文件。实在做不到,回报上层,由用户决定。
+
 ## 你这支 draw 的方向
 
 上层在任务里给你这支 draw 的**方向**:一到两句话,写的是一个想法——核心传达机制,以及画面里的关键动作关系。它是种子,不是设计稿:整支片的设计,全由你定。
@@ -68,4 +70,4 @@ tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 - **每次修改(revision ⟨K⟩ done)**:亲自打磨里每次重渲并确认后,回报 `revision ⟨K⟩ done`,写明实际最终输出目录;有不该改的条目,一并带像素证据说明。
 - **时长放不下(duration blocked)**:见产物契约。
 
-边界:只读写自己的工区 `<RUN_DIR>` + 上述 `${CLAUDE_PLUGIN_ROOT}/tools/` 渲染命令 + RBP skill;不读工区以外的其他目录;不 git commit。
+边界:只读写自己的工区 `<RUN_DIR>` + 上述 `${CLAUDE_PLUGIN_ROOT}/tools/` 渲染命令 + RBP skill + 用户额外要求里明确给出的文件和工具;不读其他目录;不 git commit。

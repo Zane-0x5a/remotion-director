@@ -297,9 +297,25 @@ test('sound is on by default, simple effects only, and judged by no one but the 
   assert.match(create, /sound is \*\*on by default\*\* — simple sound effects the builder makes or sources itself; the user may turn it off/);
   assert.match(create, /audio intent — default \*\*on\*\*/);
   assert.match(create, /that the critic loop polishes it, and that sound is on\)/);
-  assert.match(create, /full music, and voice-over, are out of scope for now/);
+  assert.match(create, /The pipeline adds no full music or voice-over \*\*by default\*\*; the user can ask for them/);
+  assert.doesNotMatch(create, /out of scope for now/);
   assert.match(create, /only the user's own ears do/);
   assert.doesNotMatch(create, /if the user wants sound/);
+});
+
+test('defaults are not limits: extra requests such as a TTS voice-over travel in the brief', () => {
+  const create = readFileSync(join(ROOT, 'skills', 'create', 'SKILL.md'), 'utf8');
+  assert.match(create, /\*\*extra requests \(only if the user volunteers them\)\*\*/);
+  assert.match(create, /voice-over through an open-source TTS or one the user provides/);
+  assert.match(create, /carry it in the brief, so the direction-lister and every builder receive it/);
+  assert.match(create, /never refuse it only because the defaults don't mention it/);
+  assert.match(create, /never written into a file\. Don't quiz the user for extras/);
+  assert.match(create, /- \*\*Defaults are not limits\.\*\*/);
+  assert.match(create, /who polishes \+ workspace \+ any extra requests\)/);
+  const builder = readFileSync(join(ROOT, 'agents', 'builder.md'), 'utf8');
+  assert.match(builder, /brief 里如果有用户的额外要求/);
+  assert.match(builder, /用户给的密钥只从环境变量读,不写进任何文件/);
+  assert.match(builder, /\+ 用户额外要求里明确给出的文件和工具;不读其他目录/);
 });
 
 test('polishing is the critic loop by default, or the user\'s own eye with comments ferried verbatim', () => {
