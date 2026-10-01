@@ -105,6 +105,15 @@
   .limits li { margin: 4px 0; }
   .next { margin-top: 14px; font-size: 13.5px; color: var(--ink-2); }
   .next b { color: var(--ink); }
+  .revise { margin-top: 26px; border: 1.5px solid var(--warm); background: var(--warm-weak); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink-2); }
+  .revise b { color: var(--warm); }
+  .withdrawn { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .wd { background: transparent; border: 1px dashed var(--ink-3); border-radius: 10px; padding: 12px 16px 14px; }
+  .wd .k { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink-3); text-decoration: line-through; }
+  .wd h3 { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); }
+  .wd p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .wd p b { color: var(--ink); }
+  .cands.two { grid-template-columns: repeat(2, 1fr); }
   footer { margin-top: 56px; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 14px; }
   @media (max-width: 900px) {
     .heads, .gaps, .cands { grid-template-columns: 1fr 1fr; }
@@ -123,18 +132,20 @@
     <p class="sub">对 M 的每一条都问同一个问题：这是模型自己不可能知道、或者看不到的东西吗？Impeccable 笔记 §5 里的可借机制，也按这个问题审了一遍。纯分析，不花生成成本。</p>
   </div>
   <div class="status">
-    <div class="pill">已完成 · 2026-10-01</div><br>
+    <div class="pill">已完成 · 2026-10-01 · 已按用户指正修订</div><br>
     地图票「轨道 C：逐条审查 M」<br>
     产出交给「第二轮候选排序」
   </div>
 </header>
 
 <div class="heads">
-  <div class="head"><div class="big">18</div><b>条留下</b><p>10 条属于管线约定、看见成片的手段、成片的物理条件；8 条是"怎么想"，没有证据说明它们有害。</p></div>
-  <div class="head"><div class="big acc">5</div><b>条待测</b><p>4 条和设计文档的长度有关，合成候选 C1；自检轮数不设上限那条单独成为 C2。</p></div>
+  <div class="head"><div class="big">19</div><b>条留下</b><p>11 条属于管线约定、看见成片的手段、成片的物理条件；8 条是"怎么想"，没有证据说明它们有害。</p></div>
+  <div class="head"><div class="big acc">4</div><b>条待测</b><p>都和设计文档的长度有关，合成候选 C1。</p></div>
   <div class="head"><div class="big">0</div><b>条直接删</b><p>删要有证据说明这一条有害或无用。现有证据拆不到单条上。唯一的清理是去重。</p></div>
-  <div class="head"><div class="big warm">4</div><b>个缺口</b><p>模型不可能知道或看不到、M 却没写的东西。由此加上 C3–C6，一共 6 个执行阶段候选。</p></div>
+  <div class="head"><div class="big warm">1</div><b>个真缺口</b><p>时间维度：乙和甲都看不到。由此得到候选 C3，也就是第二只眼。</p></div>
 </div>
+
+<div class="revise"><b>同日修订。</b>按你的指正，撤回了缺口 G2–G4 和候选 C2、C4、C5、C6，M16 改判为"留"。撤回的理由写在页面最后，markdown 原文 §4.1 也有记录。</div>
 
 <section>
   <h2>23 个条目，按类别和判断</h2>
@@ -150,7 +161,7 @@
         <span class="chip test"><span class="c">M10</span>逐拍就地批注<span class="to">C1</span></span>
         <span class="chip dedup"><span class="c">M11</span>读 RBP、版本、产物契约</span>
         <span class="chip"><span class="c">M14</span>施工纪律；规格由任务给</span>
-        <span class="chip test"><span class="c">M16</span>自检不设轮数上限<span class="to">C2</span></span>
+        <span class="chip"><span class="c">M16</span>自检不设轮数上限</span>
         <span class="chip"><span class="c">M21</span>FIXES.md 记账</span>
         <span class="chip"><span class="c">M23</span>§5 现象归甲、修法归乙</span>
       </div>
@@ -204,41 +215,37 @@
 </section>
 
 <section>
-  <h2>M 没写的四样东西</h2>
-  <p class="lede">这四样都是模型不可能知道、或者看不到的，属于前三类，M 却只字未提。</p>
-  <div class="gaps">
-    <div class="gap"><div class="k">G1</div><h3>时间维度</h3><div class="cat">看见成片的手段</div><p>乙的自检和甲都只看静帧和条带，条带构造上就丢掉了时间轴。γ 的 M 有字在抽搐，熬过了自检和盲选，只有你看视频时才发现。</p><div class="goes">→ C3</div></div>
-    <div class="gap"><div class="k">G2</div><h3>观看和交付条件</h3><div class="cat">成片的物理条件</div><p>投在哪个平台、手机上竖屏看有多小、平台界面挡住哪一块、压缩会怎样处理细颗粒和渐变。模型不知道这支片的投放场景。</p><div class="goes">→ C4</div></div>
-    <div class="gap"><div class="k">G3</div><h3>brief 之外的产品事实</h3><div class="cat">管线约定 · 输入侧</div><p>受众是谁、要让对方相信什么、有什么独有的真实。brief 越薄，模型能依靠的就只剩品类。</p><div class="goes">→ C5</div></div>
-    <div class="gap"><div class="k">G4</div><h3>真材质</h3><div class="cat">成片的物理条件</div><p>现在只能用代码模仿材质，没有栅格素材的来源。模仿出来的材质，是机器设计最可靠的标记。</p><div class="goes">→ C6</div></div>
+  <h2>M 没写的那一样东西</h2>
+  <p class="lede">模型看不到、M 也没写的，只剩时间维度。"现有成片的成熟度差在哪"的研究从另一头印证了它：最常见的成熟度缺陷就在时间轴上。</p>
+  <div class="gaps" style="grid-template-columns:1fr">
+    <div class="gap"><div class="k">G1</div><h3>时间维度</h3><div class="cat">看见成片的手段</div><p>乙的自检和甲都只看静帧和条带，条带构造上就丢掉了时间轴。γ 的 M 有字在抽搐，熬过了自检和盲选，只有你看视频时才发现。生产语料里，停留太短、收尾被截断这类缺陷几乎都熬过了批评环，最后由你或节奏刀发现。</p><div class="goes">→ C3</div></div>
   </div>
 </section>
 
 <section>
-  <h2>六个候选作用在管线的哪一步</h2>
-  <p class="lede">候选要用在默认的管线形态里来估价值，所以先看清各自落在哪一步。</p>
+  <h2>两个候选作用在管线的哪一步</h2>
+  <p class="lede">候选要在默认的管线形态下估价值，所以先看清各自落在哪一步。</p>
   <div class="pipe">
     <div class="stages">
-      <div class="stage"><div class="box">委托</div><div class="pins"><span class="pin">C4</span><span class="pin q">C5</span></div></div>
+      <div class="stage"><div class="box">委托</div><div class="pins"></div></div>
       <div class="stage"><div class="box">概念与设计</div><div class="pins"><span class="pin">C1</span></div></div>
-      <div class="stage"><div class="box">写代码</div><div class="pins"><span class="pin q">C6</span><span class="pin">C4</span></div></div>
-      <div class="stage"><div class="box">渲染与自检</div><div class="pins"><span class="pin">C2</span><span class="pin">C3</span></div></div>
+      <div class="stage"><div class="box">写代码</div><div class="pins"></div></div>
+      <div class="stage"><div class="box">渲染与自检</div><div class="pins"><span class="pin">C3</span></div></div>
       <div class="stage"><div class="box">挑选</div><div class="pins"></div></div>
       <div class="stage"><div class="box">批评环</div><div class="pins"><span class="pin">C3</span></div></div>
       <div class="stage"><div class="box">节奏刀</div><div class="pins"></div></div>
     </div>
     <div class="foot">
-      <span><span class="d" style="background:var(--accent)"></span>主要针对成熟度</span>
-      <span><span class="d" style="background:var(--warm)"></span>主要针对质量</span>
-      <span>挑选和预览不属于轨道 C 的范围，在「默认挑选方式与预览形式」那张票里。</span>
+      <span><span class="d" style="background:var(--accent)"></span>两个候选都主要针对成熟度</span>
+      <span>挑选和预览不属于轨道 C 的范围，在「默认挑选方式与预览形式」那张票里。批评协议本身的盲区（不判 mid 帧、不判时长）来自成熟度研究，排序时另列。</span>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>六个候选</h2>
+  <h2>两个候选</h2>
   <p class="lede">每个候选都写明两种结果下套件分别怎么做。绿色框表示有便宜的前置检验，不必先做成片。</p>
-  <div class="cands">
+  <div class="cands two">
 
     <div class="cand">
       <div class="top"><span class="k">C1</span></div>
@@ -253,67 +260,31 @@
     </div>
 
     <div class="cand">
-      <div class="top"><span class="k">C2</span></div>
-      <h3>自检限定轮数</h3>
-      <p class="what">一轮批量修，最多再确认一轮就停。消融里各组定稿前都渲了 3–5 版。</p>
-      <div class="tags"><span class="tag m">成熟度</span><span class="tag">成本</span><span class="tag render">要成片</span></div>
-      <div class="outs">
-        <div><span class="ab">A</span><span>成熟度不降 → 限定轮数，省下成本</span></div>
-        <div><span class="ab">B</span><span>成熟度下降 → 维持不设上限</span></div>
-      </div>
-      <div class="pre"><div class="box yes"><b>有前置检验：</b>拿现有运行（消融 9 支、生产 8 次）的 r1 和定稿版对比，先看自检到底修掉了什么，不花生成成本。</div><div class="src">M16 · Impeccable §2.4</div></div>
-    </div>
-
-    <div class="cand">
       <div class="top"><span class="k">C3</span></div>
       <h3>让时间维度可见</h3>
-      <p class="what">也就是第二只眼：把从成片像素测出的时间现象（定镜里的像素变化、跳帧、阶梯纹、停顿时长）交给乙自检，其中 2a 类也给甲。</p>
+      <p class="what">也就是第二只眼：把从成片像素测出的时间现象（定镜里的像素变化、跳帧、阶梯纹、停顿时长）交给乙自检，其中 2a 类也给甲。停留时长从代码就能读出，可以提前到乙自检时核对。</p>
       <div class="tags"><span class="tag m">成熟度</span><span class="tag norender">第一步不要成片</span></div>
       <div class="outs">
         <div><span class="ab">A</span><span>在合成片上命中率够、误报可控 → 接进自检和批评环</span></div>
         <div><span class="ab">B</span><span>不够 → 不接，由你的终审兜底</span></div>
       </div>
-      <div class="pre"><div class="box yes"><b>有前置检验：</b>轨道 B 在有真值的合成片上验证。合成片很短，渲染便宜。接进管线之后的效果才要成片。</div><div class="src">G1 · 第二只眼设计稿 · γ 的 M 抽搐</div></div>
-    </div>
-
-    <div class="cand">
-      <div class="top"><span class="k">C4</span></div>
-      <h3>观看和交付条件</h3>
-      <p class="what">委托时问清平台和观看场景；装备里补一小段显示物理：小屏上的可读性、平台遮挡区、压缩。</p>
-      <div class="tags"><span class="tag m">成熟度</span><span class="tag norender">先不要成片</span></div>
-      <div class="outs">
-        <div><span class="ab">A</span><span>带上之后这类缺陷减少 → 加进套件</span></div>
-        <div><span class="ab">B</span><span>不减少 → 不加</span></div>
-      </div>
-      <div class="pre"><div class="box yes"><b>有前置检验：</b>先看「现有成片的成熟度差在哪」里有没有这类缺陷，没有就不立项。字号和遮挡区可以在帧上测量。</div><div class="src">G2</div></div>
-    </div>
-
-    <div class="cand">
-      <div class="top"><span class="k">C5</span></div>
-      <h3>委托问目的</h3>
-      <p class="what">受众是谁、要对方相信什么、有什么独有的真实、什么样的结果即使精致也会让人觉得不对；明暗由观看场景决定。</p>
-      <div class="tags"><span class="tag q">质量 · 概念阶段</span><span class="tag norender">不要成片</span></div>
-      <div class="outs">
-        <div><span class="ab">A</span><span>想法分更高 → 委托步加上这几问</span></div>
-        <div><span class="ab">B</span><span>没有差别 → 不加</span></div>
-      </div>
-      <div class="pre"><div class="box yes"><b>本身就便宜：</b>像诊断那样只做概念卡。每条 brief 要有人回答目的问题，这属于产品真实，不是设计答案。</div><div class="src">G3 · Impeccable §2.3 · 诊断预注册 §4.2 的边界</div></div>
-    </div>
-
-    <div class="cand">
-      <div class="top"><span class="k">C6</span></div>
-      <h3>栅格素材</h3>
-      <p class="what">接入图像模型，做插画、照片和质感素材，不再用代码模仿材质。</p>
-      <div class="tags"><span class="tag q">质量 · 执行上限</span><span class="tag render">要成片</span></div>
-      <div class="outs">
-        <div><span class="ab">A</span><span>质量提高、成熟度不降 → 加进套件</span></div>
-        <div><span class="ab">B</span><span>否则不加</span></div>
-      </div>
-      <div class="pre"><div class="box">没有前置检验。先要你决定接不接图像模型、API 费用怎么算。</div><div class="src">G4 · Impeccable §2.5 · M22</div></div>
+      <div class="pre"><div class="box yes"><b>有前置检验：</b>轨道 B 在有真值的合成片上验证。合成片很短，渲染便宜。接进管线之后的效果才要成片。</div><div class="src">G1 · 第二只眼设计稿 · γ 的 M 抽搐 · 成熟度研究</div></div>
     </div>
 
   </div>
-  <p class="costnote">成本参照：一支完整成片约 1 小时墙钟、10–25 万输出 token（消融 §4.5）。诊断规模的概念卡实验，生成约 1.6 美元，你看卡约 22 分钟。</p>
+  <p class="costnote">成本参照：消融里一次 draw 的墙钟 33–64 分钟，输出 9–18 万 token（据「成片流程各阶段的成本分布」重算，消融 §4.5 的 token 数有重复计数）。</p>
+</section>
+
+<section>
+  <h2>撤回的四个候选</h2>
+  <p class="lede">按你 2026-10-01 的指正撤回。原文 §4.1 有同样的记录。</p>
+  <div class="withdrawn">
+    <div class="wd"><div class="k">C2</div><h3>自检限定轮数</h3><p><b>前提没有证据。</b>消融 9 支的 FIXES.md 里，每一轮重渲之前都列了实际修复，没有空转的轮次。这一条是从 Impeccable 搬来的，没拿自己的运行核对过。条带假缺陷造成的多余渲染根源在条带，归 C3。</p></div>
+    <div class="wd"><div class="k">C6 · G4</div><h3>栅格素材</h3><p><b>前提不成立。</b>动画并不要求真实的栅格材质，矢量和风格化本来就是动态设计的常态。"模仿出来的材质是机器设计的标记"出自网页界面的语境。</p></div>
+    <div class="wd"><div class="k">C5 · G3</div><h3>委托问目的</h3><p><b>不该强制用户填清单。</b>用户尽量把自己想到的前提和背景写进 brief，上限取决于用户自己。委托步最多给出建议补充项，补不补由用户决定。这是交互上的选择，不是待测的干预。</p></div>
+    <div class="wd"><div class="k">C4 · G2</div><h3>观看和交付条件</h3><p><b>同上，问平台和场景也属于让用户填的清单。</b>"装备补一段显示物理"那一半，成熟度研究只找到两条弱证据，不单独立项。</p></div>
+  </div>
+  <p class="next"><b>教训：</b>从别的工具借机制之前，先用我们自己运行里的观察核对它的前提适不适用于短片。初稿的 C2 和 C6 都漏了这一步。</p>
 </section>
 
 <section>
@@ -323,9 +294,8 @@
       <li>判断依据是 n=3 的消融和一次纸面诊断，评分者只有一位。"怎么想"那一类判了"留，不单测"，不等于证明了它有用，只是现有证据不足以删掉。</li>
       <li>只审了装备和 Impeccable §5 列出的机制。create skill、批评协议、盲选协议和节奏刀都不在范围内。</li>
       <li>C1 的依据是一个混杂的对比：消融里无装备组和 M 的差别不只是文档长度。C1 测的正是把长度单独拿出来看。</li>
-      <li>C4 要等成熟度研究的结论。</li>
-    </ol>
-    <p class="next"><b>接下来：</b>这六个候选，加上诊断提名的概念阶段分配，交给「第二轮候选排序」。C3 就是第二只眼（轨道 B），不重复列。那张票还要等成熟度研究、分配那一层和默认挑选方式这几张票先完成。</p>
+          </ol>
+    <p class="next"><b>接下来：</b>C1、C3，加上诊断提名的概念阶段分配，以及成熟度研究指出的批评协议盲区，一起交给「第二轮候选排序」。C3 就是第二只眼（轨道 B），不重复列。</p>
   </div>
 </section>
 
