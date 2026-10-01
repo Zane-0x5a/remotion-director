@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>下一轮实验：先诊断，再开药</title>
+<title>下一轮实验：先诊断，再开药（第二版）</title>
 <style>
   :root {
     --ground: #f5f6f8;
@@ -22,44 +22,51 @@
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0; background: var(--ground); color: var(--ink);
-    font-family: var(--sans); font-size: 15px; line-height: 1.65;
-  }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.65; }
   ::selection { background: var(--accent); color: #fff; }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 28px 96px; }
-  a { color: var(--accent-ink); text-underline-offset: 3px; }
   .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
-  /* Title */
   header.top { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 28px; border-bottom: 2px solid var(--ink); }
   h1 { margin: 0; font-size: clamp(44px, 7vw, 84px); line-height: 1.02; font-weight: 800; letter-spacing: -0.02em; }
   h1 .second { color: var(--accent); }
-  .sub { margin: 14px 0 0; color: var(--ink-2); font-size: 16px; }
+  .sub { margin: 14px 0 0; color: var(--ink-2); font-size: 16px; max-width: 720px; }
   .status { justify-self: end; text-align: right; font-size: 13px; color: var(--ink-2); }
   .status .pill { display: inline-block; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
 
   section { margin-top: 64px; }
   h2 { font-size: 26px; line-height: 1.25; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.01em; }
-  .lede { margin: 0 0 24px; color: var(--ink-2); max-width: 760px; }
-
+  .lede { margin: 0 0 24px; color: var(--ink-2); max-width: 780px; }
   .you { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: #fff; vertical-align: 2px; white-space: nowrap; }
 
-  /* Why */
   .why { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; margin-top: 36px; }
   .why p { margin: 0; font-size: 17px; line-height: 1.7; }
   .why .not { background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; font-size: 14px; color: var(--ink-2); }
   .why .not b { color: var(--ink); }
   .why .not ul { margin: 8px 0 0; padding-left: 18px; }
 
-  /* Questions */
   .qs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
   .q { background: var(--paper); padding: 18px 20px 20px; }
   .q .k { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 13px; }
   .q h3 { margin: 4px 0 6px; font-size: 17px; }
   .q p { margin: 0; color: var(--ink-2); font-size: 14px; }
 
-  /* Tracks */
+  .review { display: grid; grid-template-columns: 1fr 1.6fr; gap: 24px; align-items: start; }
+  .review .verdict { background: var(--ink); color: #fff; border-radius: 12px; padding: 22px 22px 24px; }
+  .review .verdict .who { font-size: 12.5px; color: #c9ccd6; }
+  .review .verdict p { margin: 10px 0 0; font-size: 15px; line-height: 1.7; }
+  .review .verdict .mine { margin-top: 16px; padding-top: 14px; border-top: 1px solid #3a3e4a; font-size: 13.5px; color: #dfe1e8; }
+  .fixes { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .fix { display: grid; grid-template-columns: 1fr 1.25fr; border-top: 1px solid var(--rule-2); }
+  .fix:first-child { border-top: 0; }
+  .fix > div { padding: 11px 16px; font-size: 13.5px; line-height: 1.55; }
+  .fix .p { color: var(--ink-2); }
+  .fix .p b { color: var(--ink); }
+  .fix .c { border-left: 1px solid var(--rule-2); }
+  .fix .tag { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 0 7px; border-radius: 999px; margin-right: 6px; border: 1px solid var(--ink); }
+  .fix .tag.no { border-style: dashed; color: var(--ink-2); border-color: var(--ink-3); }
+  .fix .tag.add { background: var(--accent); border-color: var(--accent); color: #fff; }
+
   .tracks { display: grid; grid-template-columns: 132px repeat(3, 1fr) 1.25fr; gap: 10px; align-items: stretch; }
   .tracks .colhead { font-size: 12px; color: var(--ink-3); font-weight: 700; padding: 0 2px 2px; border-bottom: 1px solid var(--rule); }
   .lane-label { padding: 12px 0; }
@@ -74,27 +81,26 @@
   .merge p { margin: 6px 0 0; font-size: 13.5px; color: #c9ccd6; }
   .merge .gate { border-top: 1px solid #3a3e4a; padding-top: 12px; font-size: 13px; color: #fff; }
 
-  /* Structure */
   .struct { display: grid; grid-template-columns: 1fr 64px 1fr; gap: 18px; align-items: center; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 26px; }
   .runs { display: grid; gap: 10px; }
   .run { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 10px; }
   .run .name { font-size: 12.5px; color: var(--ink-2); }
-  .cards5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .cards4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .mini { height: 42px; border-radius: 5px; border: 1px solid var(--rule); background: var(--rule-2); position: relative; }
   .mini .r { position: absolute; left: 6px; top: 4px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
-  .mini.first { background: var(--accent-weak); border-color: #c4c9f3; }
-  .mini.first .r { color: var(--accent-ink); font-weight: 700; }
-  .single { display: grid; grid-template-columns: 74px repeat(3, 1fr) 2fr; gap: 6px; align-items: center; margin-top: 6px; padding-top: 12px; border-top: 1px dashed var(--rule); }
-  .single .mini { background: #fff; }
+  .mini.def { background: var(--accent-weak); border-color: #b9bff1; }
+  .mini.def .r { color: var(--accent-ink); font-weight: 700; }
+  .single { display: grid; grid-template-columns: 74px repeat(3, 1fr) 1fr; gap: 6px; align-items: center; margin-top: 6px; padding-top: 12px; border-top: 1px dashed var(--rule); }
   .arrow { text-align: center; color: var(--ink-3); font-size: 12px; line-height: 1.4; }
   .arrow svg { display: block; margin: 0 auto 6px; }
-  .pool { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .pool { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
   .pool .mini { background: #fff; display: grid; place-items: center; }
   .pool .mini span { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .legend { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; background: var(--accent-weak); border: 1px solid #b9bff1; }
   .struct-foot { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px 28px; border-top: 1px solid var(--rule-2); padding-top: 14px; font-size: 13.5px; color: var(--ink-2); }
   .struct-foot b { color: var(--ink); }
 
-  /* Card anatomy + scale */
   .two { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 24px; align-items: start; }
   .card { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 22px 22px 18px; }
   .card .id { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
@@ -106,76 +112,74 @@
   .beats div { display: grid; grid-template-columns: 22px 1fr; gap: 6px; align-items: center; }
   .beats i { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
   .hidden-fields { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--rule); font-size: 12.5px; color: var(--ink-3); }
-  .hidden-fields s { text-decoration-thickness: 1px; }
-
-  .scale { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--paper); }
-  .lvl { padding: 16px 14px 18px; border-right: 1px solid var(--rule); }
-  .lvl:last-child { border-right: 0; }
-  .lvl .n { font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1; }
+  .premise { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; font-size: 13.5px; color: var(--ink-2); margin-bottom: 14px; }
+  .premise b { color: var(--ink); }
+  .scale { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--paper); }
+  .lvl { padding: 14px 14px 16px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .lvl:nth-child(3n) { border-right: 0; }
+  .lvl:nth-child(n+4) { border-bottom: 0; }
+  .lvl:last-child { background: var(--ground); }
+  .lvl .n { font-family: var(--mono); font-size: 28px; font-weight: 700; line-height: 1; }
   .lvl .t { font-weight: 800; margin-top: 8px; }
-  .lvl p { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-  .lvl.reason { background: var(--accent-weak); }
-  .lvl.reason .n { color: var(--accent-ink); }
-  .scale-q { margin: 0 0 12px; font-size: 17px; font-weight: 700; }
+  .lvl p { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+  .confirm { margin-top: 8px; font-size: 12.5px; color: var(--accent-ink); font-weight: 700; }
   .tasks { margin-top: 16px; display: grid; gap: 8px; }
   .tasks div { display: grid; grid-template-columns: 26px 1fr; gap: 8px; font-size: 14px; }
   .tasks .num { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; margin-top: 1px; }
 
-  /* Decisions */
   .rules { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
-  .rule { display: grid; grid-template-columns: 48px 1fr 1.25fr 1.45fr; gap: 0; border-top: 1px solid var(--rule); }
+  .rule { display: grid; grid-template-columns: 48px 1fr 1.35fr 1.2fr; border-top: 1px solid var(--rule); }
   .rule:first-child { border-top: 0; }
   .rule > div { padding: 14px 16px; font-size: 13.5px; line-height: 1.55; }
   .rule .k { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 18px; padding-top: 12px; }
   .rule .what b { display: block; font-size: 15px; margin-bottom: 2px; }
   .rule .what span { color: var(--ink-2); }
-  .rule .if { color: var(--ink-2); border-left: 1px solid var(--rule-2); }
-  .rule .then { border-left: 1px solid var(--rule-2); }
-  .rule .then em { font-style: normal; font-weight: 700; color: var(--ink); }
+  .rule .if { border-left: 1px solid var(--rule-2); }
+  .rule .if em { font-style: normal; font-weight: 700; }
+  .rule .else { color: var(--ink-2); border-left: 1px solid var(--rule-2); }
   .rule.head > div { padding-top: 10px; padding-bottom: 10px; font-size: 12px; font-weight: 700; color: var(--ink-3); background: var(--ground); }
 
-  /* Blacklist */
+  .route { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
   .bl { display: grid; grid-template-columns: 1fr 1fr 1.1fr; gap: 18px; align-items: stretch; }
   .sw { border-radius: 12px; overflow: hidden; border: 1px solid var(--rule); background: var(--paper); display: flex; flex-direction: column; }
-  .sw .plate { height: 168px; position: relative; padding: 18px 20px; }
+  .sw .plate { height: 150px; position: relative; padding: 18px 20px; }
   .sw1 .plate { background: #eee3cb; color: #2a2118; }
-  .sw1 .plate .big { font-family: var(--serif); font-size: 44px; font-weight: 700; line-height: 1; }
-  .sw1 .plate .line { position: absolute; left: 20px; right: 20px; bottom: 40px; height: 3px; background: #d2432b; }
-  .sw1 .plate .tick { position: absolute; right: 20px; bottom: 50px; font-family: var(--serif); font-size: 13px; color: #d2432b; }
-  .sw2 .plate { background: #15171e; color: #e9e6df; }
-  .sw2 .plate .big { font-family: var(--serif); font-size: 44px; font-weight: 700; line-height: 1; color: #f0ece4; }
-  .sw2 .plate .glow { position: absolute; right: 30px; bottom: 30px; width: 54px; height: 54px; border-radius: 50%; background: #e2a23a; box-shadow: 0 6px 30px rgba(226,162,58,.35); }
-  .sw .cap { padding: 14px 18px 16px; font-size: 13.5px; }
-  .sw .cap b { display: block; font-size: 15px; }
-  .sw .cap span { color: var(--ink-2); }
+  .sw1 .plate .big { font-family: var(--serif); font-size: 42px; font-weight: 700; line-height: 1; }
+  .sw1 .plate .line { position: absolute; left: 20px; right: 20px; bottom: 36px; height: 3px; background: #d2432b; }
+  .sw1 .plate .tick { position: absolute; right: 20px; bottom: 46px; font-family: var(--serif); font-size: 13px; color: #d2432b; }
+  .sw2 .plate { background: #15171e; }
+  .sw2 .plate .big { font-family: var(--serif); font-size: 42px; font-weight: 700; line-height: 1; color: #f0ece4; }
+  .sw2 .plate .glow { position: absolute; right: 30px; bottom: 26px; width: 50px; height: 50px; border-radius: 50%; background: #e2a23a; box-shadow: 0 6px 30px rgba(226,162,58,.35); }
+  .sw .cap { padding: 14px 18px 16px; font-size: 13px; }
+  .sw .cap b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .sw .cap ul { margin: 0; padding-left: 16px; color: var(--ink-2); }
+  .sw .cap li { margin: 2px 0; }
   .asym { background: var(--ink); color: #fff; border-radius: 12px; padding: 22px 22px; display: flex; flex-direction: column; gap: 14px; }
   .asym .row { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; }
   .asym .sym { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #aab2ff; }
   .asym p { margin: 0; font-size: 14.5px; }
   .asym .note { font-size: 13px; color: #c9ccd6; border-top: 1px solid #3a3e4a; padding-top: 12px; }
 
-  /* Briefs */
   .briefs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .brief { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
-  .brief.rec { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .brief.off { opacity: .48; }
+  .brief { background: var(--paper); border: 1px solid var(--accent); box-shadow: inset 0 0 0 1px var(--accent); border-radius: 12px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
   .brief .top { display: flex; align-items: baseline; gap: 10px; }
-  .brief .rec-tag { margin-left: auto; }
   .brief .letter { font-family: var(--mono); font-weight: 700; font-size: 20px; }
   .brief .mode { font-size: 12px; font-weight: 700; color: var(--ink-2); }
-  .brief .rec-tag { font-size: 12px; font-weight: 700; color: var(--accent-ink); }
   .brief h3 { margin: 0; font-size: 17px; line-height: 1.35; }
-  .brief .msg { font-weight: 700; }
+  .brief .msg { font-weight: 700; margin: 0; }
   .brief p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
   .brief .spec { font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink-3); margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule-2); }
+  .limits { margin-top: 14px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 18px; font-size: 13.5px; color: var(--ink-2); }
+  .limits ul { margin: 6px 0 0; padding-left: 18px; }
 
-  /* Misc grid */
   .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
   .box { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; }
   .box h3 { margin: 0 0 8px; font-size: 16px; }
-  .box ul { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+  .box ul, .box ol { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
   .box li { margin: 4px 0; }
   .box li b { color: var(--ink); }
+  .box p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
 
   .decide { background: var(--paper); border: 2px solid var(--accent); border-radius: 14px; padding: 24px 26px; }
   .decide ol { margin: 0; padding: 0; list-style: none; counter-reset: d; display: grid; gap: 12px; }
@@ -185,12 +189,13 @@
   .decide li b { font-size: 15.5px; }
   .decide li span { color: var(--ink-2); font-size: 14px; }
   .decide .sug { font-size: 12.5px; font-weight: 700; color: var(--accent-ink); white-space: nowrap; }
+  .decide li.open .sug { background: var(--accent); color: #fff; padding: 1px 8px; border-radius: 999px; }
 
   footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--ink-3); }
 
   @media (max-width: 900px) {
-    .why, .two, .bl { grid-template-columns: 1fr; }
-    .qs, .briefs, .three { grid-template-columns: 1fr 1fr; }
+    .why, .two, .bl, .review { grid-template-columns: 1fr; }
+    .qs, .briefs, .three, .route { grid-template-columns: 1fr 1fr; }
     .tracks { grid-template-columns: 1fr; }
     .tracks .colhead { display: none; }
     .merge { grid-column: auto; grid-row: auto; order: 99; margin-top: 8px; }
@@ -198,17 +203,18 @@
     .struct { grid-template-columns: 1fr; }
     .arrow svg { transform: rotate(90deg); }
     .rule { grid-template-columns: 40px 1fr; }
-    .rule .if, .rule .then { grid-column: 2; border-left: 0; padding-top: 0; }
+    .rule .if, .rule .else { grid-column: 2; border-left: 0; padding-top: 0; }
     .rule.head { display: none; }
-    .scale { grid-template-columns: 1fr; }
-    .lvl { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .fix { grid-template-columns: 1fr; }
+    .fix .c { border-left: 0; padding-top: 0; }
   }
   @media (max-width: 560px) {
     .wrap { padding: 32px 16px 64px; }
     header.top { grid-template-columns: 1fr; }
     .status { justify-self: start; text-align: left; }
-    .qs, .briefs, .three { grid-template-columns: 1fr; }
-    .pool { grid-template-columns: repeat(4, 1fr); }
+    .qs, .briefs, .three, .route { grid-template-columns: 1fr; }
+    .scale { grid-template-columns: 1fr 1fr; }
+    .lvl, .lvl:nth-child(3n), .lvl:nth-child(n+4) { border-right: 0; border-bottom: 1px solid var(--rule); }
   }
 </style>
 </head>
@@ -221,39 +227,63 @@
       <p class="sub">下一轮实验：无装备模型的概念分布诊断。看它自己会在哪里达不到"惊艳"，再决定装备写什么。</p>
     </div>
     <div class="status">
-      <span class="pill">草案 · 待冻结</span><br>
+      <span class="pill">第二版 · 已按审查修订 · 待你确认</span><br>
       2026-10-01 · 分支 <span class="mono">feat/equipment-baseline-m</span>
     </div>
   </header>
 
   <div class="why">
-    <p>装备里"怎么想"的那部分，模型本来就会，写进去可能帮忙，也可能添乱。所以这一轮<b>不测任何干预</b>：只让无装备的模型在新 brief 上出概念卡，由你按<b>绝对尺度</b>打分。干预留到第二轮，用成片来测。</p>
+    <p>这一轮<b>不测任何干预</b>：只让无装备的模型出概念卡，由你按<b>绝对尺度</b>打分。它是探索性诊断，每条规则只做两件事：<b>提名</b>第二轮值得测的干预，或者记为"未决"。不淘汰路线，也不宣布能力上限。</p>
     <div class="not">
       <b>这一轮明确不做的</b>
       <ul>
-        <li>不把多样性、离众数的距离当成功条件（"跳出常见"不等于"好"）</li>
+        <li>不把多样性、离众数的距离当成功条件，也不让"常见"进入评分定义</li>
         <li>不照搬 Impeccable 或任何外部的静态清单</li>
-        <li>不写代码、不渲染；M 不进诊断</li>
+        <li>不写代码、不渲染；本轮不实际剔除任何味道；M 不进诊断</li>
       </ul>
     </div>
   </div>
 
   <section>
+    <h2>Codex 审查之后改了什么</h2>
+    <p class="lede">审查者：Codex，模型 <span class="mono">gpt-6-astra</span>，推理强度 high，只读运行。原文存在 <span class="mono">2026-10-01-diagnosis-prereg-codex-review.md</span>。</p>
+    <div class="review">
+      <div class="verdict">
+        <div class="who">Codex 的总体判断（摘要）</div>
+        <p>可以作为给第二轮提出候选假设的探索性诊断，但不适合按原来的规则直接做路线取舍：它把没观察到高分当成能力边界，把少量低分样本升级成黑名单，把容易随机命中的挑选当成能力验证；评分锚点还把"常见所以差"带了回来。</p>
+        <div class="mine">我的判断：8 条必须改全部成立，已采纳。6 条建议改里，有一条只部分采纳。另外我补了一个审查没提的对照。</div>
+      </div>
+      <div class="fixes">
+        <div class="fix"><div class="p"><b>锚点</b>："2 = 品类的常见做法"把常见混进了质量</div><div class="c"><span class="tag">采纳</span>改成质量描述，加"无法判断"和统一的打分前提</div></div>
+        <div class="fix"><div class="p"><b>A 天花板</b>：卡片里没有 5 分，推不出"问题不在挑选"</div><div class="c"><span class="tag">采纳</span>分 brief、分运行类型报告；三种分支都只提名</div></div>
+        <div class="fix"><div class="p"><b>B 排序</b>：<span class="mono">[4,3,3,3]</span> 这样的清单，随机排序也有 75% 会"错排"</div><div class="c"><span class="tag">采纳</span>要求跨 2 条 brief，删去"排序可信"的结论</div></div>
+        <div class="fix"><div class="p"><b>B 排序</b>：分配和独立抽取，到底谁手里的好牌多</div><div class="c"><span class="tag add">新增</span>手牌对照：一份清单的前三名 vs 三张单抽，各取最高分</div></div>
+        <div class="fix"><div class="p"><b>C 默认味道</b>：4 张非 5 分卡，"惊艳概率"的上界仍有约 53%</div><div class="c"><span class="tag">采纳</span>只用默认样本，按独立运行计数；改为"待验证的过滤候选"，第二轮做归因检验</div></div>
+        <div class="fix"><div class="p"><b>F 自主挑选</b>：6 张并列最高时，随机挑也有 73% 命中</div><div class="c"><span class="tag">采纳</span>报告随机基线，加尾概率 ≤0.05；没过记为"未决"</div></div>
+        <div class="fix"><div class="p"><b>味道码表</b>不可执行，编码者能左右 C 是否触发</div><div class="c"><span class="tag">采纳</span>布尔规则、引用原文、第二编码者、敏感性分析</div></div>
+        <div class="fix"><div class="p"><b>盲化</b>：清单卡会留下比较用语和长度差；J2 可能被评分污染</div><div class="c"><span class="tag">采纳</span>卡片自包含、脚本检查；J2 在你打分前跑完并封存；记录自动加载的指令和记忆</div></div>
+        <div class="fix"><div class="p"><b>E 理由与第二轮路由</b>没有封闭，容易事后挑解释</div><div class="c"><span class="tag">采纳</span>每张卡写几个字；提名门槛；一项干预一个组；"补目的"不能变成人给设计答案</div></div>
+        <div class="fix"><div class="p"><b>单独记录"实现把握"</b></div><div class="c"><span class="tag no">没采纳</span>每张卡多一个判断，负担太重；打分前提统一之后，边际收益小</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
     <h2>要回答的六个问题</h2>
     <p class="lede">字母和下面的判定规则一一对应。</p>
     <div class="qs">
-      <div class="q"><span class="k">A</span><h3>天花板</h3><p>无装备模型的方案里，有没有能到"惊艳"的？</p></div>
-      <div class="q"><span class="k">B</span><h3>排序</h3><p>模型自己排的第一名，是不是它最好的那个？</p></div>
-      <div class="q"><span class="k">C</span><h3>默认味道</h3><p>哪些风格组合跨不相干的 brief 反复出现？它们到过高分吗？</p></div>
+      <div class="q"><span class="k">A</span><h3>天花板</h3><p>在纸面上，无装备模型的方案里有没有能到"惊艳"的？</p></div>
+      <div class="q"><span class="k">B</span><h3>排序</h3><p>模型自己的第一名是不是它最好的？分配和独立抽取，哪种手里的好牌多？</p></div>
+      <div class="q"><span class="k">C</span><h3>默认味道</h3><p>哪些风格组合在各次独立运行里反复出现？它们到过高分吗？</p></div>
       <div class="q"><span class="k">D</span><h3>收敛</h3><p>几次独立运行会不会撞到同一个想法？那个想法的分数高还是低？</p></div>
-      <div class="q"><span class="k">E</span><h3>理由</h3><p>高分和低分差在哪？以你的原话为准。</p></div>
-      <div class="q"><span class="k">F</span><h3>自主挑选</h3><p>一个新上下文的 agent，能不能从卡片里挑中你的第一名？</p></div>
+      <div class="q"><span class="k">E</span><h3>理由</h3><p>离惊艳还差什么？以你的原话为准。</p></div>
+      <div class="q"><span class="k">F</span><h3>自主挑选</h3><p>一个新上下文的 agent，能不能从卡片里挑中你的最高分？</p></div>
     </div>
   </section>
 
   <section>
     <h2>三条轨道并行，汇合后进第二轮</h2>
-    <p class="lede">只有轨道 A 需要你：冻结前定几件事，运行完之后打分。B 和 C 不占用你的时间。</p>
+    <p class="lede">只有轨道 A 需要你。B 和 C 不占用你的时间。</p>
     <div class="tracks">
       <div></div>
       <div class="colhead">冻结</div>
@@ -262,20 +292,20 @@
       <div class="colhead">汇合</div>
 
       <div class="lane-label"><b>A 诊断</b><span>主实验</span></div>
-      <div class="step mine">定 brief、规模、锚点 <span class="you">需要你</span><small>见页底的五件事</small></div>
-      <div class="step">18 次独立运行<small>只出概念卡，并行，约 15–30 分钟</small></div>
-      <div class="step mine">你按绝对尺度给 54 张卡打分 <span class="you">需要你</span><small>可以按 brief 分三次；之后 agent 评判、揭盲、判定 A–F</small></div>
+      <div class="step mine">确认锚点措辞 <span class="you">需要你</span><small>其余选择已按审查采纳，见页底</small></div>
+      <div class="step">18 次独立运行 → 45 张卡<small>卡片定稿后，J2 和味道编码先跑完并封存</small></div>
+      <div class="step mine">你给 45 张卡打分，再分组 <span class="you">需要你</span><small>分三次，加 6 张复评；三条都锁定后才揭盲</small></div>
       <div class="merge">
         <div>
           <h3>第二轮：成片验证</h3>
-          <p>候选装备、N0、M 各做成片，你按视频在同一绝对尺度上打分并盲排。候选装备 = 轨道 C 的审查结果 + A–F 判定选出的干预。</p>
+          <p>每个被提名的干预单独成组，和 N0、M 的成片比，预算和流程相同，默认最多两个干预组。你按视频，用同一套绝对锚点打分。</p>
         </div>
         <div class="gate">通过之后才开 PR，M 不单独上线</div>
       </div>
 
       <div class="lane-label"><b>B 第二只眼睛</b><span>工具验证</span></div>
       <div class="step empty"></div>
-      <div class="step">9 支旧片 + 约 8 支已知答案的合成片<small>有意效果 vs 注入的缺陷</small></div>
+      <div class="step">有真值的合成片，正常片和异常片成对<small>调参一批、验证一批；9 支旧片只统计报警</small></div>
       <div class="step">检出率、误报率；读图模型能否读懂<small>测量排在视觉判断之后给</small></div>
 
       <div class="lane-label"><b>C 装备审查</b><span>分析</span></div>
@@ -286,29 +316,30 @@
   </section>
 
   <section>
-    <h2>一条 brief 产出 18 张卡</h2>
-    <p class="lede">排序清单用来测"第一名是不是最好的"；单抽是对照，用来检验清单的第一名能不能代表一次正常的抽取。卡片交给你之前，名次和来源全部去掉。</p>
+    <h2>一条 brief 产出 15 张卡</h2>
+    <p class="lede">蓝色的 6 张是"默认样本"：每张都是一次独立运行的首选。默认味道（C）只按这 18 张（3 条 × 6）计数。清单的第 2–4 名是在"提出不同方案"的要求下产生的，只用来检查覆盖范围和高分反例。</p>
     <div class="struct">
       <div class="runs">
-        <div class="run"><div class="name">清单 1</div><div class="cards5"><div class="mini first"><span class="r">1</span></div><div class="mini"><span class="r">2</span></div><div class="mini"><span class="r">3</span></div><div class="mini"><span class="r">4</span></div><div class="mini"><span class="r">5</span></div></div></div>
-        <div class="run"><div class="name">清单 2</div><div class="cards5"><div class="mini first"><span class="r">1</span></div><div class="mini"><span class="r">2</span></div><div class="mini"><span class="r">3</span></div><div class="mini"><span class="r">4</span></div><div class="mini"><span class="r">5</span></div></div></div>
-        <div class="run"><div class="name">清单 3</div><div class="cards5"><div class="mini first"><span class="r">1</span></div><div class="mini"><span class="r">2</span></div><div class="mini"><span class="r">3</span></div><div class="mini"><span class="r">4</span></div><div class="mini"><span class="r">5</span></div></div></div>
-        <div class="single"><div class="name" style="font-size:12.5px;color:var(--ink-2)">单抽 × 3</div><div class="mini"></div><div class="mini"></div><div class="mini"></div><div></div></div>
+        <div class="run"><div class="name">清单 1</div><div class="cards4"><div class="mini def"><span class="r">1</span></div><div class="mini"><span class="r">2</span></div><div class="mini"><span class="r">3</span></div><div class="mini"><span class="r">4</span></div></div></div>
+        <div class="run"><div class="name">清单 2</div><div class="cards4"><div class="mini def"><span class="r">1</span></div><div class="mini"><span class="r">2</span></div><div class="mini"><span class="r">3</span></div><div class="mini"><span class="r">4</span></div></div></div>
+        <div class="run"><div class="name">清单 3</div><div class="cards4"><div class="mini def"><span class="r">1</span></div><div class="mini"><span class="r">2</span></div><div class="mini"><span class="r">3</span></div><div class="mini"><span class="r">4</span></div></div></div>
+        <div class="single"><div class="name" style="font-size:12.5px;color:var(--ink-2)">单抽 × 3</div><div class="mini def"></div><div class="mini def"></div><div class="mini def"></div><div></div></div>
+        <div class="legend"><i></i>默认样本</div>
       </div>
       <div class="arrow">
         <svg width="44" height="20" viewBox="0 0 44 20" aria-hidden="true"><path d="M2 10h36M30 3l8 7-8 7" fill="none" stroke="#868c9b" stroke-width="1.6"/></svg>
         统一排版<br>打乱<br>随机 ID
       </div>
       <div class="pool">
-        <div class="mini"><span>K7Q</span></div><div class="mini"><span>2MX</span></div><div class="mini"><span>R4T</span></div><div class="mini"><span>9DW</span></div><div class="mini"><span>H3P</span></div><div class="mini"><span>V8C</span></div>
-        <div class="mini"><span>N2J</span></div><div class="mini"><span>F6L</span></div><div class="mini"><span>Y5B</span></div><div class="mini"><span>Q1S</span></div><div class="mini"><span>T9A</span></div><div class="mini"><span>C4Z</span></div>
-        <div class="mini"><span>W7E</span></div><div class="mini"><span>L3U</span></div><div class="mini"><span>B8G</span></div><div class="mini"><span>X2K</span></div><div class="mini"><span>D6R</span></div><div class="mini"><span>P5M</span></div>
+        <div class="mini"><span>K7Q</span></div><div class="mini"><span>2MX</span></div><div class="mini"><span>R4T</span></div><div class="mini"><span>9DW</span></div><div class="mini"><span>H3P</span></div>
+        <div class="mini"><span>N2J</span></div><div class="mini"><span>F6L</span></div><div class="mini"><span>Y5B</span></div><div class="mini"><span>Q1S</span></div><div class="mini"><span>T9A</span></div>
+        <div class="mini"><span>W7E</span></div><div class="mini"><span>L3U</span></div><div class="mini"><span>B8G</span></div><div class="mini"><span>X2K</span></div><div class="mini"><span>D6R</span></div>
       </div>
       <div class="struct-foot">
-        <span><b>每条 brief</b> 3 份清单 × 5 + 3 张单抽 = 18 张</span>
-        <span><b>3 条 brief</b> 合计 54 张卡、18 次运行</span>
-        <span><b>组别</b> 只有 N0：上一轮 N 组的正文，改成只做设计</span>
-        <span><b>可调</b> 清单改成 4 张，合计 45 张</span>
+        <span><b>每条 brief</b> 3 份清单 × 4 + 3 张单抽 = 15 张</span>
+        <span><b>3 条 brief</b> 合计 45 张卡、18 次运行</span>
+        <span><b>组别</b> 只有 N0：上一轮 N 组的正文，改成只做设计，删去"新颖、不落 AI 俗套"</span>
+        <span><b>清单卡</b> 每张都能单独成立，不出现比较用语，长度在固定范围内</span>
       </div>
     </div>
   </section>
@@ -318,9 +349,9 @@
     <p class="lede">卡片只写想法，不写执行；示意里不放真实方案，以免它成为你的参照。</p>
     <div class="two">
       <div class="card">
-        <div class="id">卡片 K7Q · brief A</div>
+        <div class="id">卡片 K7Q · brief D</div>
         <div class="field"><div class="lab">conceit：这支片靠什么单一机制成立（一句）</div><div class="ph w80"></div></div>
-        <div class="field"><div class="lab">拍：每拍发生什么、屏上有什么字（5–8 拍）</div>
+        <div class="field"><div class="lab">拍：每拍发生什么、屏上有什么字（5–8 拍；连续运动可以按阶段写）</div>
           <div class="beats">
             <div><i>01</i><div class="ph w80" style="margin:0"></div></div>
             <div><i>02</i><div class="ph w60" style="margin:0"></div></div>
@@ -330,22 +361,24 @@
         </div>
         <div class="field"><div class="lab">主体与手段：画面主体是什么，用什么手段做（一句）</div><div class="ph w60"></div></div>
         <div class="field"><div class="lab">味道：底色、字体气质、强调色、主要材质（一句）</div><div class="ph w80"></div></div>
-        <div class="hidden-fields">不给你看：<s>运行类型</s> · <s>模型名次</s> · <s>模型的排序理由</s></div>
+        <div class="hidden-fields">不给你看：运行类型 · 模型名次 · 模型的排序理由</div>
       </div>
       <div>
-        <p class="scale-q">"这个方向做到最好，能到哪一档？"</p>
+        <div class="premise"><b>打分前提</b>：保留卡片已有的核心机制、叙事和视觉方向，假设执行已经充分打磨。技术和素材条件以卡片写的为准，不替它补出关键创意，也不默认有专门拍摄的素材。常见还是陌生，都不直接决定分数。</div>
         <div class="scale">
-          <div class="lvl reason"><div class="n">5</div><div class="t">惊艳</div><p>看完会记住，想转发给别人</p></div>
-          <div class="lvl"><div class="n">4</div><div class="t">出色</div><p>明显高于一般水准，有一处让人眼前一亮</p></div>
-          <div class="lvl"><div class="n">3</div><div class="t">专业</div><p>得体，挑不出大毛病，但转头就忘</p></div>
-          <div class="lvl reason"><div class="n">2</div><div class="t">平庸</div><p>品类的常见做法，没有自己的东西</p></div>
-          <div class="lvl reason"><div class="n">1</div><div class="t">不及格</div><p>没扣题，或者有明显问题</p></div>
+          <div class="lvl"><div class="n">5</div><div class="t">惊艳</div><p>充分兑现这个方向之后，整体足以让我明确称为惊艳</p></div>
+          <div class="lvl"><div class="n">4</div><div class="t">出色</div><p>整体很强，但仍有明确的不足，没到惊艳</p></div>
+          <div class="lvl"><div class="n">3</div><div class="t">合格</div><p>有效完成 brief，整体扎实</p></div>
+          <div class="lvl"><div class="n">2</div><div class="t">欠佳</div><p>对 brief 的表达或整体吸引力有明显不足</p></div>
+          <div class="lvl"><div class="n">1</div><div class="t">不成立</div><p>不扣题、自相矛盾，或者有根本问题</p></div>
+          <div class="lvl"><div class="n">—</div><div class="t">无法判断</div><p>卡片信息不够，不强行给 1 分</p></div>
         </div>
+        <div class="confirm">锚点是你的尺子：措辞以你确认的为准。</div>
         <div class="tasks">
-          <div><span class="num">1</span><span>每张卡打一个分。这是<b>绝对尺度</b>：不和同组的卡比，三张都可以是 3。</span></div>
-          <div><span class="num">2</span><span>只有 <b>5 分和 ≤2 分</b>的卡（上面蓝底的三档）写一句理由。</span></div>
-          <div><span class="num">3</span><span>把"其实是同一个想法"的卡圈在一起。</span></div>
-          <div><span class="num">4</span><span>锁定一条 brief 的评分之后，再看下一条；三条都锁定之前不揭盲。约 60–80 分钟，可以分三次。</span></div>
+          <div><span class="num">1</span><span>逐张打分，每张写几个字："离惊艳还差什么"（可以写"无"）。5 分卡写一句为什么惊艳。</span></div>
+          <div><span class="num">2</span><span>全部打完分，再把"同一个想法"的卡圈在一起：核心的传达机制和关键动作关系相同才算；题材相同、配色相同都不算。</span></div>
+          <div><span class="num">3</span><span>每看 6–8 张休息一下。每条 brief 里有 2 张会换个 ID 再出现一次，用来看评分的波动。</span></div>
+          <div><span class="num">4</span><span>分三次完成，约 60–75 分钟；三条都锁定之前，不看 J2 的结果，也不揭盲。</span></div>
         </div>
       </div>
     </div>
@@ -353,114 +386,113 @@
 
   <section>
     <h2>看到什么，第二轮就测什么</h2>
-    <p class="lede">规则在打分之前写死。它们只决定下一轮测什么，不是最终结论。</p>
+    <p class="lede">规则在打分之前写死。全部按 brief 分开报告；没满足提名条件，就记为"未决"，不淘汰任何路线。</p>
     <div class="rules">
-      <div class="rule head"><div></div><div>量什么</div><div>如果</div><div>第二轮</div></div>
+      <div class="rule head"><div></div><div>量什么</div><div>提名条件</div><div>其余情况</div></div>
       <div class="rule">
         <div class="k">A</div>
-        <div class="what"><b>天花板</b><span>54 张里 5 分的张数和来源</span></div>
-        <div class="if">三条 brief 都没有 5 分</div>
-        <div class="then">问题不在挑选，而在输入或能力：测<em>委托补目的</em>；栅格素材交你决定。每条都有 5 分：上限存在，改测怎么稳定够到它</div>
+        <div class="what"><b>天花板</b><span>5 分卡数、出现过 5 分的运行数；单抽和清单第一名分开</span></div>
+        <div class="if">三条都没有 5 分 → 记为"本轮纸面上未观察到"，第二轮优先测<em>委托补目的</em>，其他解释并列</div>
+        <div class="else">一到两条有 5 分：按 brief 分化处理。三条都有：第二轮验证兑现率和挑选。都不宣布能力封顶</div>
       </div>
       <div class="rule">
         <div class="k">B</div>
-        <div class="what"><b>排序</b><span>清单里有没有排在后面、≥4 分、并且严格高于第一名的卡</span></div>
-        <div class="if">9 份清单里 ≥3 份这样错排；≤1 份则排序可信；2 份只作描述</div>
-        <div class="then">≥3 份：<em>分配机制</em>进入第二轮，固定一抽建第一名，其余由骰子分配其他候选。≤1 份：N 抽保持独立</div>
+        <div class="what"><b>排序</b><span>手牌对照；第一名与最高分的差；错排；第一名命中最高分的次数 vs 随机期望</span></div>
+        <div class="if">错排出现在 ≥3 份清单、跨 ≥2 条 brief，<em>并且</em> ≥2 条 brief 上清单前三名不比三张单抽差 → 提名<em>分配机制</em></div>
+        <div class="else">记为"证据不足"。第二轮若测，必须和同等预算的独立抽取比</div>
       </div>
       <div class="rule">
         <div class="k">C</div>
-        <div class="what"><b>默认味道</b><span>跨 ≥2 条 brief、出现 ≥4 张卡的味道组合；味道由盲的 agent 按码表标注</span></div>
-        <div class="if">这些卡的最高分 ≤3</div>
-        <div class="then">列入<em>黑名单，只作剔除</em>；第二轮测清单放在哪：乙的装备里，还是乙之外的过滤。有卡 ≥4 分：不列入</div>
+        <div class="what"><b>默认味道</b><span>两个候选在默认样本里命中的独立运行数；所有命中卡的最高分</span></div>
+        <div class="if">≥4 个独立运行、跨 ≥2 条 brief（其中两条各 ≥2 个），且没有命中卡到 5 分 → <em>待验证的过滤候选</em></div>
+        <div class="else">有 4 分：暂缓。有 5 分：否定"一定不惊艳"。本轮不剔除，第二轮先做归因检验</div>
       </div>
       <div class="rule">
         <div class="k">D</div>
-        <div class="what"><b>收敛</b><span>3 个清单第一名 + 3 张单抽落进几个想法组</span></div>
-        <div class="if">单抽大多不在清单第一名的组里</div>
-        <div class="then">说明清单格式改变了行为：B 的结论<em>降级为参考</em>。其余情况只作描述</div>
+        <div class="what"><b>收敛</b><span>每个想法组里单抽、清单第一名各几张，以及它们的分数</span></div>
+        <div class="if">只作描述</div>
+        <div class="else">没发现差异，也不等于两种格式等价</div>
       </div>
       <div class="rule">
         <div class="k">E</div>
-        <div class="what"><b>理由</b><span>先按你的原话归类，再对照候选标签</span></div>
-        <div class="if">低分理由以"没有具体性 / 平平无奇"为主</div>
-        <div class="then">第二轮测<em>委托补目的</em>。所有理由都进入轨道 C 的审查</div>
+        <div class="what"><b>理由</b><span>"离惊艳还差什么"，先按你的原话归类，再对照候选标签</span></div>
+        <div class="if">同一类理由由你明确写出，跨 ≥2 条 brief，每条 ≥2 个独立运行 → 提名对应的干预</div>
+        <div class="else">进入轨道 C 的审查</div>
       </div>
       <div class="rule">
         <div class="k">F</div>
-        <div class="what"><b>自主挑选</b><span>新上下文的 agent 挑前三，看有没有覆盖你的最高分</span></div>
-        <div class="if">3 条 brief 里 ≥2 条覆盖</div>
-        <div class="then">概念阶段可以由 agent 自主挑选，这是"先出清单再挑"的前提。否则挑选<em>只能放在成片阶段</em></div>
+        <div class="what"><b>自主挑选</b><span>J2 前三是否含任意一张并列最高分卡，对照随机基线</span></div>
+        <div class="if">≥2 条命中，<em>并且</em>按实际并列算的随机尾概率 ≤0.05 → 提名<em>概念阶段自主挑选</em></div>
+        <div class="else">记为"未决"。样本这么小，预计多半是未决</div>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>预先登记的两个黑名单候选</h2>
-    <p class="lede">C 项先检验这两个，其余的只算探索性结果。黑名单的单位是组合，不是单个元素：直接禁掉衬线会误伤。</p>
+    <h2>第二轮怎么接</h2>
+    <div class="route">
+      <div class="box"><h3>一项干预一个组</h3><p>不捆成装备包。每组都和 N0、M 的成片比，构建预算、挑选、批评流程都相同。默认最多两个干预组；提名多于两个时，由你在第二轮预注册时选，没选上的不淘汰。</p></div>
+      <div class="box"><h3>"补目的"的边界</h3><p>委托步多问的是产品真实：受众、要对方相信什么、有什么独有的事实、什么结果即使精致也会让人觉得不对。它不能变成由人给出 conceit、构图或配色的答案。</p></div>
+      <div class="box"><h3>过滤候选先做归因</h3><p>保留 conceit，让 AI 自主生成换了味道的变体，和原方向一起盲评。没做这一步，只能说"这些低分方案碰巧共有这个味道"。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>两个过滤候选：预先登记的布尔规则</h2>
+    <p class="lede">编码只看"味道"字段。三项都由原文明确写出才算命中；没写的记为缺失，不猜。命中项由第二个盲编码者复核，分歧计入敏感性分析。</p>
     <div class="bl">
       <div class="sw sw1">
-        <div class="plate"><div class="big">衬线 Aa</div><div class="tick">朱红</div><div class="line"></div></div>
-        <div class="cap"><b>米纸 / 奶油底 + 衬线 + 朱红</b><span>上一轮出现在 β 的 N、M 和 γ 的 N、M，跨两条不相干的 brief。和 Impeccable 实测的 AI 聚类之一相同。</span></div>
+        <div class="plate"><div class="big">衬线 Aa</div><div class="tick">红系</div><div class="line"></div></div>
+        <div class="cap"><b>米纸 / 奶油底 + 衬线 + 红系强调</b>
+          <ul><li>底色：米色、米黄、奶油、纸色、象牙、羊皮纸</li><li>主字体：衬线（含宋体、明朝体）</li><li>强调色：红、朱红、赤陶、信号红、橙红</li></ul>
+        </div>
       </div>
       <div class="sw sw2">
         <div class="plate"><div class="big">暗场</div><div class="glow"></div></div>
-        <div class="cap"><b>暗场 + 单一暖色强调</b><span>上一轮 F 在 α、β、γ 三条上都落回这里，来自旧装备的深色先验。</span></div>
+        <div class="cap"><b>暗场 + 单一暖色强调</b>
+          <ul><li>底色：深色、黑、深蓝、深灰，并占全片主体</li><li>强调色恰好一种，色相为暖</li><li>没有第二种饱和强调色</li></ul>
+        </div>
       </div>
       <div class="asym">
         <div class="row"><span class="sym">⇒</span><p>落在已确认的默认味道里，<b>足以</b>判定不惊艳：可以剔除。</p></div>
         <div class="row"><span class="sym">⇏</span><p>离开常见，<b>不足以</b>判定为好：所以不当目标。</p></div>
-        <div class="note">你已经知道这两个候选，可能会对它们更苛刻。所以 C 项对它们的确认只算初步，第二轮在成片上再看一次。</div>
+        <div class="note">这一轮只能提名"待验证的过滤候选"。小样本证明不了"一定不惊艳"，而且你已经知道这两个候选。列不列入由你根据证据决定，第二轮先做归因。</div>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>brief：你选了 B、D、F</h2>
-    <p class="lede">三条的自然味道要差得够远：一种风格跨 brief 反复出现，才能读作模型的默认，而不是题材的要求。B 换掉了 A，F 换掉了 E。结果是没有情感类的 brief，两条横屏、大面积运动（当前模型的强项）。B、D、F 的自然味道都远离"米纸 + 衬线 + 朱红"，所以这个味道只要出现，就更容易读作默认。</p>
+    <h2>brief：B、D、F</h2>
     <div class="briefs">
-      <div class="brief off">
-        <div class="top"><span class="letter">A</span><span class="mode">说服</span></div>
-        <h3>跑鞋「TRACE 42」：中底在后半程逐渐变硬</h3>
-        <p class="msg">「为第 30 公里设计。」</p>
-        <p>受众是跑过全马的业余跑者；调性克制、有力、不喊口号。品类反射很强（暗底、霓虹、速度线），可以看默认味道会不会压过品类。</p>
-        <div class="spec">1080×1920 · 12 秒 · 必需：TRACE 42 + 那一句</div>
-      </div>
-      <div class="brief rec">
-        <div class="top"><span class="letter">B</span><span class="mode">说服 / 体验</span><span class="rec-tag">已选</span></div>
+      <div class="brief">
+        <div class="top"><span class="letter">B</span><span class="mode">说服 / 体验</span></div>
         <h3>自动化码头「东港四期」首个公众开放日</h3>
         <p class="msg">「看一个箱子怎样不经人手走完码头。」</p>
-        <p>受众是本市家庭和学生；调性精确、壮观、亲切。大面积机械运动，是当前模型的强项，可以用它换掉 A。</p>
+        <p>受众是本市家庭和学生；调性精确、壮观、亲切。</p>
         <div class="spec">1920×1080 · 15 秒 · 必需：活动名 + 10 月 18 日 9:00–16:00</div>
       </div>
-      <div class="brief off">
-        <div class="top"><span class="letter">C</span><span class="mode">信息</span></div>
-        <h3>阶梯水价调整：第一阶梯从 15 吨提到 18 吨</h3>
-        <p class="msg">「多数家庭的水费会变少。」</p>
-        <p>受众是普通住户；调性清楚、可信、不说教。数字承重，偏信息设计。</p>
-        <div class="spec">1080×1920 · 15 秒 · 必需：三档用量与单价 + 生效日期</div>
-      </div>
-      <div class="brief rec">
-        <div class="top"><span class="letter">D</span><span class="mode">信息</span><span class="rec-tag">已选</span></div>
+      <div class="brief">
+        <div class="top"><span class="letter">D</span><span class="mode">信息</span></div>
         <h3>地铁 9 号线：在「青石桥」同台换乘，6 分钟变 40 秒</h3>
         <p class="msg">「换乘只要穿过站台。」</p>
-        <p>受众是每天通勤的上班族；调性轻快、可靠。有现成的标准形式（线路图），可以看 conceit 层的常见做法到底是不是坏事。</p>
+        <p>受众是每天通勤的上班族；调性轻快、可靠。</p>
         <div class="spec">1080×1920 · 12 秒 · 必需：9 号线 + 青石桥 + 40 秒</div>
       </div>
-      <div class="brief off">
-        <div class="top"><span class="letter">E</span><span class="mode">情感</span></div>
-        <h3>「南苑动物之家」领养周：狗平均要等 214 天</h3>
-        <p class="msg">「它已经等了 214 天。」</p>
-        <p>受众是考虑养宠的年轻人；调性温暖但不煽情。温暖题材容易出奶油底；和 A、D 对照，能分清这个味道是题材带来的，还是模型的默认。</p>
-        <div class="spec">1080×1920 · 15 秒 · 必需：领养周日期 + 收容所名</div>
-      </div>
-      <div class="brief rec">
-        <div class="top"><span class="letter">F</span><span class="mode">体验</span><span class="rec-tag">已选</span></div>
+      <div class="brief">
+        <div class="top"><span class="letter">F</span><span class="mode">体验</span></div>
         <h3>「白垭盐湖」雨季镜面：雨后湖面倒映整片天空</h3>
         <p class="msg">「天空落在地上。」</p>
-        <p>受众是喜欢摄影的旅行者；调性开阔、安静、轻盈。文字少，大面积动态画面；和上一轮的 α 同属水题材。</p>
+        <p>受众是喜欢摄影的旅行者；调性开阔、安静、轻盈。</p>
         <div class="spec">1920×1080 · 12 秒 · 必需：景区名 + 季节</div>
       </div>
+    </div>
+    <div class="limits"><b style="color:var(--ink)">这个选择对推断的影响</b>
+      <ul>
+        <li>结论只适用于这三条 brief 和当前模型；没有情感类 brief，不能谈温暖题材上的表现。</li>
+        <li>B、F 的横屏、大面积运动和它们的模式、题材混在一起，分不开各自的作用。</li>
+        <li>F 和上一轮的 α 同属水题材，你对它会有预期。</li>
+        <li>B、D 也可以合理地用图纸、导视或档案的视觉语言，所以"米纸一出现就是默认"还只是待检验的解释。</li>
+      </ul>
     </div>
   </section>
 
@@ -468,50 +500,51 @@
     <h2>盲化、成本与已知的威胁</h2>
     <div class="three">
       <div class="box">
-        <h3>盲化</h3>
-        <ul>
-          <li>18 次运行各自独立，不读其他运行的输出、以往作品或研究文档</li>
-          <li>卡片由脚本按字段重排，打乱，配随机 ID</li>
-          <li>映射表只放在 <span class="mono">_studio-1001-ops/</span></li>
-          <li>你锁定一条 brief 之后才跑那条的 J2；三条都锁定之后才揭盲</li>
-        </ul>
+        <h3>盲化与时序</h3>
+        <ol>
+          <li>从空记忆的新工区 <span class="mono">_studio-1001</span> 启动；每次运行实际加载了什么，从转录里取出记下</li>
+          <li>卡片定稿：脚本只排版、不改写；检查长度和比较用语</li>
+          <li>J2 挑选（两种顺序）、聚类、味道编码先跑完，封存</li>
+          <li>你分三次打分，再分组</li>
+          <li>三条都锁定之后，才打开封存件和映射表</li>
+        </ol>
       </div>
       <div class="box">
         <h3>成本（估计）</h3>
         <ul>
           <li><b>运行</b>：18 次只出卡片，大约相当于上一轮 1–2 次完整构建</li>
-          <li><b>agent</b>：挑选 3 次、聚类 3 次、味道编码 1 次</li>
-          <li><b>你</b>：54 张卡，约 60–80 分钟</li>
+          <li><b>agent</b>：挑选 6 次、聚类 3 次、编码 1 次加复核</li>
+          <li><b>你</b>：45 张卡 + 6 张复评，约 60–75 分钟</li>
           <li>冻结前按实际计价重算</li>
         </ul>
       </div>
       <div class="box">
         <h3>威胁</h3>
         <ul>
-          <li><b>卡片 ≠ 成片</b>：新不新看得出，做不做得好看不出。所以问"做到最好能到哪档"，干预只按第二轮视频定</li>
-          <li><b>清单格式可能改变行为</b>：用单抽对照（D）</li>
-          <li><b>N0 正文自带"新颖、不落 AI 俗套"</b>：本身是轻度的求新推力</li>
-          <li><b>样本小</b>：只够用来选第二轮测什么</li>
+          <li><b>描述的是这个卡片协议下的分布</b>：清单格式会改变搜索方式、投入和自我论证</li>
+          <li><b>卡片 ≠ 成片</b>：所以有统一的打分前提，干预只按第二轮视频定</li>
+          <li><b>文字的画面感不同</b>：B、F 的字眼更容易让人想象出好画面</li>
+          <li><b>样本小、并列多</b>：每条规则都要求跨 brief，并报告随机基线</li>
         </ul>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>冻结前需要你定的五件事</h2>
+    <h2>冻结前</h2>
     <div class="decide">
       <ol>
-        <li><div><b>挑 3 条 brief</b><br><span>已定：B 码头开放日 · D 地铁换乘 · F 盐湖镜面</span></div><span class="sug">已定</span></li>
-        <li><div><b>清单长度</b><br><span>每份清单 5 张（合计 54 张），还是 4 张（合计 45 张）</span></div><span class="sug">建议 5</span></li>
-        <li><div><b>评分锚点的措辞</b><br><span>上面五档的说法是否就是你心里的尺子</span></div><span class="sug">按你的改</span></li>
-        <li><div><b>N0 是否保留"新颖、不落 AI 俗套"</b><br><span>保留：和上一轮 N 的 9 支成片可比；去掉：测更纯的直觉</span></div><span class="sug">建议保留，记为混杂</span></li>
-        <li><div><b>轨道 B 是否同时开跑</b><br><span>它不需要你打分，只占机器时间</span></div><span class="sug">建议同时</span></li>
+        <li class="open"><div><b>评分锚点的措辞</b><br><span>换成了质量描述，并加了"无法判断"；原来的"2 = 品类常见做法"和"5 = 想转发"已去掉</span></div><span class="sug">需要你确认</span></li>
+        <li><div><b>brief</b><br><span>B 码头开放日 · D 地铁换乘 · F 盐湖镜面</span></div><span class="sug">已定</span></li>
+        <li><div><b>N0 删去"新颖、不落 AI 俗套"</b><br><span>它把求新写成了目标；"为了和上一轮可比"站不住，上一轮 N 组只有 3 支成片，不是第一版写的 9 支</span></div><span class="sug">按审查采纳</span></li>
+        <li><div><b>清单长度 4</b><br><span>独立清单仍是 9 份；第 5 张只增加同一上下文里的候选和你的负担</span></div><span class="sug">按审查采纳</span></li>
+        <li><div><b>轨道 B 并行</b><br><span>独立验收：有真值的合成片，调参和验证分开</span></div><span class="sug">按审查采纳</span></li>
       </ol>
     </div>
   </section>
 
   <footer>
-    文本版：<span class="mono">docs/research/2026-10-01-diagnosis-prereg.md</span> · 依据：消融结果（D2）、Impeccable 4.4 笔记 §4–§5、2026-09-26 草稿第二部分（轨道 B）
+    文本版：<span class="mono">docs/research/2026-10-01-diagnosis-prereg.md</span>（§10 有逐条处置）· 审查原文：<span class="mono">2026-10-01-diagnosis-prereg-codex-review.md</span>
   </footer>
 </div>
 </body>
