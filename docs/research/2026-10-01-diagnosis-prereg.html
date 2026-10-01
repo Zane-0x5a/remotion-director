@@ -158,6 +158,7 @@
   .briefs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .brief { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
   .brief.rec { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .brief.off { opacity: .48; }
   .brief .top { display: flex; align-items: baseline; gap: 10px; }
   .brief .rec-tag { margin-left: auto; }
   .brief .letter { font-family: var(--mono); font-weight: 700; font-size: 20px; }
@@ -415,24 +416,24 @@
   </section>
 
   <section>
-    <h2>六条候选 brief，挑三条 <span class="you">需要你</span></h2>
-    <p class="lede">三种模式各一条，三条的自然味道要差得够远。这样一种风格跨 brief 反复出现，才能读作模型的默认，而不是题材的要求。全部虚构，不涉及 AI 或本项目，不附素材。</p>
+    <h2>brief：你选了 B、D、F</h2>
+    <p class="lede">三条的自然味道要差得够远：一种风格跨 brief 反复出现，才能读作模型的默认，而不是题材的要求。B 换掉了 A，F 换掉了 E。结果是没有情感类的 brief，两条横屏、大面积运动（当前模型的强项）。B、D、F 的自然味道都远离"米纸 + 衬线 + 朱红"，所以这个味道只要出现，就更容易读作默认。</p>
     <div class="briefs">
-      <div class="brief rec">
-        <div class="top"><span class="letter">A</span><span class="mode">说服</span><span class="rec-tag">建议</span></div>
+      <div class="brief off">
+        <div class="top"><span class="letter">A</span><span class="mode">说服</span></div>
         <h3>跑鞋「TRACE 42」：中底在后半程逐渐变硬</h3>
         <p class="msg">「为第 30 公里设计。」</p>
         <p>受众是跑过全马的业余跑者；调性克制、有力、不喊口号。品类反射很强（暗底、霓虹、速度线），可以看默认味道会不会压过品类。</p>
         <div class="spec">1080×1920 · 12 秒 · 必需：TRACE 42 + 那一句</div>
       </div>
-      <div class="brief">
-        <div class="top"><span class="letter">B</span><span class="mode">说服 / 体验</span></div>
+      <div class="brief rec">
+        <div class="top"><span class="letter">B</span><span class="mode">说服 / 体验</span><span class="rec-tag">已选</span></div>
         <h3>自动化码头「东港四期」首个公众开放日</h3>
         <p class="msg">「看一个箱子怎样不经人手走完码头。」</p>
         <p>受众是本市家庭和学生；调性精确、壮观、亲切。大面积机械运动，是当前模型的强项，可以用它换掉 A。</p>
         <div class="spec">1920×1080 · 15 秒 · 必需：活动名 + 10 月 18 日 9:00–16:00</div>
       </div>
-      <div class="brief">
+      <div class="brief off">
         <div class="top"><span class="letter">C</span><span class="mode">信息</span></div>
         <h3>阶梯水价调整：第一阶梯从 15 吨提到 18 吨</h3>
         <p class="msg">「多数家庭的水费会变少。」</p>
@@ -440,21 +441,21 @@
         <div class="spec">1080×1920 · 15 秒 · 必需：三档用量与单价 + 生效日期</div>
       </div>
       <div class="brief rec">
-        <div class="top"><span class="letter">D</span><span class="mode">信息</span><span class="rec-tag">建议</span></div>
+        <div class="top"><span class="letter">D</span><span class="mode">信息</span><span class="rec-tag">已选</span></div>
         <h3>地铁 9 号线：在「青石桥」同台换乘，6 分钟变 40 秒</h3>
         <p class="msg">「换乘只要穿过站台。」</p>
         <p>受众是每天通勤的上班族；调性轻快、可靠。有现成的标准形式（线路图），可以看 conceit 层的常见做法到底是不是坏事。</p>
         <div class="spec">1080×1920 · 12 秒 · 必需：9 号线 + 青石桥 + 40 秒</div>
       </div>
-      <div class="brief rec">
-        <div class="top"><span class="letter">E</span><span class="mode">情感</span><span class="rec-tag">建议</span></div>
+      <div class="brief off">
+        <div class="top"><span class="letter">E</span><span class="mode">情感</span></div>
         <h3>「南苑动物之家」领养周：狗平均要等 214 天</h3>
         <p class="msg">「它已经等了 214 天。」</p>
         <p>受众是考虑养宠的年轻人；调性温暖但不煽情。温暖题材容易出奶油底；和 A、D 对照，能分清这个味道是题材带来的，还是模型的默认。</p>
         <div class="spec">1080×1920 · 15 秒 · 必需：领养周日期 + 收容所名</div>
       </div>
-      <div class="brief">
-        <div class="top"><span class="letter">F</span><span class="mode">体验</span></div>
+      <div class="brief rec">
+        <div class="top"><span class="letter">F</span><span class="mode">体验</span><span class="rec-tag">已选</span></div>
         <h3>「白垭盐湖」雨季镜面：雨后湖面倒映整片天空</h3>
         <p class="msg">「天空落在地上。」</p>
         <p>受众是喜欢摄影的旅行者；调性开阔、安静、轻盈。文字少，大面积动态画面；和上一轮的 α 同属水题材。</p>
@@ -500,7 +501,7 @@
     <h2>冻结前需要你定的五件事</h2>
     <div class="decide">
       <ol>
-        <li><div><b>挑 3 条 brief</b><br><span>从 A–F 里挑，或者自己给</span></div><span class="sug">建议 A · D · E</span></li>
+        <li><div><b>挑 3 条 brief</b><br><span>已定：B 码头开放日 · D 地铁换乘 · F 盐湖镜面</span></div><span class="sug">已定</span></li>
         <li><div><b>清单长度</b><br><span>每份清单 5 张（合计 54 张），还是 4 张（合计 45 张）</span></div><span class="sug">建议 5</span></li>
         <li><div><b>评分锚点的措辞</b><br><span>上面五档的说法是否就是你心里的尺子</span></div><span class="sug">按你的改</span></li>
         <li><div><b>N0 是否保留"新颖、不落 AI 俗套"</b><br><span>保留：和上一轮 N 的 9 支成片可比；去掉：测更纯的直觉</span></div><span class="sug">建议保留，记为混杂</span></li>
