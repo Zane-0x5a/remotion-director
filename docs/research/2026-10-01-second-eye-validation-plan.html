@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第二只眼 · 验证计划</title>
+<style>
+  :root {
+    --ground: #f5f6f8; --paper: #ffffff; --ink: #12141a; --ink-2: #474c59; --ink-3: #868c9b;
+    --rule: #dcdfe6; --rule-2: #eceef2; --accent: #3140d4; --accent-weak: #e9ebfb; --accent-ink: #1f2aa0;
+    --warm: #b4541c; --warm-weak: #fbeee6;
+    --sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.65; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 52px 28px 96px; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  header.top { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 26px; border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; }
+  h1 .second { color: var(--accent); }
+  .sub { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; max-width: 760px; }
+  .status { text-align: right; font-size: 13px; color: var(--ink-2); }
+  .pill { display: inline-block; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  section { margin-top: 60px; }
+  h2 { font-size: 25px; line-height: 1.25; margin: 0 0 6px; font-weight: 800; }
+  .lede { margin: 0 0 22px; color: var(--ink-2); max-width: 800px; }
+
+  .heads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-top: 30px; }
+  .head { background: var(--paper); padding: 18px 20px 20px; }
+  .head .big { font-family: var(--mono); font-size: 40px; font-weight: 700; line-height: 1; }
+  .head .big.acc { color: var(--accent); }
+  .head .big.warm { color: var(--warm); }
+  .head b { display: block; margin-top: 10px; font-size: 15px; }
+  .head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  .matrix { display: grid; grid-template-columns: 1.45fr 1fr 1.55fr; gap: 12px; align-items: start; }
+  .stack { display: grid; gap: 12px; }
+  .col { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 16px; }
+  .col h3 { margin: 0; font-size: 15px; }
+  .col .q { margin: 2px 0 12px; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+  .col.think { background: #fbfbfc; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { border: 1.5px solid var(--ink); border-radius: 8px; padding: 5px 9px 6px; font-size: 13px; line-height: 1.3; background: var(--paper); max-width: 100%; }
+  .chip .c { font-family: var(--mono); font-weight: 700; font-size: 11.5px; margin-right: 5px; }
+  .chip.test { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.test .to { font-family: var(--mono); font-size: 11px; font-weight: 700; margin-left: 5px; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,.22); }
+  .chip.dedup { border-style: dashed; }
+  .chip.recheck::after { content: "换代重审"; font-size: 10.5px; color: var(--warm); margin-left: 6px; font-weight: 700; }
+  .chip.dedup::after { content: "去重"; font-size: 10.5px; color: var(--ink-2); margin-left: 6px; font-weight: 700; }
+  .col.think .chip:not(.test) { border-color: var(--ink-3); color: var(--ink-2); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 14px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .legend i { display: inline-block; width: 22px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); vertical-align: -2px; margin-right: 6px; }
+  .legend i.t { background: var(--accent); border-color: var(--accent); }
+  .legend i.g { border-color: var(--ink-3); }
+  .legend i.d { border-style: dashed; }
+  .nodelete { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: var(--ink); color: #fff; border-radius: 12px; padding: 18px 22px; }
+  .nodelete .z { font-family: var(--mono); font-size: 44px; font-weight: 700; line-height: 1; }
+  .nodelete p { margin: 0; font-size: 14px; color: #dfe1e8; line-height: 1.65; }
+  .nodelete b { color: #fff; }
+
+  .gaps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gap { background: var(--paper); border: 1px solid var(--rule); border-top: 4px solid var(--warm); border-radius: 10px; padding: 14px 16px 16px; }
+  .gap .k { font-family: var(--mono); font-weight: 700; color: var(--warm); font-size: 13px; }
+  .gap h3 { margin: 2px 0 2px; font-size: 16px; }
+  .gap .cat { font-size: 12px; color: var(--ink-3); }
+  .gap p { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .gap .goes { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--accent-ink); }
+
+  .pipe { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 22px 22px 18px; }
+  .stages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; position: relative; }
+  .stage { text-align: center; position: relative; padding: 0 4px; }
+  .stage .box { border: 1.5px solid var(--ink); border-radius: 8px; padding: 9px 4px; font-size: 13.5px; font-weight: 700; background: var(--paper); position: relative; z-index: 1; }
+  .stages::before { content: ""; position: absolute; left: 6%; right: 6%; top: 21px; height: 2px; background: var(--ink); }
+  .pins { margin-top: 10px; display: grid; gap: 6px; justify-items: center; }
+  .pin { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; white-space: nowrap; }
+  .pin.q { background: var(--warm); }
+  .pipe .foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule-2); display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .pipe .foot span.d { display: inline-block; width: 12px; height: 12px; border-radius: 999px; vertical-align: -1px; margin-right: 6px; }
+
+  .cands { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .cand { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px 16px; display: flex; flex-direction: column; }
+  .cand .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .cand .k { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--accent); }
+  .cand h3 { margin: 2px 0 6px; font-size: 17px; }
+  .cand .what { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--ink); }
+  .tag.m { background: var(--accent-weak); border-color: #b9bff1; color: var(--accent-ink); }
+  .tag.q { background: var(--warm-weak); border-color: #ecc3a6; color: var(--warm); }
+  .tag.render { background: var(--ink); color: #fff; }
+  .tag.norender { border-style: dashed; color: var(--ink-2); border-color: var(--ink-3); }
+  .outs { margin-top: 12px; display: grid; gap: 6px; font-size: 13px; line-height: 1.5; }
+  .outs div { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+  .outs .ab { font-family: var(--mono); font-weight: 700; color: var(--ink-3); }
+  .pre { margin-top: auto; padding-top: 12px; }
+  .pre .box { margin-top: 12px; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; line-height: 1.5; background: var(--ground); color: var(--ink-2); }
+  .pre .box.yes { background: #e8f3ec; color: #1d5a35; }
+  .pre .box b { color: inherit; }
+  .src { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; }
+  .costnote { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+
+  .limits { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 22px; }
+  .limits ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
+  .limits li { margin: 4px 0; }
+  .next { margin-top: 14px; font-size: 13.5px; color: var(--ink-2); }
+  .next b { color: var(--ink); }
+  .revise { margin-top: 26px; border: 1.5px solid var(--warm); background: var(--warm-weak); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink-2); }
+  .revise b { color: var(--warm); }
+  .withdrawn { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .wd { background: transparent; border: 1px dashed var(--ink-3); border-radius: 10px; padding: 12px 16px 14px; }
+  .wd .k { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink-3); text-decoration: line-through; }
+  .wd h3 { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); }
+  .wd p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .wd p b { color: var(--ink); }
+  .cands.two { grid-template-columns: repeat(2, 1fr); }
+  footer { margin-top: 56px; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 14px; }
+  @media (max-width: 900px) {
+    .heads, .gaps, .cands { grid-template-columns: 1fr 1fr; }
+    .matrix { grid-template-columns: 1fr 1fr; }
+    .stages { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
+    .stages::before { display: none; }
+  }
+</style>
+<style>
+  .ev { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .evr { display: grid; grid-template-columns: 230px 1.4fr 150px; border-top: 1px solid var(--rule-2); }
+  .evr:first-child { border-top: 0; background: var(--ground); font-size: 12px; font-weight: 700; color: var(--ink-3); }
+  .evr > div { padding: 11px 14px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+  .evr .nm { color: var(--ink); font-weight: 700; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 800; padding: 1px 9px; border-radius: 999px; }
+  .tag.full { background: var(--accent); color: #fff; }
+  .tag.survey { border: 1.5px solid var(--warm); color: var(--warm); }
+  .tag.no { border: 1.5px solid var(--ink-3); color: var(--ink-3); }
+  .dets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .det { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
+  .det.main { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .det .id { font-family: var(--mono); font-weight: 800; color: var(--accent); font-size: 13px; }
+  .det h3 { margin: 2px 0 10px; font-size: 17px; }
+  .det dl { margin: 0; display: grid; grid-template-columns: 64px 1fr; gap: 6px 10px; font-size: 13.2px; line-height: 1.55; }
+  .det dt { color: var(--ink-3); font-weight: 700; }
+  .det dd { margin: 0; color: var(--ink-2); }
+  .det .hard { margin-top: 10px; font-size: 12.5px; color: var(--warm); font-weight: 700; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .pc { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
+  .pc .big { font-family: var(--mono); font-size: 36px; font-weight: 800; line-height: 1; }
+  .pc b { display: block; margin: 8px 0 4px; }
+  .pc p { margin: 0; font-size: 13.2px; color: var(--ink-2); line-height: 1.55; }
+  .gate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .g { background: var(--paper); padding: 16px 18px; }
+  .g .big { font-family: var(--mono); font-size: 38px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .g b { display: block; margin-top: 8px; }
+  .g p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stp { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
+  .stp .n { font-family: var(--mono); font-weight: 800; color: var(--accent); font-size: 12px; }
+  .stp h3 { margin: 3px 0 6px; font-size: 15px; }
+  .stp p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .qs { display: grid; gap: 12px; }
+  .qq { background: var(--paper); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; }
+  .qq b { font-size: 15.5px; }
+  .qq p { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-2); }
+  .qq .rec { color: var(--accent-ink); font-weight: 700; }
+  .scope { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .sc { border-radius: 12px; padding: 14px 16px; font-size: 13.2px; line-height: 1.55; }
+  .sc.in { background: var(--accent); color: #fff; }
+  .sc.out { border: 1px dashed var(--ink-3); color: var(--ink-2); }
+  .sc b { display: block; font-size: 15px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1>第二只眼<br><span class="second">先验证，再接进自检</span></h1>
+    <p class="sub">管线里做判断的 agent 只能读静帧和条带，时间上的缺陷在构造上看不见。γ M 定镜里字在抽搐，你一眼看出，管线全漏。这份计划用带真值的合成片，测每种像素检测的命中率和误报率，再决定接不接进乙的自检。</p>
+  </div>
+  <div class="status"><div class="pill">验证计划草案 · 待你确认</div><br>地图票 12<br>不花模型生成成本，不需要你打分</div>
+</header>
+
+<section>
+  <h2>只管哪一类信息</h2>
+  <p class="lede">设计稿把一支片的信息分成三类。这一轮只验证第一类。</p>
+  <div class="scope">
+    <div class="sc in"><b>2a · 成片像素能测出</b>定镜里还在变的像素、闪光、运动模糊的阶梯纹、黑场。可以交给盲评，因为信息本来就在视频里。</div>
+    <div class="sc out"><b>2b · 代码能读出</b>停留时长、节拍表。会把意图带给评审，归 C3 和节奏刀，不在这里。</div>
+    <div class="sc out"><b>3 · 脚本判不了</b>运动品质本身：缓动舒不舒服、节奏爽不爽。读图模型能不能看懂图像编码，另做一轮。</div>
+  </div>
+</section>
+
+<section>
+  <h2>这些现象在我们的成片里出现过吗</h2>
+  <p class="lede">先查自己的证据，再决定做多少。只有"抽搐"有实例；其余三项先普查真实成片，出现过才做完整验证。</p>
+  <div class="ev">
+    <div class="evr"><div>现象</div><div>我们自己的观察</div><div>本轮</div></div>
+    <div class="evr"><div class="nm">定镜里的像素持续变化（抽搐）</div><div>γ M 收尾定镜 64/64 帧都在变，中位约 2,200 像素；对照的 γ F、γ N、β N 收尾定镜中位都是 0</div><div><span class="tag full">完整验证</span></div></div>
+    <div class="evr"><div class="nm">闪光、闪烁</div><div>没有记录</div><div><span class="tag survey">先普查</span></div></div>
+    <div class="evr"><div class="nm">运动模糊阶梯纹</div><div>没有记录</div><div><span class="tag survey">先普查</span></div></div>
+    <div class="evr"><div class="nm">黑场、空场时长</div><div>没有记录</div><div><span class="tag survey">先普查</span></div></div>
+    <div class="evr"><div class="nm">重复帧、跳帧、动画重启</div><div>成熟度研究："既没有实例，也没测过"</div><div><span class="tag no">不在本票</span></div></div>
+  </div>
+  <p class="lede" style="margin-top:14px">普查范围：消融 9 支、本轮执行诊断 6 支、生产语料 8 次运行的胜出片。每条报警由我逐帧核对像素事实，不判是不是缺陷。</p>
+</section>
+
+<section>
+  <h2>四项检测</h2>
+  <p class="lede">每项写明针对的缺陷、时间窗和分母。检测只报现象，不判失败，不拦交付。</p>
+  <div class="dets">
+    <div class="det main"><div class="id">D1</div><h3>定镜内持续变化</h3><dl>
+      <dt>针对</dt><dd>本该静止的元素逐帧在变：亚像素吸附的字形抖动、意外的线条沸腾</dd>
+      <dt>时间窗</dt><dd>render-strip 现有的 PAUSE 段，也就是条带只给它一帧的那一段。小元素的抖动在 54×96 下量成零，正好落在这里</dd>
+      <dt>分母</dt><dd>定镜段内的帧数；每帧在原分辨率上统计灰度变化超过 24 的像素</dd>
+      <dt>报</dt><dd>帧范围、"每帧都在变"的比例、中位像素数、变化区域的包围盒</dd>
+      <dt>误报</dt><dd>有意的颗粒、微光、闪烁；秒针跳动</dd></dl></div>
+    <div class="det"><div class="id">D2 · D2′</div><h3>闪光频率 · 局部来回跳</h3><dl>
+      <dt>针对</dt><dd>D2：大面积亮度来回翻转，按 WCAG 2.3.1，任意 1 秒不超过 3 次。D2′：小元素一帧出现、一帧消失</dd>
+      <dt>时间窗</dt><dd>D2 滑动 1 秒；D2′ 连续三帧</dd>
+      <dt>分母</dt><dd>D2 每秒闪光次数，面积用画面 25% 代替视场角（简化，结果里写明）</dd>
+      <dt>误报</dt><dd>D2 几乎没有，超标本身就是问题。D2′ 特异性低，滚动文字也会触发，只当辅助</dd></dl></div>
+    <div class="det"><div class="id">D3</div><h3>运动模糊阶梯纹</h3><dl>
+      <dt>针对</dt><dd>采样不够，运动物体后面拖出一排离散重影</dd>
+      <dt>时间窗</dt><dd>运动段里的单帧。批评协议不判 mid 帧，所以归第二只眼</dd>
+      <dt>分母</dt><dd>运动段帧数；在运动区域沿运动方向算梯度自相关，看有没有等距次峰</dd>
+      <dt>误报</dt><dd>本身有周期纹理的东西：条纹、网格、多行文字</dd></dl>
+      <div class="hard">最难的一项：调参批达不到门槛就判"不接"</div></div>
+    <div class="det"><div class="id">D4</div><h3>黑场、空场时长</h3><dl>
+      <dt>针对</dt><dd>片头片尾多出的黑帧、段落之间没接上留下的空帧</dd>
+      <dt>时间窗</dt><dd>全片逐帧</dd>
+      <dt>分母</dt><dd>帧数；画面灰度标准差低于阈值记为空场</dd>
+      <dt>误报</dt><dd>有意的淡入淡出、黑场转场</dd></dl></div>
+  </div>
+</section>
+
+<section>
+  <h2>合成片：成对制作，带真值</h2>
+  <p class="lede">用 Remotion 写一个参数化工程，每支 3–4 秒、30fps，横竖屏各一半。正常片和异常片画面、运动都相同，只差注入的那一个缺陷。</p>
+  <div class="pair">
+    <div class="pc"><div class="big">8 + 8</div><b>每项检测：调参批 8 对，验证批 8 对</b><p>划分由生成器的种子决定。验证批生成后封存，检测参数冻结之后才跑。每种缺陷至少 3 种强度或位置。</p></div>
+    <div class="pc"><div class="big">6</div><b>每项检测：有意效果片 6 支</b><p>动态颗粒、微光、频闪风格、逐格动画、线条沸腾、镜头抖动、淡入淡出、黑场转场。每支附一段事先声明，写法和 DESIGN.md 一样。</p></div>
+    <div class="pc"><div class="big">γ M</div><b>真实阳性</b><p>γ M 原片作为 D1 的额外核对；普查里找到的真实实例也加进来。四项合计约 100 支合成片，本机渲染约 1 小时。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>建议门槛</h2>
+  <p class="lede">命中要求报出的帧范围和注入位置重叠，前后允许 5 帧。有意效果片预期会被报，不设门槛，靠声明处置，分"只看像素"和"对照声明之后"两种如实报告。</p>
+  <div class="gate">
+    <div class="g"><div class="big">≥ 7/8</div><b>验证批命中</b><p>异常片里被报出的比例</p></div>
+    <div class="g"><div class="big">0/8</div><b>正常片误报</b><p>验证批正常片里被报的比例</p></div>
+    <div class="g"><div class="big">必须报出</div><b>γ M（只针对 D1）</b><p>真实片核对</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>顺序</h2>
+  <div class="steps">
+    <div class="stp"><div class="n">1</div><h3>普查</h3><p>四项检测的粗版扫真实成片，出报警清单和逐条核对，交你看 Q1。</p></div>
+    <div class="stp"><div class="n">2</div><h3>调参</h3><p>写生成器，生成调参批；调好后冻结检测参数和脚本哈希。</p></div>
+    <div class="stp"><div class="n">3</div><h3>验证</h3><p>跑验证批和 γ M，出每项的命中率和误报率。</p></div>
+    <div class="stp"><div class="n">4</div><h3>结论</h3><p>每项"接"或"不接"，结果文档附视觉版，交还地图，你确认后才算数。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>待你决定</h2>
+  <div class="qs">
+    <div class="qq"><b>Q1 没出现过的现象还验不验？</b><p>普查后，某项现象在全部真实片里一次都没出现。</p><p class="rec">推荐：不做完整验证，标"未观察到"，等出现了再说。</p></div>
+    <div class="qq"><b>Q2 门槛</b><p>验证批命中至少 7/8，正常片误报 0/8；D1 还必须报出 γ M。</p><p class="rec">推荐：按这个门槛。</p></div>
+    <div class="qq"><b>Q3 接到哪里</b><p>"接"的意思是把现象清单交给乙自检，乙是主要的使用方。</p><p class="rec">推荐：这一轮只决定接不接进乙的自检，甲和盲选另外再测。</p></div>
+  </div>
+</section>
+</div>
+</body>
+</html>
