@@ -227,13 +227,13 @@
       <p class="sub">下一轮实验：无装备模型的概念分布诊断。看它自己会在哪里达不到"惊艳"，再决定装备写什么。</p>
     </div>
     <div class="status">
-      <span class="pill">第二版 · 已按审查修订 · 待你确认</span><br>
+      <span class="pill">第三版 · 评分对象改为想法本身</span><br>
       2026-10-01 · 分支 <span class="mono">feat/equipment-baseline-m</span>
     </div>
   </header>
 
   <div class="why">
-    <p>这一轮<b>不测任何干预</b>：只让无装备的模型出概念卡，由你按<b>绝对尺度</b>打分。它是探索性诊断，每条规则只做两件事：<b>提名</b>第二轮值得测的干预，或者记为"未决"。不淘汰路线，也不宣布能力上限。</p>
+    <p>这一轮<b>不测任何干预</b>：只让无装备的模型出概念卡，由你按<b>绝对尺度</b>给<b>想法本身</b>打分。它是探索性诊断，每条规则只做两件事：<b>提名</b>第二轮值得测的干预，或者记为"未决"。不淘汰路线，也不宣布能力上限。</p>
     <div class="not">
       <b>这一轮明确不做的</b>
       <ul>
@@ -245,7 +245,22 @@
   </div>
 
   <section>
-    <h2>Codex 审查之后改了什么</h2>
+    <h2>第三版改了什么</h2>
+    <p class="lede">起因是你开始打分后指出的两点。当时只打了 1 张，这张作废重打。</p>
+    <div class="review" style="grid-template-columns:1fr">
+      <div class="fixes">
+        <div class="fix"><div class="p"><b>"惊艳"是一种感觉</b>，不是标准答案</div><div class="c"><span class="tag">采纳</span>取消"离惊艳还差什么"和"为什么惊艳"两个必填项，只留一个选填备注；E 项作废</div></div>
+        <div class="fix"><div class="p"><b>平庸的 conceit</b>，视觉做得够好，依然可以出色甚至惊艳</div><div class="c"><span class="tag">采纳</span>"假设执行充分打磨"对平庸想法没有定义：要么按普通画面想象，要么你在脑子里替它设计。评分对象改为<b>想法本身</b>，前提和锚点重写</div></div>
+        <div class="fix"><div class="p"><b>纸面看不见执行这条路</b></div><div class="c"><span class="tag add">新增</span>本轮的提名全在概念阶段，不能单独决定第二轮测什么；执行阶段的候选由轨道 B、C 提出，第二轮预注册时一起排序</div></div>
+        <div class="fix"><div class="p"><b>A</b> 原来在"三条都没 5 分"时提名委托补目的</div><div class="c"><span class="tag">采纳</span>改为只作描述，不提名任何干预</div></div>
+        <div class="fix"><div class="p"><b>J2 挑选</b>用的是旧前提</div><div class="c"><span class="tag">采纳</span>按新前提重跑，旧封存件作废存档</div></div>
+        <div class="fix"><div class="p"><b>成片阶段</b>：抽卡做成片，看成片分跟不跟想法分走</div><div class="c"><span class="tag no">不加</span>你的决定：成片成本高，只在拿关键结果时做</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>第二版：Codex 审查之后改了什么</h2>
     <p class="lede">审查者：Codex，模型 <span class="mono">gpt-6-astra</span>，推理强度 high，只读运行。原文存在 <span class="mono">2026-10-01-diagnosis-prereg-codex-review.md</span>。</p>
     <div class="review">
       <div class="verdict">
@@ -272,11 +287,11 @@
     <h2>要回答的六个问题</h2>
     <p class="lede">字母和下面的判定规则一一对应。</p>
     <div class="qs">
-      <div class="q"><span class="k">A</span><h3>天花板</h3><p>在纸面上，无装备模型的方案里有没有能到"惊艳"的？</p></div>
+      <div class="q"><span class="k">A</span><h3>想法的上限</h3><p>在纸面上，无装备模型有没有想出让你惊艳的想法？</p></div>
       <div class="q"><span class="k">B</span><h3>排序</h3><p>模型自己的第一名是不是它最好的？分配和独立抽取，哪种手里的好牌多？</p></div>
       <div class="q"><span class="k">C</span><h3>默认味道</h3><p>哪些风格组合在各次独立运行里反复出现？它们到过高分吗？</p></div>
       <div class="q"><span class="k">D</span><h3>收敛</h3><p>几次独立运行会不会撞到同一个想法？那个想法的分数高还是低？</p></div>
-      <div class="q"><span class="k">E</span><h3>理由</h3><p>离惊艳还差什么？以你的原话为准。</p></div>
+      <div class="q" style="opacity:.45"><span class="k">E</span><h3><s>理由</s></h3><p>第三版作废：惊艳凭感觉，不要求写理由。</p></div>
       <div class="q"><span class="k">F</span><h3>自主挑选</h3><p>一个新上下文的 agent，能不能从卡片里挑中你的最高分？</p></div>
     </div>
   </section>
@@ -364,21 +379,21 @@
         <div class="hidden-fields">不给你看：运行类型 · 模型名次 · 模型的排序理由</div>
       </div>
       <div>
-        <div class="premise"><b>打分前提</b>：保留卡片已有的核心机制、叙事和视觉方向，假设执行已经充分打磨。技术和素材条件以卡片写的为准，不替它补出关键创意，也不默认有专门拍摄的素材。常见还是陌生，都不直接决定分数。</div>
+        <div class="premise"><b>打分前提</b>：只看卡片写出来的想法：核心机制、叙事，以及卡上写明的视觉语言和动作关系。卡上没写的完成度、质感和执行不评；不替它补想画面，也不因为“做好了可能很好看”加分或扣分。常见还是陌生，都不直接决定分数。</div>
         <div class="scale">
-          <div class="lvl"><div class="n">5</div><div class="t">惊艳</div><p>充分兑现这个方向之后，整体足以让我明确称为惊艳</p></div>
-          <div class="lvl"><div class="n">4</div><div class="t">出色</div><p>整体很强，但仍有明确的不足，没到惊艳</p></div>
-          <div class="lvl"><div class="n">3</div><div class="t">合格</div><p>有效完成 brief，整体扎实</p></div>
-          <div class="lvl"><div class="n">2</div><div class="t">欠佳</div><p>对 brief 的表达或整体吸引力有明显不足</p></div>
+          <div class="lvl"><div class="n">5</div><div class="t">惊艳</div><p>想法本身就让我惊艳</p></div>
+          <div class="lvl"><div class="n">4</div><div class="t">出色</div><p>想法很强，但还没到惊艳</p></div>
+          <div class="lvl"><div class="n">3</div><div class="t">合格</div><p>想法成立，撑得起这条 brief</p></div>
+          <div class="lvl"><div class="n">2</div><div class="t">欠佳</div><p>想法偏弱，或对 brief 的表达有明显不足</p></div>
           <div class="lvl"><div class="n">1</div><div class="t">不成立</div><p>不扣题、自相矛盾，或者有根本问题</p></div>
           <div class="lvl"><div class="n">—</div><div class="t">无法判断</div><p>卡片信息不够，不强行给 1 分</p></div>
         </div>
-        <div class="confirm">锚点是你的尺子：措辞以你确认的为准。</div>
+        <div class="confirm">第三版：评的是想法本身，不是做成片之后的样子。</div>
         <div class="tasks">
-          <div><span class="num">1</span><span>逐张打分，每张写几个字："离惊艳还差什么"（可以写"无"）。5 分卡写一句为什么惊艳。</span></div>
+          <div><span class="num">1</span><span>逐张打分，凭感觉，不写理由。有一个选填备注。</span></div>
           <div><span class="num">2</span><span>全部打完分，再把"同一个想法"的卡圈在一起：核心的传达机制和关键动作关系相同才算；题材相同、配色相同都不算。</span></div>
           <div><span class="num">3</span><span>每看 6–8 张休息一下。每条 brief 里有 2 张会换个 ID 再出现一次，用来看评分的波动。</span></div>
-          <div><span class="num">4</span><span>分三次完成，约 60–75 分钟；三条都锁定之前，不看 J2 的结果，也不揭盲。</span></div>
+          <div><span class="num">4</span><span>分三次完成，约 40–60 分钟；三条都锁定之前，不看 J2 的结果，也不揭盲。</span></div>
         </div>
       </div>
     </div>
@@ -391,20 +406,20 @@
       <div class="rule head"><div></div><div>量什么</div><div>提名条件</div><div>其余情况</div></div>
       <div class="rule">
         <div class="k">A</div>
-        <div class="what"><b>天花板</b><span>5 分卡数、出现过 5 分的运行数；单抽和清单第一名分开</span></div>
-        <div class="if">三条都没有 5 分 → 记为"本轮纸面上未观察到"，第二轮优先测<em>委托补目的</em>，其他解释并列</div>
-        <div class="else">一到两条有 5 分：按 brief 分化处理。三条都有：第二轮验证兑现率和挑选。都不宣布能力封顶</div>
+        <div class="what"><b>想法的上限</b><span>5 分卡数、出现过 5 分的运行数；单抽和清单第一名分开</span></div>
+        <div class="if">只作描述，不提名任何干预</div>
+        <div class="else">三条都没 5 分：记为"纸面上没有让你惊艳的想法"，既不推出成片到不了惊艳，也不推出该在概念阶段加干预</div>
       </div>
       <div class="rule">
         <div class="k">B</div>
         <div class="what"><b>排序</b><span>手牌对照；第一名与最高分的差；错排；第一名命中最高分的次数 vs 随机期望</span></div>
-        <div class="if">错排出现在 ≥3 份清单、跨 ≥2 条 brief，<em>并且</em> ≥2 条 brief 上清单前三名不比三张单抽差 → 提名<em>分配机制</em></div>
+        <div class="if">错排出现在 ≥3 份清单、跨 ≥2 条 brief，<em>并且</em> ≥2 条 brief 上清单前三名不比三张单抽差 → 提名<em>概念阶段的分配机制</em></div>
         <div class="else">记为"证据不足"。第二轮若测，必须和同等预算的独立抽取比</div>
       </div>
       <div class="rule">
         <div class="k">C</div>
         <div class="what"><b>默认味道</b><span>两个候选在默认样本里命中的独立运行数；所有命中卡的最高分</span></div>
-        <div class="if">≥4 个独立运行、跨 ≥2 条 brief（其中两条各 ≥2 个），且没有命中卡到 5 分 → <em>待验证的过滤候选</em></div>
+        <div class="if">≥4 个独立运行、跨 ≥2 条 brief（其中两条各 ≥2 个），且没有命中卡到 5 分 → <em>概念阶段的待验证过滤候选</em></div>
         <div class="else">有 4 分：暂缓。有 5 分：否定"一定不惊艳"。本轮不剔除，第二轮先做归因检验</div>
       </div>
       <div class="rule">
@@ -413,16 +428,16 @@
         <div class="if">只作描述</div>
         <div class="else">没发现差异，也不等于两种格式等价</div>
       </div>
-      <div class="rule">
+      <div class="rule" style="opacity:.45">
         <div class="k">E</div>
-        <div class="what"><b>理由</b><span>"离惊艳还差什么"，先按你的原话归类，再对照候选标签</span></div>
-        <div class="if">同一类理由由你明确写出，跨 ≥2 条 brief，每条 ≥2 个独立运行 → 提名对应的干预</div>
-        <div class="else">进入轨道 C 的审查</div>
+        <div class="what"><b><s>理由</s></b><span>第三版作废</span></div>
+        <div class="if">—</div>
+        <div class="else">选填备注只作原始材料，不编码，不提名</div>
       </div>
       <div class="rule">
         <div class="k">F</div>
         <div class="what"><b>自主挑选</b><span>J2 前三是否含任意一张并列最高分卡，对照随机基线</span></div>
-        <div class="if">≥2 条命中，<em>并且</em>按实际并列算的随机尾概率 ≤0.05 → 提名<em>概念阶段自主挑选</em></div>
+        <div class="if">两种卡片顺序<em>都</em>满足：≥2 条命中，并且按实际并列算的随机尾概率 ≤0.05 → 提名<em>概念阶段自主挑选</em></div>
         <div class="else">记为"未决"。样本这么小，预计多半是未决</div>
       </div>
     </div>
@@ -431,9 +446,10 @@
   <section>
     <h2>第二轮怎么接</h2>
     <div class="route">
+      <div class="box"><h3>本轮提名不是全部候选</h3><p>纸面只看得见概念阶段。执行阶段的候选（第二只眼、批评环、成片手艺）由轨道 B、C 提出，和本轮提名一起，在第二轮预注册时由你排序。</p></div>
       <div class="box"><h3>一项干预一个组</h3><p>不捆成装备包。每组都和 N0、M 的成片比，构建预算、挑选、批评流程都相同。默认最多两个干预组；提名多于两个时，由你在第二轮预注册时选，没选上的不淘汰。</p></div>
       <div class="box"><h3>"补目的"的边界</h3><p>委托步多问的是产品真实：受众、要对方相信什么、有什么独有的事实、什么结果即使精致也会让人觉得不对。它不能变成由人给出 conceit、构图或配色的答案。</p></div>
-      <div class="box"><h3>过滤候选先做归因</h3><p>保留 conceit，让 AI 自主生成换了味道的变体，和原方向一起盲评。没做这一步，只能说"这些低分方案碰巧共有这个味道"。</p></div>
+      <div class="box"><h3>过滤候选先做归因</h3><p>保留 conceit，让 AI 自主生成换了味道的变体，做成片后和原方向一起按视频盲评。没做这一步，只能说"这些低分方案碰巧共有这个味道"。</p></div>
     </div>
   </section>
 
@@ -514,7 +530,7 @@
         <ul>
           <li><b>运行</b>：18 次只出卡片，大约相当于上一轮 1–2 次完整构建</li>
           <li><b>agent</b>：挑选 6 次、聚类 3 次、编码 1 次加复核</li>
-          <li><b>你</b>：45 张卡 + 6 张复评，约 60–75 分钟</li>
+          <li><b>你</b>：45 张卡 + 6 张复评，凭感觉打分，约 40–60 分钟</li>
           <li>冻结前按实际计价重算</li>
         </ul>
       </div>
@@ -522,7 +538,8 @@
         <h3>威胁</h3>
         <ul>
           <li><b>描述的是这个卡片协议下的分布</b>：清单格式会改变搜索方式、投入和自我论证</li>
-          <li><b>卡片 ≠ 成片</b>：所以有统一的打分前提，干预只按第二轮视频定</li>
+          <li><b>想法 ≠ 成片</b>：视觉本身就能把平庸的想法做到惊艳，所以本轮只评想法，干预只按第二轮视频定</li>
+          <li><b>味道算进了想法分</b>：C 看的是带这个味道的想法得几分，不是这个味道做成片的效果</li>
           <li><b>文字的画面感不同</b>：B、F 的字眼更容易让人想象出好画面</li>
           <li><b>样本小、并列多</b>：每条规则都要求跨 brief，并报告随机基线</li>
         </ul>
@@ -534,7 +551,8 @@
     <h2>冻结前</h2>
     <div class="decide">
       <ol>
-        <li class="open"><div><b>评分锚点的措辞</b><br><span>换成了质量描述，并加了"无法判断"；原来的"2 = 品类常见做法"和"5 = 想转发"已去掉</span></div><span class="sug">需要你确认</span></li>
+        <li><div><b>评分对象和锚点</b><br><span>第三版改为想法本身；不要求写理由</span></div><span class="sug">按你的两点改</span></li>
+        <li><div><b>不加成片阶段</b><br><span>想法分能不能预测成片分，本轮不检验，留给第二轮</span></div><span class="sug">你定的</span></li>
         <li><div><b>brief</b><br><span>B 码头开放日 · D 地铁换乘 · F 盐湖镜面</span></div><span class="sug">已定</span></li>
         <li><div><b>N0 删去"新颖、不落 AI 俗套"</b><br><span>它把求新写成了目标；"为了和上一轮可比"站不住，上一轮 N 组只有 3 支成片，不是第一版写的 9 支</span></div><span class="sug">按审查采纳</span></li>
         <li><div><b>清单长度 4</b><br><span>独立清单仍是 9 份；第 5 张只增加同一上下文里的候选和你的负担</span></div><span class="sug">按审查采纳</span></li>
