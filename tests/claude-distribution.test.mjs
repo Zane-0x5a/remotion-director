@@ -318,6 +318,15 @@ test('defaults are not limits: extra requests such as a TTS voice-over travel in
   assert.match(builder, /\+ 用户额外要求里明确给出的文件和工具;不读其他目录/);
 });
 
+test('the commission is confirmed back as its own message before any work starts', () => {
+  const create = readFileSync(join(ROOT, 'skills', 'create', 'SKILL.md'), 'utf8');
+  const step0 = create.slice(create.indexOf('## Step 0'), create.indexOf('## Step 1 '));
+  assert.match(step0, /\*\*The user's answers to your questions are not the confirmation:\*\* send the summary as its own message and wait for their reply before writing anything or starting Step 1/);
+  assert.match(step0, /saying how you read anything the user left open/);
+  assert.match(step0, /that statement is the confirm-back, with nothing to wait for/);
+  assert.match(create, /settled and confirmed back to the user, with their reply in hand \(Step 0\)/);
+});
+
 test('polishing is the critic loop by default, or the user\'s own eye with comments ferried verbatim', () => {
   const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
   const create = read('skills', 'create', 'SKILL.md');
@@ -334,8 +343,15 @@ test('polishing is the critic loop by default, or the user\'s own eye with comme
   assert.match(polish, /goes \*\*verbatim\*\* to the picked builder's conversation/);
   assert.match(polish, /\*\*Never ask the user what is missing or how to fix it\*\*/);
   assert.match(polish, /`revision ⟨K⟩ done`/);
+  // The settled video comes first; words said at the pick went with the pick message, under one fixed line.
+  assert.match(polish, /First show the user the settled canonical `video\.mp4`.*nothing goes to the builder in this step before they have seen it/s);
+  const pickWords = create.slice(create.indexOf('**Words about a draw at the pick**'), create.indexOf('**"都不要，再抽"'));
+  assert.match(pickWords, /goes to that draw's builder \*\*with the pick message\*\* \(Step 3\.5\), verbatim, under this one line and nothing else of yours: `The user's words at the pick \(they saw your draw as "⟨label⟩"\):`/);
+  assert.match(pickWords, /They are not a polish round: in 亲自打磨, Step 4b still starts by showing the user the settled video/);
+  assert.match(create, /If the user said anything about this draw at the pick, it goes in this message under the fixed line from Step 3/);
   assert.match(create, /that switches the piece to 亲自打磨/);
   const builder = read('agents', 'builder.md');
+  assert.match(builder, /通知里若附了用户挑选时说的话,那是用户在预览上看到的现象或意愿,自检时一并处理/);
   assert.match(builder, /\*\*亲自打磨\(用户自己看片\)\*\*/);
   assert.match(builder, /不要反过来问用户缺什么、该怎么改/);
   assert.match(builder, /`revision ⟨K⟩ done`/);

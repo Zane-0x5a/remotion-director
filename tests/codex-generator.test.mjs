@@ -151,6 +151,8 @@ test('host guide maps each role to its ledger command and prepares blind evidenc
     assert.match(skill, /init-run --polish critic\|user/);
     assert.match(skill, /In user polish no critic is registered and no verdict is recorded/);
     assert.match(skill, /record-user-note --run-dir "<RUN_DIR>" --revision K --note-file FILE/);
+    assert.match(skill, /show the user the settled canonical video before anything goes to the builder/);
+    assert.match(skill, /beyond the choice goes into `--reason` verbatim and to the picked builder with the pick follow-up, under the fixed line from Step 3; it is not a user-polish note/);
     assert.match(skill, /USER-NOTES\.md/);
     assert.match(skill, /switch-polish --run-dir "<RUN_DIR>" --mode user/);
     assert.match(skill, /prepare-selection --run-dir/);

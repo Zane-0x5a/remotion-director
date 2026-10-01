@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-10-01T14:47:03.483Z",
+  "generatedAt": "2026-10-01T17:15:13.484Z",
   "sourceRoot": "skills/, agents/, tools/",
   "source": {
     "skills": {
-      "hash": "96c89de0d03db495edafa34742eb4c03ed5a13c0b08066c511ecbf80e202c771",
+      "hash": "44fec7a654e14e6806fbf828f736fdcb4a7003088ad71b7926ab3b88856725bb",
       "count": 4
     },
     "agents": {
-      "hash": "6585087fc7b3e8b832946157627cfe297a2d089b312834363a9d13e5b6327fba",
+      "hash": "1d5b38a407c6d0b6e8f5e028d452961f2084f9067067035e59b42d65d1c161f8",
       "count": 4
     },
     "tools": {
