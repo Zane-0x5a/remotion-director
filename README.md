@@ -1,16 +1,12 @@
 # remotion-director
 
-> **Codex adaptation (draft):** the generated package is in `codex-plugin/`. See [installation and usage](docs/CODEX-INSTALL.md), the [migration plan](docs/CODEX-MIGRATION-PLAN.md), and [validation status](docs/CODEX-VALIDATION.md). Installed rendering has been exercised; complete creative acceptance remains a release blocker.
+> **Codex adaptation (draft):** the generated package is in `codex-plugin/`. See [installation and usage](docs/CODEX-INSTALL.md), the [migration plan](docs/CODEX-MIGRATION-PLAN.md), and [validation status](docs/CODEX-VALIDATION.md). Installed rendering has been exercised; complete creative acceptance on Codex remains a release blocker.
 
 <div align="center">
 
+<a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/hero-opus-5-5-c.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/hero-opus-5-5-c-thumb.webp" width="860" alt="The plugin's own hero film, made by remotion-director on Claude Opus 5.5 — click to play"></a>
 
-
-https://github.com/user-attachments/assets/f34c4aef-fd88-44be-9300-b2a5418fdfe1
-
-
-
-<sub>*The pipeline's own promo, designed and built by **Claude Opus 4.8** in **near one-shot**.* The only human input was the goal "make a promo for this" and one supplementary human prompt on text pacing — no design doc, no reference, no art direction. What you're watching is a cool probe hunt past the dense crowd of "AI average" to ignite a rare design in the long tail — then let a blind critic sharpen it using only raw pixels.</sub>
+<sub>*This plugin's own hero film, made **by remotion-director on Claude Opus 5.5** from a one-line brief.* The AI listed the directions, designed, built and rendered three films, and self-checked the one picked. The human input was the brief, a slogan, a pick among the three previews, and one comment ("the blind pick in the race chose the dullest of the four drafts?"). No design doc, no reference, no art direction. *(Looping preview — click to play, with sound.)*</sub>
 
 <sub>[**中文说明 →**](README.zh-CN.md)</sub>
 
@@ -18,93 +14,94 @@ https://github.com/user-attachments/assets/f34c4aef-fd88-44be-9300-b2a5418fdfe1
 
 <div align="center">
 
-<sub>**The same pipeline, other models behind the wheel** — same one-line promo brief, same machinery, no human retouching:</sub>
-
 <table>
   <tr>
-    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/promo-kimi-k3.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-kimi-k3-thumb.webp" width="430" alt="Promo created by Kimi K3 — click to play the full piece"></a></td>
-    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/promo-claude-opus-5.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-claude-opus-5-thumb.webp" width="430" alt="Promo created by Claude Opus 5 — click to play the full piece"></a></td>
+    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/hero-opus-5-5-a.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/hero-opus-5-5-a-thumb.webp" width="430" alt="Another draw from the same run — click to play"></a></td>
+    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/control-opus-5-5-bare.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/control-opus-5-5-bare-thumb.webp" width="430" alt="The blank control: same model, same brief, no plugin — click to play"></a></td>
   </tr>
   <tr>
-    <td align="center"><sub>Created by <b>Kimi K3</b></sub></td>
-    <td align="center"><sub>Created by <b>Claude Opus 5</b></sub></td>
+    <td align="center"><sub><b>Same run, another direction</b> — picked and self-checked, no human feedback at all</sub></td>
+    <td align="center"><sub><b>Blank control</b> — same model, same brief, no plugin</sub></td>
   </tr>
 </table>
 
-<sub>*(Looping previews — click either one to play the full piece.)*</sub>
-
 </div>
 
-There's a settled assumption about AI and design, and it comes in two flavors. One: **AI only gets to write the code** — good design still has to be squeezed out of it by a human, round after round of prompting, the human's taste doing all the real work. Two, the more generous-sounding version: AI *can* design — so long as you feed it the taste, a `design.md`, a template, a reference, treating "hand the model your design system" as the mature practice.
+## The model can already design motion
 
-Both quietly agree that the design doesn't come from the AI. This project doesn't.
+With Claude Opus 5.5, a model's front-end craft reached a new level. That isn't marketing; it's what our own experiments kept showing. When we handed the model a strong idea with **no design guidance at all** — no style rules, no references, no critic — **five of six resulting films were stunning**. The design knowledge we had spent months tuning for earlier models had, on this one, turned into a ceiling. It was retired by a preregistered ablation (details below).
 
-For a model that has read essentially the entire internet, **the good design is already in there.** Every principle, every reference, every act of taste a human art director ever published — it has seen them. It defaults to slop not because it lacks the design, but because nothing in the request *excites that part of the weights* into code. So if good design isn't in the AI's default range — where is it?
+## But the best one still lives in the long tail
 
-**It's in the long tail.** And the whole project is machinery for reaching it: the right **equipment** to make a model design *from the principle out* (choose a real idea, commit past the point of safety), then draw enough times, and judge honestly enough, to surface the right-tail piece that actually makes someone look twice — **autonomously, at scale, with no human retouching the pixels.**
+A model that *can* design doesn't make the best design every time. Three things we measured:
 
-remotion-director is the working pipeline built around that bet. You give it a one-line brief; it returns a finished **motion piece**, judged the only way that's honest — on its **actual rendered frames**, never on the model's flattering description of them.
+- **Good ideas rarely come first.** Ask several times independently and most of the draws converge on the *same* idea.
+- **The model can't reliably spot its own best idea.** Its ranking of its own ideas did no better than chance.
+- **Even a stunning film needs a last pass.** Rough hero type, a beat that leaves too soon: things the maker, looking through its own design narrative, doesn't see.
 
-A unified design-and-build agent drafts the design and writes the Remotion code in one continuous context; several independent draws are blind-selected for the most promising base; a **design-blind aesthetic critic** refines it against the rendered frames; a final **tempo pass** re-times the result with fresh eyes, covering the one thing a frame-judging loop can't see; and **your own eyes are the final gate**.
+## The workflow pushes it to its ceiling
 
-> This is the **甲乙环 (critic-loop)** architecture — the production form validated across the project's experiments and selected as the Alpha release baseline. Read [`docs/WHY.md`](docs/WHY.md) for the ambition, the insights it rests on, and the evidence; [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md) for the two dead architectures it walked through to get here.
+remotion-director is the workflow that goes and gets that tail. You give it a brief; it returns a finished, rendered motion film.
 
-> **On this repo's age:** the git history here is young because this is a *clean release repo*, split off in mid-2026 from a much longer-running development repo. The actual work spans **~3.5 months across three architectures** (early 2026 onward) — driven by preregistered experiments and a pixel-verified ground-truth registry, not a quick build. The arc is in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
+1. **Commission.** A short check of the brief, aspect, duration, copy and sound, with sensible defaults.
+2. **Directions.** A fresh-context concept step lists **N** directions that differ at the *idea* level. Each draw is dealt one, so the options are really different.
+3. **Draws.** N designer-builders (乙) each design the whole film from their direction, write the Remotion code, and render a first full cut, in one continuous context.
+4. **Pick.** You watch the N previews and pick the one that can go furthest, or hand the pick to a provenance-blind AI selector. If you dislike them all, redraw. You can add a word about why, even just a feeling.
+5. **Polish**, in one of two ways, chosen at commission:
+   - **The critic loop** (default, hands-off). A design-blind critic (甲) watches only the rendered film and reports what it sees, round after round, until it converges. The builder decides what to change. It's safe and effortless; it won't break the ceiling.
+   - **Polish it yourself.** No critic. Whatever you say after watching goes word-for-word to the same builder, which decides how to change the film. You're never asked what's missing or how to fix it.
+6. **Your eyes are the final gate.**
 
-## What the equipment does
+**The design is the AI's from end to end.** In full-auto (the AI picks, the critic loop polishes) no human eye ever touches the pixels, and the result is good design. Full-auto doesn't promise the very top. That's what the two optional routes are for: you pick, and if you want, you say what you feel. The design still comes from the model.
 
-Most of the work behind this project wasn't the pipeline code. It was the **design equipment** — the text the model reads as its own standing knowledge before it draws a frame — researched, tuned, and tested until it reliably pushed a model off the safe, average answer.
+### Why the critic can't see the design
 
-It isn't a style guide and it isn't a list of bans (the project tried bans first; they converge every model to the *same* ugliness). Today it is deliberately short: a designer's persona, a way of thinking (one takeaway, strategy before specifics), the conceit test, a three-step process, build discipline, and the self-check and loop discipline described below.
+We kept watching a model praise its own render point-for-point with its own design doc, paraphrasing the document instead of looking at the image. The *same* model, shown the *same* frame alone, named the flaws fine. A model's visual judgment gets pulled toward whatever design narrative sits in its context. So the critic gets only the brief and the pixels, never the design doc, the code or the notes. It never talks to the builder directly either: the orchestrator carries messages word-for-word in both directions, so no summary can leak the design back in. The critic also persists across rounds. A forgetful critic finds fresh nitpicks every round and never converges; one that remembers holds a stable bar.
 
-It used to be much bigger. Until September 2026 it also carried seven reference axes — narrative, aesthetic, color, composition, tempo, persuasion, texture — plus worked examples in its opening text. A preregistered ablation on the current model (claude-opus-5-5, three briefs) compared no equipment, the short equipment and the full one. In the user's blind ranking the full equipment never ranked above either alternative, and ranked below one of them on two of the three briefs. The current model already does much of what the axes taught — it names a conceit and steers away from old slop unprompted — while the axes' examples and their dark-field default pulled every draw toward the same look and the least motion. The axis texts are archived in [`docs/archive/design-axes/`](docs/archive/design-axes/) (the tempo axis stays, as the tempo pass's criteria); the experiment is written up in [`docs/research/`](docs/research/).
+### The critic sees time, not just frames
 
-Three rules hold what remains together. **The piece commits to a falsifiable *conceit* first** — one concrete mechanism it runs on, whose subject is a *thing or event* (an empty chair, the fate of a word), never a glow or a mood; that single rule is what kills the category reflex (ask for "a late-night library," get a centered headline on a warm gradient). **The order is fixed** — narrative, then texture and execution, then the engine plan — and the narrative is locked to disk before any texture decision is made, because a model that starts on the glow too early quietly makes a piece *about* the glow. And **the self-check is done by the designer, not a QA clerk** — the single most-tuned line in the project, because the moment a model reviews its own render it stops designing and starts ticking boxes ("acceptable residue, ship it"); the rewrite puts a maker back in the chair who looks at the real pixels and asks "is this worth the piece I wanted?"
+Each render ships with review material drawn straight from the pixels:
 
-The equipment's job is the **floor** — making a bold, competent attempt reliable. The ceiling is a different problem, and it's what the loop solves.
+- **A time overview.** Thumbnails at a fixed interval, aligned with motion curves, with blank stretches, flashes, jittering holds and short-lived text marked on the same time axis.
+- **Settle frames.** A full-resolution frame at every moment the picture comes to rest, for judging layout, type and texture.
+- **The video itself**, to pull any frame or crop from.
 
-## How the loop stays honest
+The old tooling showed the critic one frame per pause, so a half-second pause and a three-second one looked identical, and a separate "tempo pass" had to patch timing afterwards. Now time is drawn directly, and the patch is gone.
 
-Good equipment gets you a good design on paper. The harder problem is that a model can't reliably tell when the *render* actually lands — and the loop is built around the specific reason why. We kept watching a model praise its own render point-for-point with its own design doc — paraphrasing the document instead of looking at the image — while the *same* model, shown the *same* frame **alone**, named the flaws fine. The working read: a model's visual judgment gets pulled toward whatever design narrative sits in its context. (Three separate times, on three different briefs, the builder signed off — "I smoothed the banding" — and a fresh pair of eyes that had never read the doc saw the cheap concentric rings instantly.)
+## Does it work? The release acceptance
 
-So the critic doesn't get the doc. It sees the rendered frames and the one-line brief, nothing else — no design, no code, no notes. That single constraint is the whole reason it works, which is why the critic and the builder never talk to each other directly: the orchestrator carries messages between them word-for-word and automatically — the critic's observations one way, the builder's pixel-grounded pushback the other — and never lets a summary leak the design back into the blind judge. Keep them apart and the critic stays honest; let them chat and you've quietly handed it the doc again.
+Before release we ran the plugin against a **blank control**: the same model, the same brief, no plugin. The plugin run here used *polish it yourself*. The user scored each film on fixed anchors (quality: 5 = stunning, 3 = solid; maturity: 5 = ship it as is). The design and pass rule were [preregistered](docs/research/2026-10-01-release-acceptance-prereg.md) before anything was scored.
 
-One subtlety turned out to matter more than expected: *which* frames the critic sees. It reads stills, not video, so sampling evenly in time backfires — a clean half-second text move, chopped into a stack of mid-transition stills, reads to it as a glaring overlapping-text mess, and a flawless moment gets condemned as a layout failure. Instead, the tooling measures the motion straight off the finished video and shows the critic the *pauses* — one settled frame per still moment, the real composition, fair to judge — plus a few in-between frames clearly marked as motion, never to be counted as defects. A piece that is moving most of the time — a continuous camera move, typing, scrolling — gets its motion sampled across the whole move, and only genuinely still moments are offered as settled frames. It's judging the design, not hallucinating flaws from what movement looks like when you freeze it.
+| Film | Quality | Maturity |
+|---|---|---|
+| Blank control, one shot, no plugin | 3 | 5 |
+| Plugin, the other direction: picked and self-checked, **no human feedback** | 4 | 5 |
+| Plugin, the hero: self-checked | 4 | 4 |
+| Plugin, the hero: after one round of the user's comments | **4** | **5** |
 
-And the critic remembers. A fresh, forgetful critic every round keeps finding brand-new nitpicks and is never satisfied — it over-fits until the loop can't converge at all; the same critic, carried across rounds, holds a stable bar and is what makes the loop actually converge instead of spiraling. Then, because all of this only raises the *floor*, the builder draws several independent times and a provenance-blind selector keeps the one with the highest ceiling — a bold draft with fixable nits over a clean, safe, forgettable one, since the loop can fix nits but never fixes forgettable.
+**It passed.** The user's verdict on the control: *"basically a high-end slide deck — the motion is well made, that's Opus's baseline, but the design is nowhere near striking."* The plugin run cost **$12.09** (about 22 minutes from commission to three previews); the control cost $2.36. Limits: one brief of the self-promo kind used during development, and one rater. Fresh briefs are tested in real use. Full write-up: [`docs/research/2026-10-02-release-acceptance-results.md`](docs/research/2026-10-02-release-acceptance-results.md).
 
-## The one thing the loop can't see
+## What changed in this version, and why
 
-The frame sampling that makes the critic fair has a price, and it's exact: showing one settled frame per pause means a pause that lasts half a second and one that lasts three seconds arrive looking **identical**. The time axis is discarded at the moment of sampling. So a loop can run round after round and converge beautifully without a single judgment ever having been passed on whether you can actually *read* that line before it leaves — while every frame-level fix along the way (more layering, bigger type, one more staggered entrance) quietly spends time budget nobody is accounting for. Pacing drift after a long loop isn't bad luck; it's the structure.
+The architecture is the same **甲乙环 (critic loop)**: one builder that designs and builds in a single continuous context, and a design-blind, persistent critic. The kit around it was rebuilt from experiments on the current model:
 
-So the pipeline closes it with one last pass, and hands it to **fresh eyes on purpose** — the one place in the whole design where that's the right move rather than the degraded one. Two reasons it inverts here. Unlike beauty, **timing is written down exactly**: every entrance frame, hold length and beat boundary is literally in the source, so a newcomer reading the code has better data than anyone, not worse. And the builder by that point has spent many rounds with its attention inside local defects — precisely the state in which the shape of the whole piece in time is invisible. The tempo pass reconstructs the real beat timetable from the code, checks it against what a person can actually read per second, fixes the arc — and touches nothing else, because the design is already settled and isn't its business.
+- **The design equipment is gone.** A preregistered ablation found the full equipment never ranked above lighter alternatives. An execution diagnosis then found no common defect left for any equipment to fix. The builder now gets the goal (a top motion designer's standard) and the contract, nothing more. The old texts are archived in [`docs/archive/`](docs/archive/).
+- **The tempo pass and the frame strips are gone**, replaced by the time overview and settle frames.
+- **New:** dealt directions before the draws; the pick on the first full cut (by you by default); the two polish modes; a redraw that can carry your comment into the brief.
+- **Sound is on by default.** The builder makes or finds simple effects. Defaults aren't limits: ask for a voice-over through a TTS, your own music or assets, and the builder works out how.
 
-Whether it may change the *total* length is not its call either: if you named a duration, that's a promise and it can only redistribute time inside it (and says so out loud if the piece genuinely doesn't fit). Only if you chose "don't constrain it — leave the length to the designer" is the length the model's own, and therefore movable.
-
-The two architectures we tried before this one — a pipeline that only *forbade* slop, and a heavyweight compiler that lost the design in translation — and why both died, are in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
-
-The full mechanism — including the two dead architectures (a bans-only "Dogma" engine that converged to one ugliness, and a heavyweight MVC compile pipeline that lost intent in translation) and why the 甲乙环 replaced them — is in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
-
-## What it does
-
-You give it a brief — audience, takeaway, tone. After a short **commission step** (it confirms the brief, the spec — aspect/resolution, duration, fps, on-screen copy, and whether you want sound — and the draw count **N**, proposing sensible defaults for anything you leave open), it returns a rendered motion piece (`video.mp4` + stills), having:
-
-1. **designed + built** the piece in one continuous context, with real design knowledge (a top-tier-designer framing, a falsifiable visual *conceit*, a strict 3-step process, and a render self-check where the designer judges the real pixels and refuses to settle);
-2. made **N independent draws** and **blind-selected** the most promising base (selecting for *potential*, not fewest current flaws);
-3. refined the winner through a **design-blind critic loop** — round after round until it converges — a critic that sees only the frames, reports phenomena, never prescribes fixes;
-4. re-timed the converged piece in a final **tempo pass** — a deliberately fresh pair of hands doing the one thing a frame-judging loop structurally cannot (see below);
-5. handed it to **you** — your eyes are the final gate, outranking every machine judge.
+> **On this repo's age:** the git history here is young because this is a *clean release repo*, split off in mid-2026 from a much longer-running development repo. The actual work spans **~3.5 months across three architectures**, driven by preregistered experiments and a pixel-verified ground-truth registry. The arc is in [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md); the reasoning in [`docs/WHY.md`](docs/WHY.md).
 
 ## Install
 
-This is a Claude Code plugin. Install it directly from this GitHub repo — no manual clone or local-marketplace setup needed. In Claude Code:
+This is a Claude Code plugin. Install it directly from this GitHub repo; no manual clone or local-marketplace setup is needed. In Claude Code:
 
 ```
 /plugin marketplace add Zane-0x5a/remotion-director
 /plugin install remotion-director@remotion-director
 ```
 
-(The repo is its own marketplace: `.claude-plugin/marketplace.json` lists the generated `./claude-plugin` distribution.) Then invoke the `create` skill. Its installed package contains only Claude skills, agents, runtime tools and dependency defaults; it excludes the Codex package, tests, migration documents and promotional media.
+The repo is its own marketplace: `.claude-plugin/marketplace.json` lists the generated `./claude-plugin` distribution. Then invoke the `create` skill. The installed package contains only Claude skills, agents, runtime tools and dependency defaults. It leaves out the Codex package, tests, research documents and promotional media.
 
 The separate package is currently on the migration branch. To preview it from a terminal while also limiting the marketplace checkout:
 
@@ -113,11 +110,11 @@ claude plugin marketplace add Zane-0x5a/remotion-director#codex/codex-plugin-mig
 claude plugin install remotion-director@remotion-director
 ```
 
-After merge, omit `#codex/codex-plugin-migration`. `--sparse` keeps the other distribution out of the marketplace working tree; an ordinary GitHub marketplace registration may still cache the full repository separately from the installed plugin. Existing users must refresh the marketplace and update the plugin to `0.3.2` to switch to the separate package. See [distribution and update details](docs/PLUGIN-DISTRIBUTION.md).
+After merge, omit `#codex/codex-plugin-migration`. `--sparse` keeps the other distribution out of the marketplace working tree. An ordinary GitHub marketplace registration may still cache the full repository separately from the installed plugin. See [distribution and update details](docs/PLUGIN-DISTRIBUTION.md).
 
 ### Codex
 
-Codex uses the repository's separate marketplace entry, which points at `./codex-plugin` and exposes the same plugin name, `remotion-director`. The current preview is on the migration branch:
+Codex uses the repository's separate marketplace entry. It points at `./codex-plugin` and exposes the same plugin name, `remotion-director`. The current preview is on the migration branch:
 
 ```
 codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
@@ -131,24 +128,23 @@ codex plugin marketplace add Zane-0x5a/remotion-director
 codex plugin add remotion-director@remotion-director-codex
 ```
 
-Start a new task or restart the host after installing or updating. Each marketplace installs its own generated directory: Claude uses `./claude-plugin`, Codex uses `./codex-plugin`. Root `skills/` and `agents/` remain the shared authoring sources. The shared `render-strip` manifest's additive `file` field is the common runtime change, and shared global RBP updates can affect both hosts under the existing update policy. For the full Codex workspace requirements, see [`docs/CODEX-INSTALL.md`](docs/CODEX-INSTALL.md).
+Start a new task or restart the host after installing or updating. Each marketplace installs its own generated directory: Claude uses `./claude-plugin`, Codex uses `./codex-plugin`. Root `skills/` and `agents/` remain the shared authoring sources. For the full Codex workspace requirements, see [`docs/CODEX-INSTALL.md`](docs/CODEX-INSTALL.md).
 
 ### Automatic engineering updates
 
-After resolving the commission and workspace, `create` prepares the engineering environment before any draw:
+After the commission, `create` prepares the engineering environment before any draw:
 
-- **Remotion engine**: query npm’s latest stable release on each new run and update every declared `remotion` / `@remotion/*` package together, including extra project packages. Align installed auxiliary media dependencies with the target release’s recommendations.
-- **RBP skill**: compare the full skill directory with official [`remotion-dev/skills`](https://github.com/remotion-dev/skills) upstream. Reuse an existing global installation (`~/.agents/skills`, `$CODEX_HOME/skills`, or the Claude skill home), updating it in place only when contents differ. If none exists, install under the workspace’s `.remotion-director/`. Builders read the returned `RBP_SKILL_PATH`.
-- **Host tools**: Node.js, npm, Git and a full ffmpeg build. Preflight exercises rawvideo, scale and crop; the reduced ffmpeg bundled with Remotion may not provide them. The agent installs missing host tools under the host’s permission policy.
+- **Remotion engine.** On each new run it queries npm's latest stable release and updates every declared `remotion` / `@remotion/*` package together, including extra project packages. Installed auxiliary media dependencies are aligned with the target release's recommendations.
+- **RBP skill.** It compares the full skill directory with the official [`remotion-dev/skills`](https://github.com/remotion-dev/skills) upstream. An existing global installation (`~/.agents/skills`, `$CODEX_HOME/skills`, or the Claude skill home) is reused and updated in place only when its contents differ. If none exists, it installs under the workspace's `.remotion-director/`. Builders read the returned `RBP_SKILL_PATH`.
+- **Host tools.** Node.js, npm, Git and a full ffmpeg build (5.1 or newer). Preflight exercises rawvideo, scale and crop, which the reduced ffmpeg bundled with Remotion may not provide. The agent installs missing host tools under the host's permission policy.
 
-Engineering versions belong to upstream, not this plugin’s design constraints. All draws share the environment prepared for the run; the next piece refreshes it again. Exact workspace manifest/lockfile versions record what was resolved, rather than a fixed plugin compatibility pin. Different RBP and npm release timings are informational, not a version-equality gate.
+Engineering versions belong to upstream, not to this plugin's design. All draws share the environment prepared for the run; the next piece refreshes it again. To run the same preparation manually (it also scaffolds a missing workspace):
 
-To run the same automatic preparation manually (also scaffolds a missing workspace):
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir>
 ```
 
-`--fix` is a compatibility alias for this default behavior. Use `--check` to inspect the recorded installation without network or updates. A failed update exits with an error; repair the network/install issue and rerun instead of treating an old environment as latest. RBP downloads are validated before replacing the existing skill; identical files are left untouched. Global updates apply to all projects using that skill, so coordinate them before starting builders. If an upgrade is needed during production, pause builders, update together, and re-render.
+Use `--check` to inspect the recorded installation without network or updates. A failed update exits with an error. Repair the network or install issue and rerun, rather than treating an old environment as the latest. Global RBP updates apply to every project using that skill, so coordinate them before starting builders.
 
 ## Usage
 
@@ -156,38 +152,75 @@ Invoke the `create` skill with your brief, e.g.:
 
 > /create — a 13s vertical piece for a public library's late-night study space, "The Reading Room — open until 2am." Takeaway: "the quietest place in the city is still awake when you are." Tone: calm, unhurried, a little nocturnal.
 
-It first runs a quick **commission step** — confirming the brief, the spec (aspect/resolution, duration, fps, on-screen copy, audio intent), and the draw count **N** — and proposing defaults for anything you didn't pin down — then draws. When the draws are done, the blind selector picks the base that goes into the loop; if you'd rather save that step's time and tokens, or just want to choose, you can pick one of the N draws yourself. You can state any of these up front in the brief, or let it ask.
+It first runs the commission step, then draws. Anything you don't pin down gets a stated default:
 
-Knobs: **N** (draws before blind-select; default 3 — more draws = higher ceiling), **aspect** (vertical 1080×1920 default / landscape 1920×1080 / square 1080×1080), **duration** (pick a second-count — it's then a promise nothing downstream may break — or choose *"don't constrain it"* and let the designer decide the length, in which case the final tempo pass may adjust it), **workspace** (where your piece is built; default a folder in your CWD). The critic loop has no round knob — it runs until the critic converges, then your eyes decide.
+- **aspect**: vertical 1080×1920 (default), landscape 1920×1080 or square 1080×1080
+- **duration**: a second-count, which is then a promise nothing downstream may break, or *"don't constrain it"*, which leaves the length to the designer
+- **N**, the number of draws: default 3; more draws mean a higher ceiling and more cost
+- **who picks**: you (default) or the blind AI selector
+- **who polishes**: the critic loop (default) or you
+- **sound**: on by default
+- **workspace**: where the piece is built; default is a folder in your CWD
+- **anything extra** you ask for, such as a TTS voice-over or your own assets
 
-> **Audio:** simple sound effects the builder synthesizes itself are supported — basic, but they work. Choosing and scoring full music, and voice-over, are out of scope for now. The design knowledge and the critic loop are **visual-only**, so nothing in the pipeline *judges* sound.
-> **Validated aspects:** the pipeline is validated at **1080×1920** and **1920×1080**. Square uses the same harnesses but isn't yet smoke-tested.
+The critic loop has no round knob. It runs until the critic converges, then your eyes decide.
+
+> **Sound:** simple sound effects, made or found by the builder, are on by default. Full music and voice-over aren't added unless you ask; when you do, the builder works out how. The critics and the selector are **visual-only**, so nothing in the pipeline judges sound except your own ears.
+> **Validated aspects:** 1080×1920 and 1920×1080. Square uses the same harnesses but isn't yet smoke-tested.
 
 ### Where your piece lives
 
-Your output lives in **your** project dir, not inside the plugin (so plugin updates never touch your work):
+Your output lives in **your** project dir, not inside the plugin, so plugin updates never touch your work:
 
 ```
 <your-project>/
   package.json   node_modules/        # one npm install resolves both your code and the harness
   <piece-slug>/
-    draw-1/  index.tsx  DESIGN.md  FIXES.md  TEMPO.md  out/r1/{still-*.png, video.mp4, strip/}
+    COMMISSION.md  DIRECTIONS.md
+    pick/  A.mp4  B.mp4  …            # the previews, under neutral labels
+    draw-1/  index.tsx  DESIGN.md  FIXES.md  out/r1/{video.mp4, review/}
     draw-2/  …
-    draw-N/  …
 ```
 
-Each draw registers a `<Composition id="piece">` (the render harness's contract).
+Each render's `review/` holds the time overview pages (`overview-*.png`), the settle frames (`settle-*.png`) and `overview.json`. Each draw registers a `<Composition id="piece">`, the render harness's contract.
 
-## How it's wired (for the curious)
+## How it's wired
 
-- **Skills** — `create` (the orchestrator + product entry point), `design-brain` (loads the design equipment), `critic-loop` (blind-select + the 甲乙环).
-- **Agents** — `builder` (乙: design+build, continuous context), `aesthetic-critic` (甲: design-blind, persistent, reports phenomena only), `blind-selector` (picks the most promising base), `tempo-pass` (the final re-time, fresh context by design).
-- **Tools** — `render-arm.ts` (6 stills + mp4), `render-strip.ts` (the frames the critic reads), `check-env.mjs` (Step 1 automatic preparation and checks).
+- **Skills.** `create` (the orchestrator and product entry point) and `critic-loop` (the blind select and the 甲乙环 protocols).
+- **Agents.**
+  - `direction-lister`: one fresh-context call per batch of draws.
+  - `builder` (乙): design and build, in one continuous context.
+  - `blind-selector`: picks on potential, blind to provenance.
+  - `aesthetic-critic` (甲): design-blind and persistent; reports phenomena, never prescriptions.
+- **Tools.**
+  - `render-arm.ts`: renders the mp4, then writes `review/`.
+  - `time-overview.ts`: the time overview and settle frames, from pixels only.
+  - `check-env.mjs`: the automatic environment preparation.
 
-> **The frame strip is sharper than it looks.** The critic is a VLM — it sees stills, not the video — so `render-strip.ts` doesn't sample frames uniformly (which makes a clean half-second move read as a stack of "overlapping text" stills and condemns a flawless transient as a defect). It measures motion off the rendered mp4 and samples its **punctuation**: one *held* frame per pause (the real composition, fair to judge) plus motion-only *mid* frames that are explicitly never counted as defects. Frame selection is a design decision here, not plumbing — see [`docs/DEVELOPMENT-JOURNEY.md`](docs/DEVELOPMENT-JOURNEY.md).
-
-The orchestrator only orchestrates, ferries the critic's verdicts **verbatim** between critic and builder, and verifies pixels landed — it never judges aesthetics, and it never paraphrases the tuned design knowledge (every agent reads the verbatim equipment/protocol files).
+The orchestrator only orchestrates, ferries messages **verbatim** between critic and builder (or between you and the builder), and verifies that pixels landed. It never judges aesthetics, and it never paraphrases a role's definition: every agent reads its own verbatim prompt.
 
 ## Platform note
 
-The pipeline is validated on **64-bit Windows 11** (Node.js reports this platform as `"win32"` — its historical identifier for *all* Windows, 32- and 64-bit alike; it does not mean 32-bit-only). The render harnesses use the ANGLE GL backend (`gl: "angle"`) and ffmpeg; on macOS/Linux the GL backend may need adjusting (`swangle` / `egl`). Cross-platform is currently unverified.
+The pipeline is validated on **64-bit Windows 11**. Node.js reports this platform as `"win32"`, its historical identifier for *all* Windows, 32- and 64-bit alike. The render harness uses the ANGLE GL backend (`gl: "angle"`) and ffmpeg; on macOS or Linux the GL backend may need adjusting (`swangle` / `egl`). Cross-platform use is currently unverified.
+
+<details>
+<summary>Earlier pipeline versions, other models</summary>
+
+These were made with the previous version of the pipeline, which still had the design equipment and the tempo pass. The brief was the same one-line promo brief, with no human retouching.
+
+https://github.com/user-attachments/assets/f34c4aef-fd88-44be-9300-b2a5418fdfe1
+
+<sub>Claude Opus 4.8, near one-shot: the only extra input was one prompt on text pacing.</sub>
+
+<table>
+  <tr>
+    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/promo-kimi-k3.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-kimi-k3-thumb.webp" width="430" alt="Promo created by Kimi K3 — click to play"></a></td>
+    <td><a href="https://cdn.jsdelivr.net/gh/Zane-0x5a/remotion-director@master/docs/assets/promos/promo-claude-opus-5.mp4"><img src="https://raw.githubusercontent.com/Zane-0x5a/remotion-director/master/docs/assets/promos/promo-claude-opus-5-thumb.webp" width="430" alt="Promo created by Claude Opus 5 — click to play"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Kimi K3</sub></td>
+    <td align="center"><sub>Claude Opus 5</sub></td>
+  </tr>
+</table>
+
+</details>
