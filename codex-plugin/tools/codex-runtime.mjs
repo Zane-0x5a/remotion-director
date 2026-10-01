@@ -13,6 +13,11 @@
  * first canonical output.  A preview is never canonical by itself, and
  * directions are never pick material.
  *
+ * The user's pick may also keep other draws of the batch (alsoKeep).  Kept
+ * draws wait idle; once the current piece has its settled canonical, next-kept
+ * archives that piece into `finished` and makes a kept draw the current piece,
+ * which self-checks, settles and is polished like a fresh pick.
+ *
  * Polishing follows the commission: the critic loop (default) records verdicts
  * on the canonical's review/ and the builder's `round-done`; user polish
  * (亲自打磨) records the user's own notes verbatim and the builder's
@@ -32,9 +37,11 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:pat
 
 // Schema 4: outputs are reviewed through review/ (reviewDir replaces stripDir),
 // there is no tempo role, and the run records its polish mode, user notes and
-// duration decisions.  Schema 3 dealt directions first; schema 2 picked at the
-// r1 previews without directions; schema-1 ledgers recorded settled draws
-// before selection.
+// duration decisions.  Kept draws (selection.kept) and finished pieces
+// (finished) came later within schema 4: a ledger written before them reads as
+// no draw kept and no piece finished.  Schema 3 dealt directions first; schema
+// 2 picked at the r1 previews without directions; schema-1 ledgers recorded
+// settled draws before selection.
 export const SCHEMA_VERSION = 4;
 export const STATE_FILE = '.remotion-director/codex-run.json';
 // artifact-manifest.json schema 2 binds video.mp4 and every file in review/.
@@ -83,6 +90,8 @@ export function loadState(runDir) {
   if (!existsSync(file)) fail(`No Codex run record at ${file}. Initialize the run before dispatching roles.`, 'MISSING_RUN');
   const value = json(file);
   if (value.schemaVersion !== SCHEMA_VERSION) fail(`Unsupported run record schema ${value.schemaVersion}; expected ${SCHEMA_VERSION}.`, 'SCHEMA_MISMATCH');
+  value.finished ??= [];
+  if (value.selection) value.selection.kept ??= [];
   return value;
 }
 export function saveState(runDir, value) { writeJsonAtomic(statePath(runDir), value); return value; }
@@ -102,7 +111,7 @@ export function initRun({ runDir, briefHash, draws, durationAuthority, spec = {}
     roles: { builders: {}, lister: null, selector: null, critic: null },
     reports: [], handoffs: [], verdicts: [], verdictHistory: [], canonical: null, consumedReportIds: [],
     directions: null, previews: {}, selection: null, selectionPreparation: null, redraws: [], recoveries: [],
-    polishMode: polish, polishSwitches: [], userNotes: [], durationDecisions: [],
+    polishMode: polish, polishSwitches: [], userNotes: [], durationDecisions: [], finished: [],
   });
 }
 
@@ -125,8 +134,17 @@ const SINGLE_ROLES = ['lister', 'selector', 'critic'];
 function liveRoles(state) { return [...Object.values(state.roles.builders), ...SINGLE_ROLES.map((name) => state.roles[name]).filter(Boolean)]; }
 // Draws ended by a redraw keep their identities reserved: a new batch must use
 // new handles, new draw keys and new draw directories (and a fresh lister).
-function endedRoles(state) { return (state.redraws ?? []).flatMap((item) => [...Object.values(item.builders ?? {}), ...['lister', 'selector'].map((name) => item[name]).filter(Boolean)]); }
+// So does a finished piece's critic: the next piece gets a fresh one.
+function endedRoles(state) {
+  return [
+    ...(state.redraws ?? []).flatMap((item) => [...Object.values(item.builders ?? {}), ...['lister', 'selector'].map((name) => item[name]).filter(Boolean)]),
+    ...(state.finished ?? []).map((item) => item.critic).filter(Boolean),
+  ];
+}
 function latestNoteRevision(state) { return state.userNotes.at(-1)?.revision ?? 0; }
+// Draws the user kept with the pick wait idle until next-kept takes them up.
+function keptKeys(state) { return state.selection?.kept ?? []; }
+function finishedPiece(state, key) { return (state.finished ?? []).find((item) => item.key === key) ?? null; }
 // A duration-blocked report stays pending until the user's decision is recorded.
 function pendingDurationBlock(state, key) {
   return state.reports.find((item) => item.status === 'duration-blocked' && item.key === key && !state.durationDecisions.some((decision) => decision.reportId === item.id)) ?? null;
@@ -171,7 +189,8 @@ export function continueRole(runDir, { role, key = role, agentId, continuationId
   const current = role === 'builder' ? state.roles.builders[key] : state.roles[role];
   if (!current) fail(`No registered ${role} role ${key}.`, 'MISSING_ROLE');
   if (current.agentId !== agentId || current.continuationId !== continuationId) fail(`Continuation identity mismatch for ${role} ${key}; preserve the original agent and continuation ids.`, 'IDENTITY_CHANGED');
-  if (current.status === 'ended') fail(role === 'builder' ? `${role} ${key} has ended (not picked); only the picked builder continues after the pick.` : `${role} has ended (the piece moved to user polish); it is not continued.`, 'INVALID_ROLE');
+  if (current.status === 'ended') fail(role !== 'builder' ? `${role} has ended (the piece moved to user polish); it is not continued.` : finishedPiece(state, key) ? `${role} ${key} has ended: its piece is finished (next-kept moved on to a kept draw); it is not continued.` : `${role} ${key} has ended (not picked); only the picked builder continues after the pick.`, 'INVALID_ROLE');
+  if (role === 'builder' && keptKeys(state).includes(key)) fail(`${role} ${key} is kept for a later piece and waits idle; it is continued once next-kept --key ${key} makes it the current piece.`, 'INVALID_ROLE');
   current.continuations += 1; current.lastMessageHash = messageHash; current.status = 'running';
   return saveState(runDir, touch(state));
 }
@@ -223,6 +242,7 @@ export function recordReport(runDir, report) {
   if (!report.agentId || !report.continuationId) fail('Completion report must name the actual agent and continuation.', 'INVALID_REPORT');
   const role = roleRecord(state, report.role, report.key ?? report.role);
   if (!role || role.agentId !== report.agentId || role.continuationId !== report.continuationId) fail('Completion report identity does not match a registered role.', 'IDENTITY_CHANGED');
+  if (report.role === 'builder' && keptKeys(state).includes(report.key)) fail(`Builder ${report.key} is kept for a later piece and waits idle; it reports only after next-kept --key ${report.key} makes it the current piece.`, 'INVALID_REPORT');
   if (OUTPUT_STATUSES.includes(report.status) && !report.outDir) fail('Successful completion report must name its actual outDir.', 'INVALID_REPORT');
   if (!OUTPUT_STATUSES.includes(report.status) && report.outDir) fail('A blocked or duration-blocked report cannot advance an output.', 'INVALID_REPORT');
   if (report.status !== 'blocked' && report.role !== 'builder') fail(`Only a builder can report ${report.status}.`, 'INVALID_REPORT');
@@ -246,7 +266,7 @@ export function recordReport(runDir, report) {
     if (!isLocked(state.commission.durationAuthority)) fail(`Only a locked total can be blocked; the duration authority is ${state.commission.durationAuthority}, so the length is the builder's own.`, 'INVALID_REPORT');
     if (typeof report.text !== 'string' || !report.text.trim()) fail("A duration-blocked report needs the builder's report text verbatim (which beats do not fit, at what reading speed, how many seconds would solve it, what would have to go).", 'INVALID_REPORT');
   }
-  if (report.role === 'builder' && role.status === 'ended') fail(`Builder ${report.key} has ended (not picked); only the selected winning builder reports after the pick.`, 'INVALID_REPORT');
+  if (report.role === 'builder' && role.status === 'ended') fail(finishedPiece(state, report.key) ? `Builder ${report.key} has ended: its piece is finished (next-kept moved on to a kept draw), so it no longer reports.` : `Builder ${report.key} has ended (not picked); only the selected winning builder reports after the pick.`, 'INVALID_REPORT');
   if (report.role === 'builder' && report.status !== 'blocked' && pendingDurationBlock(state, report.key)) fail(`Builder ${report.key} has a duration-blocked report awaiting the user's decision; record it with record-duration-decision first.`, 'DURATION_BLOCKED');
   if (OUTPUT_STATUSES.includes(report.status) && state.reports.some((item) => item.role === report.role && (item.key ?? null) === (report.key ?? null) && item.status === report.status && (report.status !== 'round-done' || item.reviewRound === report.reviewRound) && (report.status !== 'revision-done' || item.revision === report.revision))) fail('A successful stage completion was already recorded for this role.', 'DUPLICATE_REPORT');
   state.reports.push({ ...report, recordedAt: new Date().toISOString() });
@@ -654,29 +674,41 @@ export function recordSelection(runDir, { selectorId, selectorContinuationId, wi
   if (typeof reason !== 'string' || !reason.trim()) fail('Blind selection needs a verbatim pixel-grounded reason.', 'INVALID_SELECTION');
   const winnerCandidate = candidates.find((candidate) => candidate.label === winner);
   preparation.consumedAt = new Date().toISOString();
-  state.selection = { by: 'selector', selectorId, selectorContinuationId, winner, winnerKey: winnerCandidate.key, candidates: candidates.map((candidate) => ({ label: candidate.label, key: candidate.key, evidenceDir: preparedByLabel.get(candidate.label).evidenceDir })), reason, evidenceDir: resolve(preparation.evidenceDir), recordedAt: new Date().toISOString() };
+  state.selection = { by: 'selector', selectorId, selectorContinuationId, winner, winnerKey: winnerCandidate.key, kept: [], candidates: candidates.map((candidate) => ({ label: candidate.label, key: candidate.key, evidenceDir: preparedByLabel.get(candidate.label).evidenceDir })), reason, evidenceDir: resolve(preparation.evidenceDir), recordedAt: new Date().toISOString() };
   // The pick does not create canonical output: the picked builder self-checks
   // first and its settled report is the first canonical that is polished.
-  endLosingBuilders(state, winnerCandidate.key);
+  endLosingBuilders(state, [winnerCandidate.key]);
   state.status = 'selected';
   return saveState(runDir, touch(state));
 }
 
-// Losing draws end at their preview: no self-check, no further renders.
-function endLosingBuilders(state, winnerKey) {
-  for (const [key, builder] of Object.entries(state.roles.builders)) if (key !== winnerKey) builder.status = 'ended';
+// Losing draws end at their preview: no self-check, no further renders.  Draws
+// the user kept with the pick stay alive, idle, until next-kept takes them up.
+function endLosingBuilders(state, liveKeys) {
+  for (const [key, builder] of Object.entries(state.roles.builders)) if (!liveKeys.includes(key)) builder.status = 'ended';
 }
 
 // By default the user picks the base by watching the draws' preview videos.
 // No selector identity or anonymous evidence is involved. The pick still needs
 // every preview of the current draws accepted and re-verified, so it cannot land
-// on a draw that is still rendering or whose pixels changed.
-export function recordUserSelection(runDir, { winnerKey, reason = '' }) {
+// on a draw that is still rendering or whose pixels changed.  When the user
+// wants more than one draw ("AC我都想要"), the others are kept in the order
+// given; each later becomes the current piece through next-kept.
+export function recordUserSelection(runDir, { winnerKey, reason = '', alsoKeep = [] }) {
   const state = loadState(runDir);
-  if (state.selection) fail('Selection already recorded; a run may have one pick.', 'DUPLICATE_SELECTION');
+  if (state.selection) fail('Selection already recorded; a run has one pick, which keeps any further draws the user wants with alsoKeep (--also-keep); next-kept takes them up in turn.', 'DUPLICATE_SELECTION');
   const keys = Object.keys(state.previews).sort();
   if (keys.length !== state.commission.draws) fail(`User selection requires all N=${state.commission.draws} previews accepted first.`, 'INVALID_SELECTION');
   if (typeof winnerKey !== 'string' || !keys.includes(winnerKey)) fail(`Winner ${winnerKey} is not an accepted draw (${keys.join(', ')}).`, 'INVALID_SELECTION');
+  if (!Array.isArray(alsoKeep)) fail('alsoKeep must be a list of draw keys.', 'INVALID_SELECTION');
+  const kept = [];
+  for (const key of alsoKeep) {
+    if (typeof key !== 'string' || !keys.includes(key)) fail(`Kept draw ${key} is not an accepted preview of the current draws (${keys.join(', ')}).`, 'INVALID_SELECTION');
+    if (key === winnerKey) fail(`Kept draw ${key} is the pick itself; --also-keep names the other draws the user keeps.`, 'INVALID_SELECTION');
+    if (kept.includes(key)) fail(`Kept draw ${key} is named twice.`, 'INVALID_SELECTION');
+    if (pendingDurationBlock(state, key)) fail(`Kept draw ${key} has a duration-blocked report awaiting the user's decision; record it with record-duration-decision first.`, 'DURATION_BLOCKED');
+    kept.push(key);
+  }
   for (const key of keys) {
     const preview = state.previews[key];
     if (!preview || preview.role !== 'builder') fail(`Draw ${key} is not backed by an accepted preview.`, 'INVALID_SELECTION');
@@ -685,8 +717,53 @@ export function recordUserSelection(runDir, { winnerKey, reason = '' }) {
   }
   if (typeof reason !== 'string') fail('User selection reason must be text when given.', 'INVALID_SELECTION');
   if (state.selectionPreparation && !state.selectionPreparation.consumedAt) state.selectionPreparation.consumedAt = new Date().toISOString();
-  state.selection = { by: 'user', winnerKey, candidates: keys.map((key) => ({ key, outDir: state.previews[key].outDir })), reason: reason.trim(), recordedAt: new Date().toISOString() };
-  endLosingBuilders(state, winnerKey);
+  // Each kept piece starts from the duration authority the pick was made under.
+  state.selection = { by: 'user', winnerKey, kept, candidates: keys.map((key) => ({ key, outDir: state.previews[key].outDir })), reason: reason.trim(), durationAuthority: state.commission.durationAuthority, recordedAt: new Date().toISOString() };
+  endLosingBuilders(state, [winnerKey, ...kept]);
+  state.status = 'selected';
+  return saveState(runDir, touch(state));
+}
+
+// The next kept draw becomes the current piece.  The current piece needs its
+// accepted settled canonical (whether the user has finished polishing it is
+// the host's call).  It is archived into `finished` with everything that
+// belongs to it, stays readable and verifiable there, and never advances
+// again: its builder and its critic end.  The kept draw then starts like a
+// fresh pick (self-check → settled → polish) with nothing of the archived
+// piece in view: no canonical, verdicts, user notes, handoffs or critic, the
+// commission's own polish mode (undoing a switch-polish of the archived piece)
+// and the duration authority the pick was made under (undoing a free decision
+// that answered the archived piece's builder; a locked total stays a promise
+// for every piece).  Review rounds and note revisions count from 1 again.
+export function nextKept(runDir, { key }) {
+  const state = loadState(runDir);
+  if (!state.selection) fail('next-kept follows a pick that kept more than one draw; no pick is recorded yet.', 'INVALID_KEPT');
+  const kept = keptKeys(state);
+  if (typeof key !== 'string' || !kept.includes(key)) fail(`${key} is not a kept draw; next-kept takes up a draw kept at the pick (${kept.length ? kept.join(', ') : 'none kept'}).`, 'INVALID_KEPT');
+  const current = state.selection.winnerKey;
+  if (!state.canonical) fail(`The current piece ${current} has no accepted settled canonical yet; carry it through its self-check to settled first.`, 'INVALID_KEPT');
+  if (pendingDurationBlock(state, current)) fail(`Builder ${current} has a duration-blocked report awaiting the user's decision; record it with record-duration-decision first.`, 'DURATION_BLOCKED');
+  const builder = state.roles.builders[key];
+  if (!builder || builder.status === 'ended') fail(`Kept draw ${key} has no live builder.`, 'INVALID_KEPT');
+  verifyArtifacts(state.canonical.outDir, { sourceDir: state.canonical.artifact?.provenance?.sourceDir ?? null, spec: state.commission.spec ?? null, durationAuthority: state.commission.durationAuthority });
+  assertArtifactSnapshot(state.canonical);
+  const critic = state.roles.critic;
+  if (critic) critic.status = 'ended';
+  if (state.roles.builders[current]) state.roles.builders[current].status = 'ended';
+  const next = { key, polishMode: state.commission.polish, durationAuthority: state.selection.durationAuthority ?? state.commission.durationAuthority };
+  state.finished.push({
+    piece: state.finished.length + 1, key: current, canonical: state.canonical,
+    verdicts: state.verdicts, verdictHistory: state.verdictHistory ?? [], userNotes: state.userNotes, handoffs: state.handoffs, critic,
+    polishMode: state.polishMode, polishSwitches: state.polishSwitches,
+    // Duration decisions stay in the run's log too: they answer reports there.
+    durationAuthority: state.commission.durationAuthority, durationDecisions: state.durationDecisions.filter((item) => item.key === current),
+    next, finishedAt: new Date().toISOString(),
+  });
+  state.selection.winnerKey = key;
+  state.selection.kept = kept.filter((item) => item !== key);
+  state.roles.critic = null;
+  state.canonical = null; state.verdicts = []; state.verdictHistory = []; state.userNotes = []; state.handoffs = []; state.polishSwitches = [];
+  state.polishMode = next.polishMode; state.commission.durationAuthority = next.durationAuthority;
   state.status = 'selected';
   return saveState(runDir, touch(state));
 }
@@ -783,7 +860,7 @@ export function recoverRole(runDir, { role, key = role, previousAgentId, replace
   if (!current || current.agentId !== previousAgentId) fail('Recovery must identify the currently registered role identity.', 'IDENTITY_CHANGED');
   if (!replacementAgentId || !replacementContinuationId || !reason?.trim()) fail('Recovery requires a replacement identity and explicit reason.', 'INVALID_RECOVERY');
   if (current.status === 'recovered') fail('Role already recovered; recovery cannot silently chain.', 'DUPLICATE_RECOVERY');
-  if (current.status === 'ended') fail('An ended role (a draw not picked or replaced by a redraw, or the critic after the switch to user polish) is not recovered.', 'INVALID_RECOVERY');
+  if (current.status === 'ended') fail('An ended role (a draw not picked or replaced by a redraw, the builder of a finished piece, or the critic after the switch to user polish) is not recovered.', 'INVALID_RECOVERY');
   const otherRoles = [...liveRoles(state), ...endedRoles(state)].filter((item) => item !== current);
   if (otherRoles.some((item) => item.agentId === replacementAgentId || item.continuationId === replacementContinuationId)) fail('Replacement identity is already registered to another role.', 'IDENTITY_CHANGED');
   current.status = 'recovered';

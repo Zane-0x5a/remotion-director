@@ -348,6 +348,7 @@ test('polishing is the critic loop by default, or the user\'s own eye with comme
   const pickWords = create.slice(create.indexOf('**Words about a draw at the pick**'), create.indexOf('**"都不要，再抽"'));
   assert.match(pickWords, /goes to that draw's builder \*\*with the pick message\*\* \(Step 3\.5\), verbatim, under this one line and nothing else of yours: `The user's words at the pick \(they saw your draw as "⟨label⟩"\):`/);
   assert.match(pickWords, /They are not a polish round: in 亲自打磨, Step 4b still starts by showing the user the settled video/);
+  assert.match(create, /\*\*More than one draw\*\* — if the user wants to keep more than one \("AC我都想要"\), keep them all: each kept draw self-checks and is polished like a pick, side by side or one after another\. Never ask the user to choose only one\./);
   assert.match(create, /If the user said anything about this draw at the pick, it goes in this message under the fixed line from Step 3/);
   assert.match(create, /that switches the piece to 亲自打磨/);
   const builder = read('agents', 'builder.md');

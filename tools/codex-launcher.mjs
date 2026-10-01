@@ -6,7 +6,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  acceptCanonical, acceptPreview, captureProvenance, continueRole, initRun, prepareSelection, recordDirections, recordDurationDecision, recordRedraw, recordReport,
+  acceptCanonical, acceptPreview, captureProvenance, continueRole, initRun, nextKept, prepareSelection, recordDirections, recordDurationDecision, recordRedraw, recordReport,
   recordUserNote, recordVerdict, recordSelection, recordUserSelection, recoverRole, registerRole, status, switchPolish, verifyArtifacts, captureVideoProvenance, verifyVideoProvenance,
 } from './codex-runtime.mjs';
 
@@ -14,6 +14,8 @@ const PACKAGE_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const TOOL_ROOT = join(PACKAGE_ROOT, 'tools');
 const asArgs = process.argv.slice(2);
 const value = (name, fallback = undefined) => { const i = asArgs.indexOf(name); return i >= 0 ? asArgs[i + 1] : fallback; };
+// A repeatable flag: every value given, in order.
+const values = (name) => asArgs.flatMap((arg, i) => (arg === name ? [asArgs[i + 1]] : []));
 const has = (name) => asArgs.includes(name);
 const textOption = (inline, file, fallback = undefined) => { const path = value(file); return path ? readFileSync(path, 'utf8') : value(inline, fallback); };
 const help = `remotion-director Codex launcher\n\n` +
@@ -36,7 +38,8 @@ const help = `remotion-director Codex launcher\n\n` +
   `  record-duration-decision --run-dir DIR --report-id ID --decision locked|free   the user's answer to duration-blocked\n` +
   `  prepare-selection --run-dir DIR --candidates-file JSON [--evidence-dir DIR]\n` +
   `  record-selection --run-dir DIR --selector-id ID --continuation-id ID --candidates-file JSON --winner LABEL --reason TEXT\n` +
-  `  record-user-selection --run-dir DIR --winner-key draw-N [--reason TEXT]   the user picked the base (default)\n` +
+  `  record-user-selection --run-dir DIR --winner-key draw-N [--reason TEXT] [--also-keep draw-M]...   the user picked the base (default); --also-keep each other draw they keep\n` +
+  `  next-kept --run-dir DIR --key draw-M   after the current piece's settled canonical: archive that piece, make a kept draw the current piece\n` +
   `  record-redraw --run-dir DIR [--reason TEXT] [--brief-hash HEX]   the user rejected every preview; their comment as given, the updated brief's hash\n` +
   `  recover-role --run-dir DIR --role ROLE --previous-agent-id ID --replacement-agent-id ID --replacement-continuation-id ID --reason TEXT\n` +
   `  verify-artifacts --out DIR [--source DIR] [--allow-unbound]\n` +
@@ -140,7 +143,8 @@ function command() {
       const candidates = JSON.parse(readFileSync(value('--candidates-file'), 'utf8'));
       return print(recordSelection(value('--run-dir'), { selectorId: value('--selector-id'), selectorContinuationId: value('--continuation-id'), winner: value('--winner'), candidates, reason: value('--reason'), evidenceDir: value('--evidence-dir', null) }));
     }
-    case 'record-user-selection': return print(recordUserSelection(value('--run-dir'), { winnerKey: value('--winner-key'), reason: value('--reason', '') }));
+    case 'record-user-selection': return print(recordUserSelection(value('--run-dir'), { winnerKey: value('--winner-key'), reason: value('--reason', ''), alsoKeep: values('--also-keep') }));
+    case 'next-kept': return print(nextKept(value('--run-dir'), { key: value('--key') }));
     case 'record-redraw': return print(recordRedraw(value('--run-dir'), { reason: value('--reason', ''), briefHash: value('--brief-hash', null) }));
     case 'recover-role': return print(recoverRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), previousAgentId: value('--previous-agent-id'), replacementAgentId: value('--replacement-agent-id'), replacementContinuationId: value('--replacement-continuation-id'), reason: value('--reason') }));
     case 'verify-artifacts': return print(verifyArtifacts(value('--out'), { sourceDir: value('--source', null), requireProvenance: !has('--allow-unbound') }));

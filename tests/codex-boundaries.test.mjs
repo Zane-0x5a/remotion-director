@@ -700,6 +700,174 @@ test('keeping the lock is recorded too, and only a locked total can be blocked',
   assert.throws(() => free.candidates.forEach((item) => runtime.recordReport(free.dir, { id: 'b', role: 'builder', key: item.key, status: 'duration-blocked', ...builderIdentity(item), text: 'too long' })), /Only a locked total/);
 });
 
+// ---- keeping more than one draw ("AC我都想要") ----
+
+test('the user may keep more draws with the pick: kept keys are validated, kept builders stay alive and idle, the others end', (t) => {
+  const run = createRun(t, 4); previewAll(run);
+  const [a, b, c, d] = run.candidates;
+  const pick = (alsoKeep) => runtime.recordUserSelection(run.dir, { winnerKey: a.key, alsoKeep });
+  assert.throws(() => pick(['draw-9']), /not an accepted preview/);
+  assert.throws(() => pick([a.key]), /the pick itself/);
+  assert.throws(() => pick([c.key, b.key, c.key]), /named twice/);
+  assert.throws(() => pick('draw-3'), /list of draw keys/);
+  // A kept draw never carries an unanswered duration block into its piece.
+  runtime.recordReport(run.dir, { id: 'd-blocked', role: 'builder', key: d.key, status: 'duration-blocked', ...builderIdentity(d), text: 'the end card needs 1 s more' });
+  assert.throws(() => pick([d.key]), (error) => error.code === 'DURATION_BLOCKED');
+  assert.equal(runtime.loadState(run.dir).selection, null);
+  const picked = pick([c.key, b.key]);
+  assert.equal(picked.selection.winnerKey, a.key);
+  assert.deepEqual(picked.selection.kept, [c.key, b.key]);
+  assert.equal(picked.roles.builders[d.key].status, 'ended');
+  for (const kept of [b, c]) assert.equal(picked.roles.builders[kept.key].status, 'running');
+  // Kept builders wait idle: no settled, no other report and no continuation before next-kept.
+  assert.throws(() => report(run, c, previewDir(c)), /kept for a later piece.*next-kept/);
+  assert.throws(() => report(run, c, output(c.source, 'r2')), /kept for a later piece/);
+  assert.throws(() => runtime.recordReport(run.dir, { id: 'c-blocked', role: 'builder', key: c.key, status: 'duration-blocked', ...builderIdentity(c), text: 'needs more time' }), /kept for a later piece/);
+  assert.throws(() => runtime.continueRole(run.dir, { role: 'builder', key: c.key, ...builderIdentity(c) }), /kept for a later piece/);
+  assert.throws(() => runtime.continueRole(run.dir, { role: 'builder', key: d.key, ...builderIdentity(d) }), /not picked/);
+  // A kept builder lost while it waits is recovered like any live role and stays kept.
+  const recovered = runtime.recoverRole(run.dir, { role: 'builder', key: b.key, previousAgentId: b.key, replacementAgentId: 'draw-2b', replacementContinuationId: 'draw-2b-cont', reason: 'unavailable child' });
+  assert.deepEqual(recovered.selection.kept, [c.key, b.key]);
+  // Nor can a kept builder complete the picked builder's review round.
+  settle(run, a.key); critic(run); verdict(run, 1);
+  assert.throws(() => report(run, c, output(c.source, 'r3'), 1), /kept for a later piece/);
+  // The blind selector's pick keeps nothing.
+  const blind = createRun(t, 2); previewAll(blind);
+  const selected = select(blind);
+  assert.deepEqual(selected.selection.kept, []);
+  assert.equal(selected.roles.builders['draw-2'].status, 'ended');
+});
+
+test('next-kept archives the finished piece and starts a kept draw like a fresh pick, under the commission\'s polish mode', (t) => {
+  const run = createRun(t, 3); previewAll(run);
+  const [a, b, c] = run.candidates;
+  runtime.recordUserSelection(run.dir, { winnerKey: a.key, alsoKeep: [c.key], reason: 'AC我都想要' });
+  assert.throws(() => runtime.nextKept(run.dir, { key: c.key }), /no accepted settled canonical/);
+  settle(run, a.key);
+  assert.throws(() => runtime.nextKept(run.dir, { key: b.key }), (error) => error.code === 'INVALID_KEPT' && /not a kept draw/.test(error.message));
+  assert.throws(() => runtime.nextKept(run.dir, { key: a.key }), /not a kept draw/);
+  // The first piece: two critic rounds, then the user's own polish from the converged canonical.
+  critic(run); verdict(run, 1);
+  accept(run, a, output(a.source, 'r3'), 1); verdict(run, 2, 'YES');
+  runtime.switchPolish(run.dir, { mode: 'user', reason: 'the user commented at the final gate' });
+  note(run, 1, '结尾太快');
+  const first = revise(run, a, 1, 'r4');
+  const finishedCanonical = runtime.acceptCanonical(run.dir, { reportId: first.id, role: 'builder', outDir: first.out, sourceDir: a.source }).canonical;
+  const moved = runtime.nextKept(run.dir, { key: c.key });
+  assert.equal(moved.selection.winnerKey, c.key);
+  assert.deepEqual(moved.selection.kept, []);
+  assert.equal(moved.status, 'selected');
+  assert.equal(moved.canonical, null);
+  assert.deepEqual([moved.verdicts, moved.verdictHistory, moved.userNotes, moved.handoffs, moved.polishSwitches], [[], [], [], [], []]);
+  assert.equal(moved.roles.critic, null);
+  assert.equal(moved.polishMode, 'critic');
+  // The archived piece stays readable in status and verifiable, with everything that belonged to it.
+  const piece = runtime.status(run.dir).finished[0];
+  assert.equal(piece.piece, 1);
+  assert.equal(piece.key, a.key);
+  assert.equal(piece.canonical.outDir, finishedCanonical.outDir);
+  assert.deepEqual(piece.verdicts.map((item) => item.round), [1, 2]);
+  assert.equal(piece.userNotes[0].text, '结尾太快');
+  assert.equal(piece.handoffs.length, 3);
+  assert.deepEqual({ agentId: piece.critic.agentId, status: piece.critic.status }, { agentId: 'critic', status: 'ended' });
+  assert.equal(piece.polishMode, 'user');
+  assert.equal(piece.polishSwitches[0].to, 'user');
+  assert.deepEqual(piece.next, { key: c.key, polishMode: 'critic', durationAuthority: 'locked 3s' });
+  assert.doesNotThrow(() => runtime.verifyArtifacts(piece.canonical.outDir, { sourceDir: a.source }));
+  // It never advances again: its builder and its critic have ended.
+  assert.equal(moved.roles.builders[a.key].status, 'ended');
+  assert.throws(() => runtime.continueRole(run.dir, { role: 'builder', key: a.key, ...builderIdentity(a) }), /its piece is finished/);
+  assert.throws(() => runtime.recordReport(run.dir, { id: 'a-late', role: 'builder', key: a.key, status: 'blocked', ...builderIdentity(a) }), /its piece is finished/);
+  assert.throws(() => report(run, a, output(a.source, 'r5'), null, 'settled', { id: 'a-settled-again' }), /picked/);
+  assert.throws(() => runtime.continueRole(run.dir, { role: 'critic', agentId: 'critic', continuationId: 'critic-cont' }), /No registered critic/);
+  assert.throws(() => runtime.registerRole(run.dir, { role: 'critic', agentId: 'critic', continuationId: 'critic-cont', fresh: true }), /distinct/);
+  // The new piece: the kept builder continues, self-checks and settles on its own preview.
+  runtime.continueRole(run.dir, { role: 'builder', key: c.key, ...builderIdentity(c) });
+  runtime.registerRole(run.dir, { role: 'critic', agentId: 'critic-2', continuationId: 'critic-2-cont', fresh: true });
+  const fresh = { criticId: 'critic-2', criticContinuationId: 'critic-2-cont' };
+  assert.throws(() => runtime.recordVerdict(run.dir, { id: 'early', ...fresh, round: 1, reviewDir: join(previewDir(c), 'review'), verdict: 'OVERALL: early\nCONVERGED: NO\n' }), /settled canonical/);
+  accept(run, c, previewDir(c));
+  assert.equal(runtime.loadState(run.dir).canonical.key, c.key);
+  // Review rounds count from 1 again, by the fresh critic, handed to the new builder.
+  assert.throws(() => verdict(run, 3, 'NO', fresh), /expected 1, got 3/);
+  const reviewed = verdict(run, 1, 'NO', fresh);
+  assert.equal(reviewed.verdicts.length, 1);
+  assert.equal(reviewed.handoffs.at(-1).to, c.key);
+  accept(run, c, output(c.source, 'r2'), 1);
+  assert.equal(runtime.loadState(run.dir).canonical.reviewRound, 1);
+  assert.throws(() => runtime.nextKept(run.dir, { key: b.key }), /none kept/);
+});
+
+test('in user polish a kept piece\'s notes count from revision 1, and it keeps the lock the pick was made under', (t) => {
+  const run = createRun(t, 2, { polish: 'user' }); previewAll(run);
+  const [a, c] = run.candidates;
+  runtime.recordUserSelection(run.dir, { winnerKey: a.key, alsoKeep: [c.key] });
+  settle(run, a.key);
+  note(run, 1, '字太小');
+  const first = revise(run, a, 1, 'r3');
+  runtime.acceptCanonical(run.dir, { reportId: first.id, role: 'builder', outDir: first.out, sourceDir: a.source });
+  // The first piece's builder could not fit the lock; the user relaxed it for that piece.
+  runtime.recordReport(run.dir, { id: 'a-blocked', role: 'builder', key: a.key, status: 'duration-blocked', ...builderIdentity(a), text: 'the coda needs 2 s more' });
+  assert.throws(() => runtime.nextKept(run.dir, { key: c.key }), (error) => error.code === 'DURATION_BLOCKED');
+  assert.equal(runtime.recordDurationDecision(run.dir, { reportId: 'a-blocked', decision: 'free' }).commission.durationAuthority, 'free');
+  const moved = runtime.nextKept(run.dir, { key: c.key });
+  assert.equal(moved.commission.durationAuthority, 'locked 3s');
+  assert.equal(moved.polishMode, 'user');
+  const piece = moved.finished[0];
+  assert.equal(piece.durationAuthority, 'free');
+  assert.deepEqual(piece.durationDecisions.map((item) => item.reportId), ['a-blocked']);
+  assert.deepEqual(piece.userNotes.map((item) => item.revision), [1]);
+  // The run's log keeps every answer, so an archived block is never decided twice.
+  assert.equal(moved.durationDecisions.length, 1);
+  assert.throws(() => runtime.recordDurationDecision(run.dir, { reportId: 'a-blocked', decision: 'locked' }), /already recorded/);
+  // The new piece: no note before its settled canonical, then revision 1 again.
+  assert.throws(() => note(run, 1, 'too early'), /accepted canonical/);
+  settle(run, c.key);
+  assert.throws(() => note(run, 2, '接着上一个'), /expected revision 1/);
+  const state = note(run, 1, '颜色再暖一点');
+  assert.equal(state.userNotes.length, 1);
+  assert.equal(state.userNotes[0].outDir, join(c.source, 'out', 'r2'));
+  assert.equal(state.handoffs.at(-1).to, c.key);
+  const second = revise(run, c, 1, 'r3');
+  assert.equal(runtime.acceptCanonical(run.dir, { reportId: second.id, role: 'builder', outDir: second.out, sourceDir: c.source, revision: 1 }).canonical.revision, 1);
+});
+
+test('also-keep and next-kept are reachable through the launcher, and status shows the finished piece', (t) => {
+  const run = createRun(t, 3); previewAll(run);
+  let result = cli('record-user-selection', '--run-dir', run.dir, '--winner-key', 'draw-1', '--also-keep', 'draw-1');
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /INVALID_SELECTION/);
+  result = cli('record-user-selection', '--run-dir', run.dir, '--winner-key', 'draw-1', '--also-keep', 'draw-3', '--also-keep', 'draw-2', '--reason', 'AC我都想要');
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(runtime.loadState(run.dir).selection.kept, ['draw-3', 'draw-2']);
+  result = cli('next-kept', '--run-dir', run.dir, '--key', 'draw-3');
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /INVALID_KEPT.*settled canonical/);
+  settle(run, 'draw-1');
+  result = cli('next-kept', '--run-dir', run.dir, '--key', 'draw-3');
+  assert.equal(result.status, 0, result.stderr);
+  const shown = JSON.parse(cli('status', '--run-dir', run.dir, '--json').stdout);
+  assert.equal(shown.finished[0].key, 'draw-1');
+  assert.equal(shown.finished[0].canonical.stage, 'settled');
+  assert.equal(shown.selection.winnerKey, 'draw-3');
+  assert.deepEqual(shown.selection.kept, ['draw-2']);
+  assert.match(cli('--help').stdout, /--also-keep draw-M[\s\S]*next-kept --run-dir DIR --key draw-M/);
+});
+
+test('a schema-4 ledger written before kept draws reads as none kept and none finished', (t) => {
+  const run = createRun(t, 2); previewAll(run);
+  runtime.recordUserSelection(run.dir, { winnerKey: 'draw-1' });
+  const file = runtime.statePath(run.dir); const value = json(file);
+  delete value.finished; delete value.selection.kept; delete value.selection.durationAuthority;
+  writeJson(file, value);
+  const loaded = runtime.loadState(run.dir);
+  assert.deepEqual(loaded.finished, []);
+  assert.deepEqual(loaded.selection.kept, []);
+  settle(run, 'draw-1');
+  assert.throws(() => runtime.nextKept(run.dir, { key: 'draw-2' }), /not a kept draw.*none kept/);
+  assert.equal(runtime.loadState(run.dir).roles.builders['draw-2'].status, 'ended');
+});
+
 // ---- launcher render commands ----
 
 test('the launcher refuses to overwrite a finished render or its bound review', (t) => {
