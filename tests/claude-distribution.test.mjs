@@ -198,7 +198,7 @@ test('source pipeline picks at the r1 previews and self-checks only the picked d
   const protocol = read('skills', 'critic-loop', 'BLIND-SELECT-PROTOCOL.md');
   assert.match(protocol, /<该候选明确报告的预览输出目录的绝对路径>/);
   assert.doesNotMatch(protocol, /报告 settled/);
-  assert.match(read('skills', 'design-brain', 'reference', 'design-equipment.md'), /渲出 R1、被选中之后,\*\*先别交甲\*\*/);
+  assert.match(builder, /这时还不做自检/);
 });
 
 test('source pipeline deals one idea-level direction to each draw before any builder spawns, and re-lists on a redraw', () => {
@@ -219,7 +219,7 @@ test('source pipeline deals one idea-level direction to each draw before any bui
   assert.match(redraw, /a \*\*fresh\*\* `direction-lister` and a fresh, independent list/);
   assert.match(redraw, /Do not hand it the earlier directions/);
   // Both pick modes see the previews only; directions never reach the pick.
-  assert.match(create, /only each draw's preview `video\.mp4`\*\* — no stills, no DESIGN\.md, no directions/);
+  assert.match(create, /only each draw's preview `video\.mp4`\*\* — no overviews, no frames, no DESIGN\.md, no directions/);
   assert.match(create, /or the later dir the builder named\), and never the directions/);
   // The lister's prompt asks only for different ideas, never for novelty.
   const lister = read('agents', 'direction-lister.md');
@@ -234,8 +234,74 @@ test('source pipeline deals one idea-level direction to each draw before any bui
   }
   // Each builder designs the whole piece from its one direction and never sees the others.
   const builder = read('agents', 'builder.md');
-  assert.ok(builder.indexOf('## 你这支 draw 的方向') > builder.indexOf('## 第一件事') && builder.indexOf('## 你这支 draw 的方向') < builder.indexOf('## 渲染'), 'builder reads its direction before building');
-  assert.match(builder, /它是种子,不是设计稿:按装备从 §A 起,完整设计这支片/);
+  assert.ok(builder.indexOf('## 你这支 draw 的方向') > builder.indexOf('## 任务') && builder.indexOf('## 你这支 draw 的方向') < builder.indexOf('## 渲染'), 'builder reads its direction before building');
+  assert.match(builder, /它是种子,不是设计稿:整支片的设计,全由你定/);
   assert.match(builder, /别把核心机制或关键动作关系换成另一个想法/);
   assert.match(builder, /你只拿到自己这一个方向/);
+});
+
+const promptBody = (text, start, end) => {
+  const a = text.indexOf(start);
+  assert.ok(a > -1, `missing ${start}`);
+  const b = end ? text.indexOf(end, a) : text.length;
+  assert.ok(b > a, `missing ${end}`);
+  return text.slice(a, b).trim();
+};
+
+test('critic and selector agents carry their protocol prompts verbatim, on the time overview materials', () => {
+  const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8').replace(/\r\n/g, '\n');
+  const critic = read('agents', 'aesthetic-critic.md');
+  const criticProtocol = read('skills', 'critic-loop', 'CRITIC-PROTOCOL.md');
+  assert.equal(promptBody(critic, 'ROLE: You are 甲'), promptBody(criticProtocol, 'ROLE: You are 甲', '\n---\n\n## 乙方'));
+  for (const needle of [/You judge this as a top motion designer/, /aesthetic and narrative effect/, /FIRST LOOK, each round/, /premium vs cheap/, /`overview-\*\.png`/, /`settle-\*\.png`/, /⟨REVIEW_DIR⟩/, /⟨VIDEO⟩/, /only in settled states/, /CONVERGED: YES/]) {
+    assert.match(critic, needle);
+  }
+  for (const stale of [/seq-NN/, /strip/i, /held/, /\bmid\b/]) assert.doesNotMatch(critic, stale);
+  const selector = read('agents', 'blind-selector.md');
+  const selectProtocol = read('skills', 'critic-loop', 'BLIND-SELECT-PROTOCOL.md');
+  assert.equal(promptBody(selector, '你是一位资深动态设计评审'), promptBody(selectProtocol, '你是一位资深动态设计评审', '\n---\n\n## 槽位'));
+  for (const needle of [/先给第一眼整体判断/, /\*\*设计\/叙事\*\*/, /\*\*质感\*\*/, /review\/overview-\*\.png/, /review\/settle-\*\.png/, /只在定态上判/]) {
+    assert.match(selector, needle);
+  }
+  for (const stale of [/still-\*\.png/, /strip/, /held/]) assert.doesNotMatch(selector, stale);
+});
+
+test('the kit has no equipment and no tempo pass; the builder keeps the duration promise', () => {
+  const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
+  assert.ok(!existsSync(join(ROOT, 'skills', 'design-brain')), 'design-brain is archived');
+  assert.ok(!existsSync(join(ROOT, 'agents', 'tempo-pass.md')), 'tempo-pass is archived');
+  assert.ok(!existsSync(join(ROOT, 'tools', 'render-strip.ts')), 'render-strip is replaced by the time overview');
+  for (const file of [['skills', 'create', 'SKILL.md'], ['skills', 'critic-loop', 'SKILL.md'], ['skills', 'critic-loop', 'CRITIC-PROTOCOL.md'], ['agents', 'builder.md']]) {
+    const text = read(...file);
+    for (const stale of [/design-brain/, /design-equipment/, /tempo-pass/, /render-strip/, /Step 4\.5/, /装备/]) assert.doesNotMatch(text, stale, `${file.join('/')} still mentions ${stale}`);
+  }
+  const builder = read('agents', 'builder.md');
+  assert.match(builder, /`locked ⟨N⟩s` 是对用户的承诺,总时长不许改/);
+  assert.match(builder, /回报 `duration blocked`/);
+  assert.match(builder, /render-arm\.ts" --dir "<RUN_DIR>" --out "<RUN_DIR>\/out\/r1"/);
+  const create = read('skills', 'create', 'SKILL.md');
+  assert.match(create, /the builder fits the piece inside it or reports `duration blocked`, and the user decides/);
+});
+
+test('polishing is the critic loop by default, or the user\'s own eye with comments ferried verbatim', () => {
+  const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
+  const create = read('skills', 'create', 'SKILL.md');
+  const order = ['## Step 3.5', '## Step 4 — Critic loop', '## Step 4b — 亲自打磨', '## Step 5', '## Hard rules'];
+  let at = -1;
+  for (const marker of order) {
+    const next = create.indexOf(marker, at + 1);
+    assert.ok(next > at, `create skill is missing or misorders ${marker}`);
+    at = next;
+  }
+  assert.match(create, /\*\*who polishes the picked piece\*\*.*\*\*the critic loop\*\* \(default/s);
+  const polish = create.slice(create.indexOf('## Step 4b'), create.indexOf('## Step 5'));
+  assert.match(polish, /No 甲 is spawned/);
+  assert.match(polish, /goes \*\*verbatim\*\* to the picked builder's conversation/);
+  assert.match(polish, /\*\*Never ask the user what is missing or how to fix it\*\*/);
+  assert.match(polish, /`revision ⟨K⟩ done`/);
+  assert.match(create, /that switches the piece to 亲自打磨/);
+  const builder = read('agents', 'builder.md');
+  assert.match(builder, /\*\*亲自打磨\(用户自己看片\)\*\*/);
+  assert.match(builder, /不要反过来问用户缺什么、该怎么改/);
+  assert.match(builder, /`revision ⟨K⟩ done`/);
 });

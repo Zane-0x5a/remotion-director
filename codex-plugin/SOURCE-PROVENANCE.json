@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-10-01T08:36:53.591Z",
+  "generatedAt": "2026-10-01T13:43:17.692Z",
   "sourceRoot": "skills/, agents/, tools/",
   "source": {
     "skills": {
-      "hash": "95e033d3b8459773e168cc84dc2079a981ad0a4f7e87fa6615e4fd3c0052c96f",
-      "count": 7
+      "hash": "ad7fe6a2ed3ca95e6f8afd42c1769ae2111cc32bb18265c046ec710698b9c0ff",
+      "count": 4
     },
     "agents": {
-      "hash": "152edb7864bc4fe486ec05631c8af7b505b23de157d75f065ff89e27965b9164",
-      "count": 5
+      "hash": "32d31a28097de214927a75d8e56a450982c0bf0d41b93b93ce5cebdf35644613",
+      "count": 4
     },
     "tools": {
-      "hash": "4f6e9631e41264959e3468236998a00d3ac4459abc0f4bb24530cc9b179d7f87",
+      "hash": "ac741c7c5655e0cfa6a4d1f53aa47370de871b6ffd68f22790b37770efdd6576",
       "count": 7
     }
   },
@@ -20,22 +20,20 @@
       "remotion-director"
     ],
     "internalSkills": [
-      "design-brain",
       "critic-loop"
     ],
     "internalRoles": [
-      "direction-lister",
-      "builder",
       "aesthetic-critic",
       "blind-selector",
-      "tempo-pass"
+      "builder",
+      "direction-lister"
     ],
     "runtimeTools": [
       "check-env.mjs",
       "environment.mjs",
       "rbp.mjs",
       "render-arm.ts",
-      "render-strip.ts",
+      "time-overview.ts",
       "codex-runtime.mjs",
       "codex-launcher.mjs"
     ]

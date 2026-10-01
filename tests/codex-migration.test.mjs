@@ -36,17 +36,12 @@ function deal(root, draws) {
 }
 
 function fixture(root, source) {
-  const out = join(root, 'out', 'r1'); const strip = join(out, 'strip'); mkdirSync(strip, { recursive: true });
+  const out = join(root, 'out', 'r1'); mkdirSync(out, { recursive: true });
   writeFileSync(join(root, 'index.tsx'), 'export const source = "v1";');
   if (!existsSync(join(VALID_FIXTURE, 'video.mp4'))) throw new Error(`Missing tracked valid media fixture at ${VALID_FIXTURE}`);
+  // A launcher render: video.mp4 plus the review/ time overview derived from it.
   cpSync(join(VALID_FIXTURE, 'video.mp4'), join(out, 'video.mp4'));
-  for (const name of readdirSync(VALID_FIXTURE).filter((name) => /^still-.*\.png$/i.test(name))) cpSync(join(VALID_FIXTURE, name), join(out, name));
-  for (const name of readdirSync(join(VALID_FIXTURE, 'strip')).filter((name) => name.toLowerCase().endsWith('.png'))) cpSync(join(VALID_FIXTURE, 'strip', name), join(strip, name));
-  const fixtureManifest = JSON.parse(readFileSync(join(VALID_FIXTURE, 'strip', 'strip-manifest.json'), 'utf8'));
-  fixtureManifest.video = join(out, 'video.mp4');
-  const stripPngs = readdirSync(strip).filter((name) => name.toLowerCase().endsWith('.png')).sort();
-  fixtureManifest.frames = (fixtureManifest.frames ?? []).map((frame, index) => ({ ...frame, file: frame.file ?? stripPngs[index] }));
-  writeFileSync(join(strip, 'strip-manifest.json'), JSON.stringify(fixtureManifest));
+  cpSync(join(VALID_FIXTURE, 'review'), join(out, 'review'), { recursive: true });
   captureVideoProvenance(out, source);
   captureProvenance(out, source);
   return out;
@@ -68,7 +63,12 @@ test('generated package has one public skill and portable + compatibility manife
   assert.deepEqual(publicSkills, ['remotion-director']);
   assert.ok(existsSync(join(PACKAGE, 'internal', 'roles', 'builder.md')));
   assert.ok(existsSync(join(PACKAGE, 'internal', 'roles', 'direction-lister.md')));
-  assert.ok(existsSync(join(PACKAGE, 'internal', 'skills', 'design-brain', 'reference', 'design-equipment.md')));
+  assert.ok(existsSync(join(PACKAGE, 'internal', 'skills', 'critic-loop', 'CRITIC-PROTOCOL.md')));
+  // The equipment and the tempo pass are archived; the package ships neither.
+  assert.equal(existsSync(join(PACKAGE, 'internal', 'skills', 'design-brain')), false);
+  assert.equal(existsSync(join(PACKAGE, 'internal', 'roles', 'tempo-pass.md')), false);
+  assert.equal(existsSync(join(PACKAGE, 'tools', 'render-strip.ts')), false);
+  assert.ok(existsSync(join(PACKAGE, 'tools', 'time-overview.ts')));
 });
 
 test('generated host output contains no executable Claude or bash seam', () => {
@@ -125,29 +125,29 @@ test('critic verdict requires persistent identity and rejects stale or duplicate
   registerRole(root, { role: 'critic', agentId: 'critic-A', continuationId: 'critic-cont', fresh: true });
   registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true, direction: 1 });
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
-  const out = fixture(root, source); const strip = join(out, 'strip');
+  const out = fixture(root, source); const review = join(out, 'review');
   recordReport(root, { id: 'draw-1-preview', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
   acceptPreview(root, { reportId: 'draw-1-preview', outDir: out, sourceDir: source });
   prepareSelection(root, { candidates: [{ label: 'A', key: 'draw-1' }] });
   recordSelection(root, { selectorId: 'selector-A', selectorContinuationId: 'selector-cont', winner: 'A', candidates: [{ label: 'A', key: 'draw-1' }], reason: 'A has the strongest potential.' });
-  assert.throws(() => recordVerdict(root, { id: 'v0', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, verdict: 'preview only\nOVERALL: no\nCONVERGED: NO' }), /settled/i);
+  assert.throws(() => recordVerdict(root, { id: 'v0', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, reviewDir: review, verdict: 'preview only\nOVERALL: no\nCONVERGED: NO' }), /settled/i);
   recordReport(root, { id: 'draw-1-settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
   acceptCanonical(root, { reportId: 'draw-1-settled', role: 'builder', outDir: out, sourceDir: source });
-  recordVerdict(root, { id: 'v1', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, verdict: 'phenomenon text\nOVERALL: no\nCONVERGED: NO' });
+  recordVerdict(root, { id: 'v1', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, reviewDir: review, verdict: 'phenomenon text\nOVERALL: no\nCONVERGED: NO' });
   const afterFirst = JSON.parse(readFileSync(join(root, '.remotion-director', 'codex-run.json'), 'utf8'));
   assert.equal(afterFirst.handoffs.at(-1).to, 'builder-A');
-  assert.throws(() => recordVerdict(root, { id: 'v1b', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, verdict: 'duplicate\nOVERALL: no\nCONVERGED: NO' }), /Duplicate|stale|sequential|supersede/i);
-  recordVerdict(root, { id: 'v1-amend', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, amendmentOf: 'v1', rebuttalOf: 'v1', verdict: 'rebuttal accepted\nOVERALL: no\nCONVERGED: NO\n' });
+  assert.throws(() => recordVerdict(root, { id: 'v1b', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, reviewDir: review, verdict: 'duplicate\nOVERALL: no\nCONVERGED: NO' }), /Duplicate|stale|sequential|supersede/i);
+  recordVerdict(root, { id: 'v1-amend', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, reviewDir: review, amendmentOf: 'v1', rebuttalOf: 'v1', verdict: 'rebuttal accepted\nOVERALL: no\nCONVERGED: NO\n' });
   const amended = JSON.parse(readFileSync(join(root, '.remotion-director', 'codex-run.json'), 'utf8'));
   assert.equal(amended.verdicts.at(-1).amendmentOf, 'v1');
   assert.equal(amended.verdicts.at(-1).replaces, 'phenomenon text\nOVERALL: no\nCONVERGED: NO');
-  assert.throws(() => recordVerdict(root, { id: 'v2-before-build', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 2, stripDir: strip, verdict: 'stale\nOVERALL: no\nCONVERGED: NO' }), /canonical|round/i);
-  const out2 = fixture(join(root, 'round-1-output'), source); const strip2 = join(out2, 'strip');
+  assert.throws(() => recordVerdict(root, { id: 'v2-before-build', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 2, reviewDir: review, verdict: 'stale\nOVERALL: no\nCONVERGED: NO' }), /canonical|round/i);
+  const out2 = fixture(join(root, 'round-1-output'), source); const review2 = join(out2, 'review');
   recordReport(root, { id: 'round-1-done', role: 'builder', key: 'draw-1', status: 'round-done', reviewRound: 1, agentId: 'builder-A', continuationId: 'builder-cont', outDir: out2 });
-  acceptCanonical(root, { reportId: 'round-1-done', role: 'builder', outDir: out2, sourceDir: source, reviewRound: 1, stripDir: strip2 });
-  recordVerdict(root, { id: 'v2', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 2, stripDir: strip2, verdict: 'converged\nOVERALL: yes\nCONVERGED: YES' });
-  assert.throws(() => recordVerdict(root, { id: 'v3', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 3, stripDir: strip2, verdict: 'late\nOVERALL: yes\nCONVERGED: YES' }), /canonical|convergence/i);
-  assert.throws(() => recordVerdict(root, { id: 'v2', criticId: 'critic-B', criticContinuationId: 'critic-cont', round: 2, stripDir: strip, verdict: 'wrong identity' }), /identity/i);
+  acceptCanonical(root, { reportId: 'round-1-done', role: 'builder', outDir: out2, sourceDir: source, reviewRound: 1, reviewDir: review2 });
+  recordVerdict(root, { id: 'v2', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 2, reviewDir: review2, verdict: 'converged\nOVERALL: yes\nCONVERGED: YES' });
+  assert.throws(() => recordVerdict(root, { id: 'v3', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 3, reviewDir: review2, verdict: 'late\nOVERALL: yes\nCONVERGED: YES' }), /canonical|convergence/i);
+  assert.throws(() => recordVerdict(root, { id: 'v2', criticId: 'critic-B', criticContinuationId: 'critic-cont', round: 2, reviewDir: review, verdict: 'wrong identity' }), /identity/i);
 });
 
 test('CLI record-report forwards review round for a builder round-done handoff', () => {
@@ -157,17 +157,17 @@ test('CLI record-report forwards review round for a builder round-done handoff',
   registerRole(root, { role: 'builder', key: 'draw-1', agentId: 'builder-A', continuationId: 'builder-cont', fresh: true, direction: 1 });
   registerRole(root, { role: 'selector', agentId: 'selector-A', continuationId: 'selector-cont', fresh: true });
   registerRole(root, { role: 'critic', agentId: 'critic-A', continuationId: 'critic-cont', fresh: true });
-  const out = fixture(root, source); const strip = join(out, 'strip');
+  const out = fixture(root, source); const review = join(out, 'review');
   recordReport(root, { id: 'preview', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
   acceptPreview(root, { reportId: 'preview', outDir: out, sourceDir: source });
   prepareSelection(root, { candidates: [{ label: 'A', key: 'draw-1' }] });
   recordSelection(root, { selectorId: 'selector-A', selectorContinuationId: 'selector-cont', winner: 'A', candidates: [{ label: 'A', key: 'draw-1' }], reason: 'A has the strongest potential.' });
   recordReport(root, { id: 'settled', role: 'builder', key: 'draw-1', status: 'settled', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
   acceptCanonical(root, { reportId: 'settled', role: 'builder', outDir: out, sourceDir: source });
-  recordVerdict(root, { id: 'verdict-1', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, stripDir: strip, verdict: '1 / seq-00 / visible issue / high\nOVERALL: needs work\nCONVERGED: NO' });
+  recordVerdict(root, { id: 'verdict-1', criticId: 'critic-A', criticContinuationId: 'critic-cont', round: 1, reviewDir: review, verdict: '1 / 1.25s, top third / visible issue / high\nOVERALL: needs work\nCONVERGED: NO' });
 
   const launcher = join(ROOT, 'tools', 'codex-launcher.mjs');
-  const result = spawnSync(process.execPath, [launcher, 'record-report', '--run-dir', root, '--report-id', 'round-1-done', '--role', 'builder', '--key', 'draw-1', '--status', 'round-done', '--review-round', '1', '--agent-id', 'builder-A', '--continuation-id', 'builder-cont', '--out-dir', out, '--strip-dir', strip], { cwd: ROOT, encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [launcher, 'record-report', '--run-dir', root, '--report-id', 'round-1-done', '--role', 'builder', '--key', 'draw-1', '--status', 'round-done', '--review-round', '1', '--agent-id', 'builder-A', '--continuation-id', 'builder-cont', '--out-dir', out, '--review-dir', review], { cwd: ROOT, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   const state = JSON.parse(readFileSync(join(root, '.remotion-director', 'codex-run.json'), 'utf8'));
   assert.equal(state.reports.at(-1).id, 'round-1-done');
@@ -183,13 +183,13 @@ test('canonical advancement rejects duplicate stages, non-pipeline roles and tra
   recordReport(root, { id: 'preview-1', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out });
   acceptPreview(root, { reportId: 'preview-1', outDir: out, sourceDir: source });
   assert.throws(() => recordReport(root, { id: 'preview-2', role: 'builder', key: 'draw-1', status: 'preview', agentId: 'builder-A', continuationId: 'builder-cont', outDir: out }), /DUPLICATE|already/i);
-  const manifestFile = join(out, 'strip', 'strip-manifest.json');
-  const manifest = JSON.parse(readFileSync(manifestFile, 'utf8')); manifest.frames[0].file = '../video.mp4';
-  writeFileSync(manifestFile, JSON.stringify(manifest));
+  const overviewFile = join(out, 'review', 'overview.json');
+  const overview = JSON.parse(readFileSync(overviewFile, 'utf8')); overview.settle_frames[0].file = '../video.mp4';
+  writeFileSync(overviewFile, JSON.stringify(overview));
   assert.throws(() => verifyArtifacts(out, { sourceDir: source }), /inside|escapes|MISMATCHED/i);
 });
 
-test('video provenance catches same-length source replacement before strip extraction', () => {
+test('video provenance catches same-length source replacement before review generation', () => {
   const root = temp('video provenance '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   const out = fixture(root, source);
   writeFileSync(join(source, 'index.tsx'), 'export const source = "v2";');
@@ -199,23 +199,26 @@ test('video provenance catches same-length source replacement before strip extra
 test('artifact verifier rejects corrupt or cross-version evidence', () => {
   const root = temp('corrupt evidence '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   const out = fixture(root, source);
-  writeFileSync(join(out, 'still-000.png'), Buffer.from('not a png'));
+  const settle = join(out, 'review', 'settle-01_t00.00s.png'); const bytes = readFileSync(settle);
+  writeFileSync(settle, Buffer.from('not a png'));
   assert.throws(() => verifyArtifacts(out, { sourceDir: source }), /Invalid PNG|changed/i);
-  writeFileSync(join(out, 'still-000.png'), png);
-  const manifestFile = join(out, 'strip', 'strip-manifest.json');
-  const manifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
-  manifest.video = join(root, 'other', 'video.mp4');
-  writeFileSync(manifestFile, JSON.stringify(manifest));
-  assert.throws(() => verifyArtifacts(out, { sourceDir: source }), /changed|does not match|CRC/i);
+  writeFileSync(settle, png);
+  assert.throws(() => verifyArtifacts(out, { sourceDir: source }), /CRC|Invalid PNG/i);
+  writeFileSync(settle, bytes);
+  const overviewFile = join(out, 'review', 'overview.json');
+  const overview = JSON.parse(readFileSync(overviewFile, 'utf8'));
+  overview.width = 1080; overview.height = 1920;
+  writeFileSync(overviewFile, JSON.stringify(overview));
+  assert.throws(() => verifyArtifacts(out, { sourceDir: source }), /another render/i);
 });
 
 test('source provenance ignores notes and crops while detecting author code changes', () => {
   const root = temp('source inputs '); const source = join(root, 'draw'); mkdirSync(source, { recursive: true });
   const out = fixture(root, source);
   const before = hashTree(source);
-  writeFileSync(join(source, 'DESIGN.md'), 'design notes');
-  writeFileSync(join(source, 'FIXES.md'), 'fix report');
-  const crops = join(source, 'critic-crops'); mkdirSync(crops, { recursive: true }); writeFileSync(join(crops, 'crop.png'), png);
+  // The builder's notes, the orchestrator's archives and the judges' crops are not source.
+  for (const name of ['DESIGN.md', 'FIXES.md', 'REBUTTAL.md', 'CRITIC-VERDICTS.md', 'USER-NOTES.md']) writeFileSync(join(source, name), `${name} text`);
+  for (const dir of ['critic-crops', '_pick-crops']) { mkdirSync(join(source, dir), { recursive: true }); writeFileSync(join(source, dir, 'crop.png'), png); }
   assert.equal(hashTree(source), before);
   assert.doesNotThrow(() => verifyArtifacts(out, { sourceDir: source }));
   writeFileSync(join(source, 'index.tsx'), 'changed source');
@@ -242,7 +245,7 @@ test('selection requires all previewed anonymous candidates and preserves mappin
   recordReport(root, { id: 'r2', role: 'builder', key: 'draw-2', status: 'preview', agentId: 'builder-B', continuationId: 'builder-b', outDir: b });
   acceptPreview(root, { reportId: 'r1', outDir: a, sourceDir: join(source, 'a') });
   acceptPreview(root, { reportId: 'r2', outDir: b, sourceDir: join(source, 'b') });
-  const candidates = [{ label: 'A', key: 'draw-1', outDir: a, stripDir: join(a, 'strip'), sourceDir: join(source, 'a') }, { label: 'B', key: 'draw-2', outDir: b, stripDir: join(b, 'strip'), sourceDir: join(source, 'b') }];
+  const candidates = [{ label: 'A', key: 'draw-1', outDir: a, reviewDir: join(a, 'review'), sourceDir: join(source, 'a') }, { label: 'B', key: 'draw-2', outDir: b, reviewDir: join(b, 'review'), sourceDir: join(source, 'b') }];
   prepareSelection(root, { candidates: candidates.map(({ label, key }) => ({ label, key })) });
   const selected = recordSelection(root, { selectorId: 'selector-A', selectorContinuationId: 'selector-cont', winner: 'B', candidates: candidates.map(({ label, key }) => ({ label, key })), reason: 'B has the strongest potential.' });
   assert.equal(selected.selection.winner, 'B');

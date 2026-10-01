@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import {
   COMPAT_MANIFEST,
   PORTABLE_MANIFEST,
+  RUNTIME_TOOLS,
+  SOURCE,
   compareTrees,
   generatePackage,
   validateOutput,
@@ -45,11 +47,17 @@ test('generator emits one public skill and strips Claude role frontmatter', () =
     assert.doesNotMatch(skill, /CLAUDE_PLUGIN_ROOT|AskUserQuestion|SendMessage|npx\s+tsx|NODE_PATH="/);
     const publicSkills = readdirSync(skillRoot).filter((name) => existsSync(join(skillRoot, name, 'SKILL.md')));
     assert.deepEqual(publicSkills, ['remotion-director']);
-    for (const role of ['direction-lister', 'builder', 'aesthetic-critic', 'blind-selector', 'tempo-pass']) {
+    const roles = readdirSync(join(output, 'internal', 'roles')).sort();
+    assert.deepEqual(roles, ['aesthetic-critic.md', 'blind-selector.md', 'builder.md', 'direction-lister.md']);
+    for (const role of roles.map((name) => name.replace(/\.md$/, ''))) {
       const text = readFileSync(join(output, 'internal', 'roles', `${role}.md`), 'utf8');
       assert.doesNotMatch(text, /^---\r?\n(?:name|description|model|color|tools):/m, role);
       assert.doesNotMatch(text, /^(model|color|tools):/m, role);
     }
+    assert.deepEqual(readdirSync(join(output, 'internal', 'skills')), ['critic-loop']);
+    const provenance = JSON.parse(readFileSync(join(output, 'SOURCE-PROVENANCE.json'), 'utf8'));
+    assert.deepEqual(provenance.output.internalRoles, ['aesthetic-critic', 'blind-selector', 'builder', 'direction-lister']);
+    assert.deepEqual(provenance.output.internalSkills, ['critic-loop']);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -63,10 +71,69 @@ test('generator transforms delivery seams without malformed wording', () => {
     const skill = readFileSync(join(output, 'skills', 'remotion-director', 'SKILL.md'), 'utf8');
     assert.doesNotMatch(skill, /SendMessages?\s+an explicit|return an explicit results/);
     assert.match(skill, /returns an explicit `round/);
+    assert.match(skill, /re-renders, and \*\*returns `revision ⟨K⟩ done`/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+// Every `NODE_PATH=… npx tsx ".../tools/X.ts"` in the sources must become a
+// launcher command; the generic prose rewrites must never swallow one.
+test('every source tool command becomes a launcher command, including the time overview', () => {
+  const root = temporaryRoot();
+  try {
+    const output = join(root, 'package');
+    generatePackage(output);
+    const read = (...parts) => readFileSync(join(output, ...parts), 'utf8');
+    const protocol = read('internal', 'skills', 'critic-loop', 'CRITIC-PROTOCOL.md');
+    assert.match(protocol, /`node "<PLUGIN_ROOT>\/tools\/codex-launcher\.mjs" time-overview --workspace "<WORKSPACE>" --video <mp4> --out <dir>`/);
+    assert.match(protocol, /`node "<PLUGIN_ROOT>\/tools\/codex-launcher\.mjs" render-arm --workspace "<WORKSPACE>" --dir "⟨RUN_DIR⟩" --out "⟨NEXT_OUT_DIR⟩"`/);
+    assert.match(protocol, /the Codex launcher command is required/);
+    const builder = read('internal', 'roles', 'builder.md');
+    assert.match(builder, /`node "<PLUGIN_ROOT>\/tools\/codex-launcher\.mjs" render-arm --workspace "<WORKSPACE>" --dir "<RUN_DIR>" --out "<RUN_DIR>\/out\/r1"`/);
+    assert.match(builder, /渲染命令必须使用上面的 Codex launcher/);
+    const skill = read('skills', 'remotion-director', 'SKILL.md');
+    assert.match(skill, /node "<PLUGIN_ROOT>\/tools\/codex-launcher\.mjs" prepare-environment --workspace "<WORKSPACE>"/);
+    assert.match(skill, /the Codex launcher uses it for every render command/);
+    // Count: each source command maps to exactly one generated launcher command.
+    const sources = [['skills', 'critic-loop', 'CRITIC-PROTOCOL.md'], ['agents', 'builder.md'], ['skills', 'create', 'SKILL.md'], ['skills', 'critic-loop', 'SKILL.md'], ['agents', 'aesthetic-critic.md'], ['agents', 'blind-selector.md']];
+    const generated = [protocol, builder, skill, read('internal', 'skills', 'critic-loop', 'SKILL.md'), read('internal', 'roles', 'aesthetic-critic.md'), read('internal', 'roles', 'blind-selector.md')];
+    sources.forEach((parts, index) => {
+      const sourceCommands = readFileSync(join(SOURCE.skills, '..', ...parts), 'utf8').match(/NODE_PATH="[^"]+"\s+npx\s+tsx\s+"\$\{CLAUDE_PLUGIN_ROOT\}\/tools\/[^"]+\.ts"/g) ?? [];
+      const launcherCommands = generated[index].match(/node "<PLUGIN_ROOT>\/tools\/codex-launcher\.mjs" (?:render-arm|time-overview) --workspace/g) ?? [];
+      assert.equal(launcherCommands.length, sourceCommands.length, parts.join('/'));
+    });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// The kit change archived the equipment, the tempo pass and the still/strip
+// review materials; no generated document may still point at them.
+test('generated documents carry no stills, strips, tempo pass or equipment', () => {
+  const root = temporaryRoot();
+  try {
+    const output = join(root, 'package');
+    generatePackage(output);
+    const stale = /still-|six stills|stills,|\bstrips?\b|strip-manifest|render-strip|--strip-dir|\bheld\b|\btempo\b|tempo-pass|design-brain|design-equipment|equipment|装备|§4|three native crops|Step 4\.5/i;
+    const documents = [...walk(output)].filter((file) => /\.(md|json)$/.test(file));
+    assert.ok(documents.length >= 8);
+    for (const file of documents) assert.doesNotMatch(readFileSync(file, 'utf8'), stale, file);
+    const launcherHelp = readFileSync(join(output, 'tools', 'codex-launcher.mjs'), 'utf8').match(/const help = [\s\S]*?;\n/)[0];
+    assert.doesNotMatch(launcherHelp, stale);
+    assert.doesNotMatch(JSON.stringify(PORTABLE_MANIFEST), /tempo|equipment/i);
+    assert.match(PORTABLE_MANIFEST.extensions['com.openai'].interface.longDescription, /亲自打磨/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+function* walk(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) yield* walk(path); else yield path;
+  }
+}
 
 test('host guide maps each role to its ledger command and prepares blind evidence first', () => {
   const root = temporaryRoot();
@@ -74,22 +141,31 @@ test('host guide maps each role to its ledger command and prepares blind evidenc
     const output = join(root, 'package');
     generatePackage(output);
     const skill = readFileSync(join(output, 'skills', 'remotion-director', 'SKILL.md'), 'utf8');
-    assert.match(skill, /builders use `preview`.*`accept-preview`.*`settled` only after they were picked.*`round-done`/s);
-    assert.match(skill, /tempo pass uses `done`/);
-    assert.match(skill, /critic delivers verdict text through `record-verdict`/);
+    assert.match(skill, /`preview` when their r1 preview is ready.*`accept-preview`.*`settled` only after they were picked.*`round-done`.*`revision-done` with `--revision K`/s);
+    assert.match(skill, /`accept-canonical`, which verifies `video\.mp4`, its `review\/` \(`overview\.json` schema 1 and every page and settle frame it lists\)/);
+    assert.match(skill, /critic delivers verdict text through `record-verdict --review-dir DIR`/);
     assert.match(skill, /Review round 1 requires the picked builder's accepted settled canonical/);
-    assert.match(skill, /same-round correction.*`--amend-of ID`.*`--rebuttal-of ID`/s);
+    assert.match(skill, /same-round correction.*`--amend-of ID`.*`--rebuttal-of ID`.*same review dir/s);
+    assert.match(skill, /A converged verdict ends the review rounds/);
+    assert.match(skill, /`duration-blocked`.*never advances canonical.*record-duration-decision --run-dir "<RUN_DIR>" --report-id ID --decision free\|locked/s);
+    assert.match(skill, /init-run --polish critic\|user/);
+    assert.match(skill, /In user polish no critic is registered and no verdict is recorded/);
+    assert.match(skill, /record-user-note --run-dir "<RUN_DIR>" --revision K --note-file FILE/);
+    assert.match(skill, /USER-NOTES\.md/);
+    assert.match(skill, /switch-polish --run-dir "<RUN_DIR>" --mode user/);
     assert.match(skill, /prepare-selection --run-dir/);
+    assert.match(skill, /each an anonymous copy of the verified preview's `video\.mp4` and `review\/`/);
     assert.match(skill, /record-selection.*consuming that preparation/);
     assert.match(skill, /By default the user picks.*only each accepted preview's `video.mp4`.*record-user-selection --run-dir/s);
+    assert.match(skill, /no overviews, frames, directions, design docs or notes/);
     assert.match(skill, /record-redraw --run-dir/);
     assert.match(skill, /Before any builder of a batch.*`internal\/roles\/direction-lister\.md`.*record-directions --run-dir.*no builder can register before it/s);
     assert.match(skill, /builder for each draw with `--direction K`/);
     assert.match(skill, /`--direction i` and put only that direction's text in its spawn message/);
     assert.match(skill, /fresh direction lister for a fresh, independent list \(do not pass it the earlier directions\)/);
-    assert.match(skill, /no stills, strips, directions, design docs or notes/);
     assert.match(skill, /who picks the base/);
-    assert.match(skill, /post-tempo canonical.*same critic identity/s);
+    assert.match(skill, /the brief, and the current canonical's review dir and video; the critic pulls its own frames and crops/);
+    assert.match(skill, /`<PLUGIN_ROOT>\/internal\/skills\/critic-loop\/`/);
     assert.match(skill, /register every initial role.*`register-role --fresh`/is);
     assert.match(skill, /Handles must be unique across roles and draws/s);
     assert.doesNotMatch(skill, /Treat a final child message as evidence only after recording a completion report/);
@@ -103,12 +179,15 @@ test('generated launcher usage strips TypeScript tool extensions', () => {
   try {
     const output = join(root, 'package');
     generatePackage(output);
-    for (const tool of ['render-arm.ts', 'render-strip.ts']) {
+    for (const tool of ['render-arm.ts', 'time-overview.ts']) {
       const text = readFileSync(join(output, 'tools', tool), 'utf8');
       const command = tool.replace(/\.ts$/, '');
-      assert.doesNotMatch(text, /codex-launcher\.mjs\s+render-(?:arm|strip)\.ts\b/);
-      assert.match(text, new RegExp(`codex-launcher\\.mjs"\\s+${command}\\b`));
+      assert.doesNotMatch(text, /codex-launcher\.mjs\s+(?:render-arm|time-overview)\.ts\b/);
+      assert.match(text, new RegExp(`Usage: node "<PLUGIN_ROOT>/tools/codex-launcher\\.mjs"\\s+${command} --workspace <workspace>`));
+      assert.doesNotMatch(text, /NODE_PATH="|\bnpx\s+tsx\b|\$\{CLAUDE_PLUGIN_ROOT\}/);
     }
+    assert.ok(!RUNTIME_TOOLS.includes('render-strip.ts'));
+    assert.ok(RUNTIME_TOOLS.includes('time-overview.ts'));
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

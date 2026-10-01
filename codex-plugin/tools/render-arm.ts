@@ -2,9 +2,11 @@
  * render-arm.ts — generic render harness.
  *
  * Bundles a self-contained Remotion entry (<armDir>/index.tsx, which registers a
- * Composition id "piece"), then renders a 6-frame still strip + an mp4. The piece
- * code is arbitrary author-written Remotion; this harness does NOT touch the design —
- * it only turns whatever the piece wrote into real rendered pixels.
+ * Composition id "piece"), renders the mp4, then derives the review materials from
+ * the rendered pixels into <out>/review/ (see time-overview.ts): the time overview
+ * pages, the full-resolution settle frames and overview.json. The piece code is
+ * arbitrary author-written Remotion; this harness does NOT touch the design — it
+ * only turns whatever the piece wrote into real rendered pixels.
  *
  * Usage: node "<PLUGIN_ROOT>/tools/codex-launcher.mjs" render-arm --workspace <workspace> --dir <armDir> [--out <dir>]
  *   The launcher supplies workspace dependencies; this harness lives in the package and has no node_modules;
@@ -12,9 +14,10 @@
  *   the launcher stages the helper under the workspace so its dependency tree is used.
  */
 import { bundle } from "@remotion/bundler";
-import { selectComposition, renderMedia, renderStill } from "@remotion/renderer";
+import { selectComposition, renderMedia } from "@remotion/renderer";
 import * as path from "node:path";
 import * as fs from "node:fs";
+import { buildReview } from "./time-overview.ts";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -38,19 +41,16 @@ async function main() {
     `[harness] comp ${composition.width}x${composition.height} ${composition.durationInFrames}f @${composition.fps}fps`,
   );
 
-  // still strip (6 evenly-spaced frames)
-  const n = 6;
-  for (let i = 0; i < n; i++) {
-    const frame = Math.round(((composition.durationInFrames - 1) * i) / (n - 1));
-    const png = path.join(out, `still-${String(frame).padStart(3, "0")}.png`);
-    await renderStill({ composition, serveUrl, output: png, frame, overwrite: true, chromiumOptions: { gl: "angle" } });
-    console.error(`[harness] still f${frame} -> ${png}`);
-  }
-
-  // mp4
   const mp4 = path.join(out, "video.mp4");
   await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: mp4, chromiumOptions: { gl: "angle" } });
   console.error(`[harness] video -> ${mp4}`);
+
+  const reviewDir = path.join(out, "review");
+  fs.rmSync(reviewDir, { recursive: true, force: true });
+  const review = await buildReview(mp4, reviewDir);
+  console.error(
+    `[harness] review -> ${reviewDir} (${review.pages.length} overview page(s), ${review.settle_frames.length} settle frame(s))`,
+  );
   console.error(`[harness] DONE: ${out}`);
 }
 

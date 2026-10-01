@@ -10,7 +10,7 @@
     "test": "node --test tests/*.test.mjs",
     "prepare-environment": "node tools/check-env.mjs",
     "render-arm": "tsx tools/render-arm.ts",
-    "render-strip": "tsx tools/render-strip.ts",
+    "time-overview": "tsx tools/time-overview.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

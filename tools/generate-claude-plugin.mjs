@@ -39,7 +39,7 @@ const SOURCE = {
 
 // These are the only runtime tools Claude's source skill invokes.  The Codex
 // launcher/runtime and their ledgers are deliberately outside this closure.
-const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'render-strip.ts'];
+const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'time-overview.ts'];
 const REQUIRED_ROOT_FILES = ['LICENSE', 'tsconfig.json'];
 const PROVENANCE_FILE = 'SOURCE-PROVENANCE.json';
 

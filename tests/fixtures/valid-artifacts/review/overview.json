@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "video": "video.mp4",
+  "width": 320,
+  "height": 568,
+  "fps": 30,
+  "from_s": 0,
+  "duration_s": 3,
+  "cell_s": 0.25,
+  "first_content_s": 0,
+  "final_hold_s": 1.1,
+  "blank_stretches": [],
+  "max_flashes_per_s": 1,
+  "hold_still_changing": [],
+  "short_lived_content": [],
+  "segments": [
+    {
+      "from_s": 0,
+      "to_s": 0.73,
+      "dur_s": 0.73,
+      "kind": "still"
+    },
+    {
+      "from_s": 0.73,
+      "to_s": 1.43,
+      "dur_s": 0.7,
+      "kind": "motion"
+    },
+    {
+      "from_s": 1.43,
+      "to_s": 1.9,
+      "dur_s": 0.47,
+      "kind": "slow"
+    },
+    {
+      "from_s": 1.9,
+      "to_s": 3,
+      "dur_s": 1.1,
+      "kind": "still"
+    }
+  ],
+  "pages": [
+    "overview-1.png"
+  ],
+  "settle_frames": [
+    {
+      "file": "settle-01_t00.00s.png",
+      "frame": 0,
+      "t_s": 0
+    },
+    {
+      "file": "settle-02_t02.27s.png",
+      "frame": 68,
+      "t_s": 2.27
+    },
+    {
+      "file": "settle-03_t02.97s.png",
+      "frame": 89,
+      "t_s": 2.97
+    }
+  ]
+}
