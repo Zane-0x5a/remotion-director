@@ -216,8 +216,17 @@ test('source pipeline deals one idea-level direction to each draw before any bui
   // A redraw runs a fresh, independent list before the new builders.
   const redraw = create.slice(create.indexOf('**"都不要，再抽"'), create.indexOf('**交给 AI 挑 — blind select**'));
   assert.ok(redraw.indexOf('run Step 1.5 again') > -1 && redraw.indexOf('run Step 1.5 again') < redraw.indexOf('then run Step 2'), 'redraw re-lists before drawing again');
-  assert.match(redraw, /a \*\*fresh\*\* `direction-lister` and a fresh, independent list/);
+  assert.match(redraw, /a \*\*fresh\*\* `direction-lister` on the current brief and a fresh, independent list/);
   assert.match(redraw, /Do not hand it the earlier directions/);
+  // An optional comment, invited once, folded into the brief; never a question about what is missing.
+  assert.match(redraw, /a comment is optional/);
+  assert.match(redraw, /anything, even just how it felt/);
+  assert.match(redraw, /never ask what is missing or how to fix it, and don't follow up/);
+  assert.match(redraw, /fold it into the brief the way Step 0 settles one/);
+  assert.match(redraw, /never a design instruction of your own, and never your own description of the rejected draws or their directions/);
+  assert.match(redraw, /from then on it is \*\*the brief\*\* every role receives/);
+  assert.match(redraw, /the user's words as given, and the updated brief/);
+  assert.match(create, /At a redraw you may invite a comment — anything, even a feeling — but never require one or follow up/);
   // Both pick modes see the previews only; directions never reach the pick.
   assert.match(create, /only each draw's preview `video\.mp4`\*\* — no overviews, no frames, no DESIGN\.md, no directions/);
   assert.match(create, /or the later dir the builder named\), and never the directions/);

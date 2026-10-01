@@ -37,7 +37,7 @@ const help = `remotion-director Codex launcher\n\n` +
   `  prepare-selection --run-dir DIR --candidates-file JSON [--evidence-dir DIR]\n` +
   `  record-selection --run-dir DIR --selector-id ID --continuation-id ID --candidates-file JSON --winner LABEL --reason TEXT\n` +
   `  record-user-selection --run-dir DIR --winner-key draw-N [--reason TEXT]   the user picked the base (default)\n` +
-  `  record-redraw --run-dir DIR [--reason TEXT]   the user rejected every preview; end these draws, register new ones\n` +
+  `  record-redraw --run-dir DIR [--reason TEXT] [--brief-hash HEX]   the user rejected every preview; their comment as given, the updated brief's hash\n` +
   `  recover-role --run-dir DIR --role ROLE --previous-agent-id ID --replacement-agent-id ID --replacement-continuation-id ID --reason TEXT\n` +
   `  verify-artifacts --out DIR [--source DIR] [--allow-unbound]\n` +
   `  status --run-dir DIR\n\n` +
@@ -141,7 +141,7 @@ function command() {
       return print(recordSelection(value('--run-dir'), { selectorId: value('--selector-id'), selectorContinuationId: value('--continuation-id'), winner: value('--winner'), candidates, reason: value('--reason'), evidenceDir: value('--evidence-dir', null) }));
     }
     case 'record-user-selection': return print(recordUserSelection(value('--run-dir'), { winnerKey: value('--winner-key'), reason: value('--reason', '') }));
-    case 'record-redraw': return print(recordRedraw(value('--run-dir'), { reason: value('--reason', '') }));
+    case 'record-redraw': return print(recordRedraw(value('--run-dir'), { reason: value('--reason', ''), briefHash: value('--brief-hash', null) }));
     case 'recover-role': return print(recoverRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), previousAgentId: value('--previous-agent-id'), replacementAgentId: value('--replacement-agent-id'), replacementContinuationId: value('--replacement-continuation-id'), reason: value('--reason') }));
     case 'verify-artifacts': return print(verifyArtifacts(value('--out'), { sourceDir: value('--source', null), requireProvenance: !has('--allow-unbound') }));
     case 'capture-provenance': return print(captureProvenance(value('--out'), value('--source', null)));

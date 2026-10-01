@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T13:43:17.593Z",
+  "generatedAt": "2026-10-01T14:01:48.992Z",
   "sourceRoot": ".claude-plugin/plugin.json, skills/, agents/, tools/, package.json, LICENSE, tsconfig.json",
   "runtimeTools": [
     "check-env.mjs",
@@ -14,7 +14,7 @@
       "count": 1
     },
     "skills": {
-      "hash": "ad7fe6a2ed3ca95e6f8afd42c1769ae2111cc32bb18265c046ec710698b9c0ff",
+      "hash": "79709cff15f840f8354f855b2229bc4dd73b90523d643eae98fcd565cd66ef10",
       "count": 4
     },
     "agents": {

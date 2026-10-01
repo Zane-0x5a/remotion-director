@@ -695,17 +695,27 @@ export function recordUserSelection(runDir, { winnerKey, reason = '' }) {
 // current draws end (no self-check) and are archived with their previews and
 // their batch's directions; a fresh lister then records a fresh, independent
 // list, and N fresh builders register under new draw keys, one direction each.
-export function recordRedraw(runDir, { reason = '' } = {}) {
+// The user's optional comment is kept as given; when the orchestrator folded it
+// into the brief, the updated brief's hash replaces the commission's.
+export function recordRedraw(runDir, { reason = '', briefHash = null } = {}) {
   const state = loadState(runDir);
   if (state.selection) fail('A pick is already recorded; a redraw replaces the draws only before the pick.', 'INVALID_REDRAW');
   const keys = Object.keys(state.previews).sort();
   if (keys.length !== state.commission.draws) fail(`A redraw follows the user seeing all N=${state.commission.draws} previews; accept every preview first.`, 'INVALID_REDRAW');
   if (typeof reason !== 'string') fail('Redraw reason must be text when given.', 'INVALID_REDRAW');
+  if (briefHash !== null) {
+    if (typeof briefHash !== 'string' || !/^[a-f0-9]{8,128}$/i.test(briefHash)) fail('briefHash must be a hexadecimal provenance hash.', 'INVALID_REDRAW');
+    if (!reason.trim()) fail('An updated brief comes from the user\'s comment; record their words with it.', 'INVALID_REDRAW');
+    if (briefHash.toLowerCase() === state.commission.briefHash) fail('The updated brief hash equals the current brief; omit it when the brief did not change.', 'INVALID_REDRAW');
+  }
+  const briefHashBefore = state.commission.briefHash;
+  const briefHashAfter = briefHash === null ? briefHashBefore : briefHash.toLowerCase();
   const builders = state.roles.builders; const selector = state.roles.selector; const lister = state.roles.lister;
   for (const builder of Object.values(builders)) builder.status = 'ended';
   if (selector) selector.status = 'ended';
   if (lister) lister.status = 'ended';
-  state.redraws.push({ batch: state.redraws.length + 1, lister, directions: state.directions, builders, selector, previews: state.previews, selectionPreparation: state.selectionPreparation, reason: reason.trim(), recordedAt: new Date().toISOString() });
+  state.redraws.push({ batch: state.redraws.length + 1, lister, directions: state.directions, builders, selector, previews: state.previews, selectionPreparation: state.selectionPreparation, reason: reason.trim(), briefHashBefore, briefHash: briefHashAfter, recordedAt: new Date().toISOString() });
+  state.commission.briefHash = briefHashAfter;
   state.roles.builders = {}; state.roles.selector = null; state.roles.lister = null; state.directions = null; state.previews = {}; state.selectionPreparation = null;
   state.status = 'redrawing';
   return saveState(runDir, touch(state));

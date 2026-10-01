@@ -428,6 +428,28 @@ test('a redraw ends every current draw and the pick happens again on N fresh pre
   assert.throws(() => runtime.recordRedraw(run.dir), /already recorded|before the pick/i);
 });
 
+test('a redraw comment may update the brief; the old and new brief hashes are both kept', (t) => {
+  const run = createRun(t, 2); previewAll(run);
+  const before = runtime.loadState(run.dir).commission.briefHash;
+  assert.throws(() => runtime.recordRedraw(run.dir, { briefHash: 'b'.repeat(64) }), /user's comment/);
+  assert.throws(() => runtime.recordRedraw(run.dir, { reason: 'too cold', briefHash: 'not-a-hash' }), /hexadecimal/);
+  assert.throws(() => runtime.recordRedraw(run.dir, { reason: 'too cold', briefHash: before.toUpperCase() }), /equals the current brief/);
+  const redrawn = runtime.recordRedraw(run.dir, { reason: '  too cold, reads like a manual  ', briefHash: 'B'.repeat(64) });
+  assert.equal(redrawn.redraws[0].reason, 'too cold, reads like a manual');
+  assert.equal(redrawn.redraws[0].briefHashBefore, before);
+  assert.equal(redrawn.redraws[0].briefHash, 'b'.repeat(64));
+  assert.equal(redrawn.commission.briefHash, 'b'.repeat(64));
+});
+
+test('a redraw without a comment keeps the brief', (t) => {
+  const run = createRun(t, 2); previewAll(run);
+  const before = runtime.loadState(run.dir).commission.briefHash;
+  const redrawn = runtime.recordRedraw(run.dir);
+  assert.equal(redrawn.redraws[0].reason, '');
+  assert.equal(redrawn.redraws[0].briefHash, before);
+  assert.equal(redrawn.commission.briefHash, before);
+});
+
 test('preview, redraw and user pick are reachable through the launcher', (t) => {
   const run = createRun(t, 2);
   for (const candidate of run.candidates) {
@@ -438,9 +460,11 @@ test('preview, redraw and user pick are reachable through the launcher', (t) => 
     assert.equal(result.status, 0, result.stderr);
   }
   assert.equal(runtime.loadState(run.dir).status, 'previews-ready');
-  const redraw = cli('record-redraw', '--run-dir', run.dir, '--reason', 'none of these');
+  const redraw = cli('record-redraw', '--run-dir', run.dir, '--reason', 'all of them feel cold', '--brief-hash', 'e'.repeat(64));
   assert.equal(redraw.status, 0, redraw.stderr);
-  assert.equal(runtime.loadState(run.dir).redraws[0].reason, 'none of these');
+  const redrawn = runtime.loadState(run.dir);
+  assert.equal(redrawn.redraws[0].reason, 'all of them feel cold');
+  assert.equal(redrawn.commission.briefHash, 'e'.repeat(64));
 
   const picked = createRun(t, 2); previewAll(picked);
   const result = cli('record-user-selection', '--run-dir', picked.dir, '--winner-key', 'draw-2', '--reason', 'picked after watching both videos');
