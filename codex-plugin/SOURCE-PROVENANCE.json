@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-10-01T14:01:49.201Z",
+  "generatedAt": "2026-10-01T14:39:37.265Z",
   "sourceRoot": "skills/, agents/, tools/",
   "source": {
     "skills": {
-      "hash": "79709cff15f840f8354f855b2229bc4dd73b90523d643eae98fcd565cd66ef10",
+      "hash": "5a28cdfd61b313c132f3f7c99d9578263af2f3301b29f42ebd86eb3e6de8d560",
       "count": 4
     },
     "agents": {

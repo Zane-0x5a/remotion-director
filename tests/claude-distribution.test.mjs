@@ -292,6 +292,16 @@ test('the kit has no equipment and no tempo pass; the builder keeps the duration
   assert.match(create, /the builder fits the piece inside it or reports `duration blocked`, and the user decides/);
 });
 
+test('sound is on by default, simple effects only, and judged by no one but the user', () => {
+  const create = readFileSync(join(ROOT, 'skills', 'create', 'SKILL.md'), 'utf8');
+  assert.match(create, /sound is \*\*on by default\*\* — simple sound effects the builder makes or sources itself; the user may turn it off/);
+  assert.match(create, /audio intent — default \*\*on\*\*/);
+  assert.match(create, /that the critic loop polishes it, and that sound is on\)/);
+  assert.match(create, /full music, and voice-over, are out of scope for now/);
+  assert.match(create, /only the user's own ears do/);
+  assert.doesNotMatch(create, /if the user wants sound/);
+});
+
 test('polishing is the critic loop by default, or the user\'s own eye with comments ferried verbatim', () => {
   const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
   const create = read('skills', 'create', 'SKILL.md');
