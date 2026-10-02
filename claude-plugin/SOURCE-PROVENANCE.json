@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T03:14:01.863Z",
+  "generatedAt": "2026-10-02T03:58:45.430Z",
   "sourceRoot": ".claude-plugin/plugin.json, skills/, agents/, tools/, assets/sfx/, package.json, LICENSE, tsconfig.json",
   "runtimeTools": [
     "check-env.mjs",
