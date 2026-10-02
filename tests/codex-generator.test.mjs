@@ -167,7 +167,11 @@ test('host guide maps each role to its ledger command and prepares blind evidenc
     assert.match(skill, /record-redraw --run-dir/);
     assert.match(skill, /Before any builder of a batch.*`internal\/roles\/direction-lister\.md`.*record-directions --run-dir.*no builder can register before it/s);
     assert.match(skill, /builder for each draw with `--direction K`/);
-    assert.match(skill, /`--direction i` and put only that direction's text in its spawn message/);
+    assert.match(skill, /Spawn the batch's i-th builder with only that direction's text in its spawn message, then register it with `--direction i`/);
+    assert.match(skill, /Register every initial role right after spawning it, with the handle `spawn_agent` returned.*never register first and spawn later/s);
+    assert.doesNotMatch(skill, /register and spawn/);
+    assert.match(skill, /Call these tools directly, never from inside an `exec` script.*with `wait_agent`, not `wait`/s);
+    assert.match(skill, /A failed call is not a missing capability/);
     assert.match(skill, /fresh direction lister on the current brief for a fresh, independent list \(do not pass it the earlier directions\)/);
     assert.match(skill, /invite an optional comment as in Step 3 \(anything, even a feeling; never ask what is missing\)/);
     assert.match(skill, /record-redraw --run-dir "<RUN_DIR>" \[--reason TEXT\] \[--brief-hash HEX\]/);
