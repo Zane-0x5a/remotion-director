@@ -474,6 +474,24 @@ test('preview, redraw and user pick are reachable through the launcher', (t) => 
   assert.equal(state.selection.reason, 'picked after watching both videos');
 });
 
+test('a preview refused because its source changed is re-rendered and reported again, and the new report replaces the old', (t) => {
+  const run = createRun(t, 2);
+  const [stale, other] = run.candidates;
+  const r1 = output(stale.source, 'r1');
+  const firstId = report(run, stale, r1, null, 'preview');
+  writeFileSync(join(stale.source, 'index.tsx'), '// edited after r1 rendered');
+  assert.throws(() => runtime.acceptPreview(run.dir, { reportId: firstId, outDir: r1, sourceDir: stale.source }), /changed after rendering.*unused output dir/s);
+  const r2 = output(stale.source, 'r2');
+  const secondId = report(run, stale, r2, null, 'preview', { id: `${stale.key}-preview-r2` });
+  assert.throws(() => runtime.acceptPreview(run.dir, { reportId: firstId, outDir: r1, sourceDir: stale.source }), /replaced.*preview-r2/);
+  runtime.acceptPreview(run.dir, { reportId: secondId, outDir: r2, sourceDir: stale.source });
+  assert.throws(() => report(run, stale, output(stale.source, 'r3'), null, 'preview', { id: `${stale.key}-preview-r3` }), /already accepted/);
+  preview(run, other);
+  const state = runtime.loadState(run.dir);
+  assert.equal(state.status, 'previews-ready');
+  assert.equal(state.previews[stale.key].outDir, r2);
+});
+
 test('the directions step precedes every builder: the registered lister records exactly N directions in rank order', (t) => {
   const dir = mkdtempSync(join(tmpdir(), 'codex-directions-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
@@ -584,16 +602,20 @@ test('user polish: no critic, notes are verbatim and sequential, and revision-do
   assert.throws(() => report(run, winner, output(winner.source, 'r3-next'), null, 'revision-done', { revision: 2 }), /revision 1/);
   assert.throws(() => report(run, loser, output(loser.source, 'r3-loser'), null, 'revision-done', { revision: 1 }), /winning/);
   const first = revise(run, winner, 1, 'r3');
-  assert.throws(() => report(run, winner, output(winner.source, 'r3-again'), null, 'revision-done', { revision: 1, id: 'second-revision-1' }), /already recorded/);
+  // A second report for the same revision replaces the first until one is accepted.
+  const secondOut = output(winner.source, 'r3-again');
+  const second = { id: report(run, winner, secondOut, null, 'revision-done', { revision: 1, id: 'second-revision-1' }), out: secondOut };
+  assert.throws(() => runtime.acceptCanonical(run.dir, { reportId: first.id, role: 'builder', outDir: first.out, sourceDir: winner.source, revision: 1 }), /replaced/);
   assert.throws(() => note(run, 2, 'before revision 1 was accepted'), /accepted first/);
-  assert.throws(() => runtime.acceptCanonical(run.dir, { reportId: first.id, role: 'builder', outDir: first.out, sourceDir: winner.source, revision: 2 }), /conflicts/);
-  const accepted = runtime.acceptCanonical(run.dir, { reportId: first.id, role: 'builder', outDir: first.out, sourceDir: winner.source, revision: 1 });
+  assert.throws(() => runtime.acceptCanonical(run.dir, { reportId: second.id, role: 'builder', outDir: second.out, sourceDir: winner.source, revision: 2 }), /conflicts/);
+  const accepted = runtime.acceptCanonical(run.dir, { reportId: second.id, role: 'builder', outDir: second.out, sourceDir: winner.source, revision: 1 });
   assert.equal(accepted.canonical.stage, 'revision-done');
   assert.equal(accepted.canonical.revision, 1);
-  assert.equal(accepted.canonical.reviewDir, join(first.out, 'review'));
+  assert.equal(accepted.canonical.reviewDir, join(second.out, 'review'));
   assert.equal(accepted.status, 'revised');
+  assert.throws(() => report(run, winner, output(winner.source, 'r3-third'), null, 'revision-done', { revision: 1, id: 'third-revision-1' }), /already accepted/);
   note(run, 2, 'better');
-  assert.equal(runtime.loadState(run.dir).userNotes.at(-1).outDir, first.out);
+  assert.equal(runtime.loadState(run.dir).userNotes.at(-1).outDir, second.out);
   assert.throws(() => runtime.switchPolish(run.dir, { mode: 'user' }), /already in user polish/);
 });
 

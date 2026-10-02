@@ -268,7 +268,13 @@ export function recordReport(runDir, report) {
   }
   if (report.role === 'builder' && role.status === 'ended') fail(finishedPiece(state, report.key) ? `Builder ${report.key} has ended: its piece is finished (next-kept moved on to a kept draw), so it no longer reports.` : `Builder ${report.key} has ended (not picked); only the selected winning builder reports after the pick.`, 'INVALID_REPORT');
   if (report.role === 'builder' && report.status !== 'blocked' && pendingDurationBlock(state, report.key)) fail(`Builder ${report.key} has a duration-blocked report awaiting the user's decision; record it with record-duration-decision first.`, 'DURATION_BLOCKED');
-  if (OUTPUT_STATUSES.includes(report.status) && state.reports.some((item) => item.role === report.role && (item.key ?? null) === (report.key ?? null) && item.status === report.status && (report.status !== 'round-done' || item.reviewRound === report.reviewRound) && (report.status !== 'revision-done' || item.revision === report.revision))) fail('A successful stage completion was already recorded for this role.', 'DUPLICATE_REPORT');
+  if (OUTPUT_STATUSES.includes(report.status)) {
+    const sameStage = (item) => item.role === report.role && (item.key ?? null) === (report.key ?? null) && item.status === report.status && (report.status !== 'round-done' || item.reviewRound === report.reviewRound) && (report.status !== 'revision-done' || item.revision === report.revision);
+    if (state.reports.some((item) => sameStage(item) && state.consumedReportIds.includes(item.id))) fail('A successful stage completion was already accepted for this role.', 'DUPLICATE_REPORT');
+    // A report of this stage that was never accepted (say its render went stale)
+    // is replaced by the re-render's report; only the newest can be accepted.
+    for (const item of state.reports) if (sameStage(item) && !item.replacedBy) item.replacedBy = report.id;
+  }
   state.reports.push({ ...report, recordedAt: new Date().toISOString() });
   return saveState(runDir, touch(state));
 }
@@ -463,7 +469,7 @@ export function verifyArtifacts(outDir, { sourceDir = null, requireProvenance = 
     if (requireProvenance && (!boundSource || !provenance.sourceHash)) fail('Artifact provenance is missing source binding; a canonical output must name its source.', 'UNBOUND_ARTIFACT');
     if (boundSource) {
       const sourceHash = hashTree(resolve(boundSource));
-      if (provenance.sourceHash !== sourceHash) fail('Source files changed after rendering; the artifact is stale and cannot be canonical.', 'STALE_ARTIFACT');
+      if (provenance.sourceHash !== sourceHash) fail('Source files changed after rendering; the artifact is stale and cannot be canonical. The builder renders the current source into an unused output dir and reports that one under a new report id.', 'STALE_ARTIFACT');
     }
   }
   return { outDir: root, videoSha256: sha256File(video), reviewDir, overviewFile, pageCount: overview.pages.length, settleCount: overview.settle_frames.length, overview, provenance, videoMetadata };
@@ -507,6 +513,7 @@ export function verifyVideoProvenance(outDir, sourceDir) {
 function acceptReport(runDir, { reportId, role = 'builder', outDir, sourceDir = null, reviewRound = null, revision = null, reviewDir = null }, stage) {
   const state = loadState(runDir); const report = state.reports.find((item) => item.id === reportId);
   if (!report) fail(`${stage === 'preview' ? 'A preview' : 'Canonical output'} requires a recorded completion report: ${reportId}.`, 'MISSING_REPORT');
+  if (report.replacedBy) fail(`Completion report ${reportId} was replaced by the builder's later report ${report.replacedBy}; accept that one.`, 'STALE_REPORT');
   if (stage === 'preview') {
     if (role !== 'builder' || report.role !== 'builder' || report.status !== 'preview') fail('accept-preview takes only a builder preview report.', 'INVALID_REPORT');
     if (state.selection) fail('Previews are accepted only before the pick.', 'INVALID_CANONICAL');
