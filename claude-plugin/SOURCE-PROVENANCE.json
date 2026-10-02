@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-01T17:30:02.673Z",
-  "sourceRoot": ".claude-plugin/plugin.json, skills/, agents/, tools/, package.json, LICENSE, tsconfig.json",
+  "generatedAt": "2026-10-02T01:18:26.795Z",
+  "sourceRoot": ".claude-plugin/plugin.json, skills/, agents/, tools/, assets/sfx/, package.json, LICENSE, tsconfig.json",
   "runtimeTools": [
     "check-env.mjs",
     "environment.mjs",
@@ -14,16 +14,20 @@
       "count": 1
     },
     "skills": {
-      "hash": "bfd5144cc83d749693edbc738ff312fd14eb6b9d83cd3b0ddef12cab198cf0bf",
+      "hash": "70a84e63d87073cd2da0330b8c297a7862c4151994a55b50582575890b2be316",
       "count": 4
     },
     "agents": {
-      "hash": "1d5b38a407c6d0b6e8f5e028d452961f2084f9067067035e59b42d65d1c161f8",
+      "hash": "75d14a81266ffa4b5c3d7724c2bf5809a91ecd86090debeae31d3a430ae8e454",
       "count": 4
     },
     "tools": {
       "hash": "e2469769a1e5b164ee4ef92c1262ba9c55f49800204e66558716a78e103c4802",
       "count": 5
+    },
+    "sfx": {
+      "hash": "72c2fc797e590b72324a8e00d128625e949f2e2084d2d0cd8a9248f911cfdd70",
+      "count": 16
     },
     "package": {
       "hash": "f0ccaf6af7de90629edbfbb21ddee4aaf3507c993764c5c3bcd29e8a9fa53e1c",
@@ -49,6 +53,7 @@
       "tools/render-arm.ts",
       "tools/time-overview.ts"
     ],
+    "sfx": "assets/sfx/",
     "rootFiles": [
       "LICENSE",
       "tsconfig.json"

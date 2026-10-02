@@ -101,7 +101,7 @@ This is a Claude Code plugin. Install it directly from this GitHub repo; no manu
 /plugin install remotion-director@remotion-director
 ```
 
-The repo is its own marketplace: `.claude-plugin/marketplace.json` lists the generated `./claude-plugin` distribution. Then invoke the `create` skill. The installed package contains only Claude skills, agents, runtime tools and dependency defaults. It leaves out the Codex package, tests, research documents and promotional media.
+The repo is its own marketplace: `.claude-plugin/marketplace.json` lists the generated `./claude-plugin` distribution. Then invoke the `create` skill. The installed package contains only Claude skills, agents, runtime tools, the sound-effect pack and dependency defaults. It leaves out the Codex package, tests, research documents and promotional media.
 
 To also limit the marketplace checkout, add it from a terminal:
 
@@ -158,7 +158,7 @@ It first runs the commission step, then draws. Anything you don't pin down gets 
 
 The critic loop has no round knob. It runs until the critic converges, then your eyes decide.
 
-> **Sound:** simple sound effects, made or found by the builder, are on by default. Full music and voice-over aren't added unless you ask; when you do, the builder works out how. The critics and the selector are **visual-only**, so nothing in the pipeline judges sound except your own ears.
+> **Sound:** simple sound effects, made or found by the builder, are on by default. The plugin ships 15 recorded CC0 sounds the builder may use (swishes, foley, water drops, room tone), picked by ear; it synthesizes the rest. Full music and voice-over aren't added unless you ask; when you do, the builder works out how. The critics and the selector are **visual-only**, so nothing in the pipeline judges sound except your own ears.
 > **Validated aspects:** 1080×1920 and 1920×1080. Square uses the same harnesses but isn't yet smoke-tested.
 
 ### Where your piece lives

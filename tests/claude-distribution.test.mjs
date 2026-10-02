@@ -7,6 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   OUT,
+  PROVENANCE_FILE,
   REQUIRED_ROOT_FILES,
   RUNTIME_TOOLS,
   SOURCE,
@@ -33,6 +34,8 @@ const SOURCE_FILES = (root) => {
 };
 const relativeFiles = (root) => SOURCE_FILES(root).map((path) => path.slice(root.length + 1).replaceAll('\\', '/'));
 const temporaryRoot = () => mkdtempSync(join(tmpdir(), 'remotion-director-claude-distribution-'));
+const indexedSounds = (pack) => JSON.parse(readFileSync(join(pack, 'index.json'), 'utf8')).sounds.map((sound) => sound.file).sort();
+const wavFiles = (pack) => readdirSync(pack).filter((name) => /\.wav$/i.test(name)).sort();
 
 test('generated Claude package contains the complete dependency closure and no Codex/development baggage', () => {
   const root = temporaryRoot();
@@ -49,6 +52,7 @@ test('generated Claude package contains the complete dependency closure and no C
       'tsconfig.json',
       ...relativeFiles(SOURCE.skills).map((path) => `skills/${path}`),
       ...relativeFiles(SOURCE.agents).map((path) => `agents/${path}`),
+      ...relativeFiles(SOURCE.sfx).map((path) => `assets/sfx/${path}`),
       ...RUNTIME_TOOLS.map((name) => `tools/${name}`),
     ].sort();
     assert.deepEqual(relativeFiles(output), expected);
@@ -73,12 +77,12 @@ test('generated Claude package contains the complete dependency closure and no C
   }
 });
 
-test('skills, agents, runtime tools and license preserve source bytes exactly', () => {
+test('skills, agents, sound pack, runtime tools and license preserve source bytes exactly', () => {
   const root = temporaryRoot();
   try {
     const output = join(root, 'package');
     generatePackage(output);
-    for (const [sourceRoot, outputRoot] of [[SOURCE.skills, join(output, 'skills')], [SOURCE.agents, join(output, 'agents')]]) {
+    for (const [sourceRoot, outputRoot] of [[SOURCE.skills, join(output, 'skills')], [SOURCE.agents, join(output, 'agents')], [SOURCE.sfx, join(output, 'assets', 'sfx')]]) {
       for (const source of SOURCE_FILES(sourceRoot)) {
         const relative = source.slice(sourceRoot.length + 1);
         assert.deepEqual(readFileSync(join(outputRoot, relative)), readFileSync(source), relative);
@@ -121,9 +125,64 @@ test('generator detects changed, missing and extra payload files without touchin
   }
 });
 
+test('the sound pack ships whole, its index lists exactly its WAVs, and the builder names its installed path', () => {
+  // Every listed file exists, no WAV is unlisted, and nothing else rides along.
+  assert.deepEqual(indexedSounds(SOURCE.sfx), wavFiles(SOURCE.sfx));
+  assert.deepEqual(readdirSync(SOURCE.sfx).sort(), [...wavFiles(SOURCE.sfx), 'index.json'].sort());
+  const root = temporaryRoot();
+  try {
+    const output = join(root, 'package');
+    generatePackage(output);
+    const pack = join(output, 'assets', 'sfx');
+    assert.deepEqual(relativeFiles(pack), relativeFiles(SOURCE.sfx));
+    for (const name of relativeFiles(SOURCE.sfx)) assert.deepEqual(readFileSync(join(pack, name)), readFileSync(join(SOURCE.sfx, name)), name);
+    assert.deepEqual(indexedSounds(pack), wavFiles(pack));
+    const builder = readFileSync(join(output, 'agents', 'builder.md'), 'utf8');
+    assert.match(builder, /`\$\{CLAUDE_PLUGIN_ROOT\}\/assets\/sfx\/`/);
+    const receipt = JSON.parse(readFileSync(join(output, PROVENANCE_FILE), 'utf8'));
+    assert.deepEqual(receipt.source.sfx, hashFiles(SOURCE.sfx));
+    assert.equal(receipt.source.sfx.count, relativeFiles(SOURCE.sfx).length);
+    assert.equal(receipt.output.sfx, 'assets/sfx/');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a changed WAV byte, a missing sound and an extra sound are package drift', () => {
+  const root = temporaryRoot();
+  try {
+    const expected = join(root, 'expected');
+    const actual = join(root, 'actual');
+    generatePackage(expected);
+    generatePackage(actual);
+    const pack = join(actual, 'assets', 'sfx');
+    const name = wavFiles(pack)[0];
+    const pattern = (kind) => new RegExp(`${kind}: .*assets/sfx/${name.replaceAll('.', '\\.')}`);
+    const wav = join(pack, name);
+    const bytes = readFileSync(wav);
+    // 0xFF and 0xFE both decode to U+FFFD as UTF-8, so only a byte compare sees this edit.
+    const at = bytes.indexOf(0xff, bytes.length >> 1);
+    assert.ok(at > -1, `${name} has no 0xFF sample byte to corrupt`);
+    bytes[at] = 0xfe;
+    writeFileSync(wav, bytes);
+    assert.throws(() => compareTrees(actual, expected), pattern('changed'));
+    generatePackage(actual);
+
+    rmSync(wav);
+    assert.throws(() => compareTrees(actual, expected), pattern('missing'));
+    generatePackage(actual);
+
+    writeFileSync(join(pack, 'unlisted.wav'), Buffer.from('RIFF'));
+    assert.throws(() => compareTrees(actual, expected), /extra: .*assets\/sfx\/unlisted\.wav/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('output safety rejects source tree and symlink replacement boundaries', () => {
   assert.throws(() => assertSafeOutput(ROOT), /source tree/i);
   assert.throws(() => assertSafeOutput(join(ROOT, 'skills', 'generated')), /in-repository|source path/i);
+  assert.throws(() => assertSafeOutput(SOURCE.sfx), /in-repository|source path/i);
   const root = temporaryRoot();
   try {
     const output = join(root, 'package');
@@ -145,7 +204,7 @@ test('output safety rejects source tree and symlink replacement boundaries', () 
   }
 });
 
-test('provenance hashes are stable across checkout line endings', () => {
+test('provenance hashes are stable across checkout line endings and exact for recorded sounds', () => {
   const root = temporaryRoot();
   try {
     const lfRoot = join(root, 'lf');
@@ -157,6 +216,15 @@ test('provenance hashes are stable across checkout line endings', () => {
     writeFileSync(lf, 'one\ntwo\n', 'utf8');
     writeFileSync(crlf, 'one\r\ntwo\r\n', 'utf8');
     assert.deepEqual(hashFiles(lfRoot), hashFiles(crlfRoot));
+
+    // As text both would read "�\n"; as bytes they differ.
+    const ffRoot = join(root, 'ff');
+    const feRoot = join(root, 'fe');
+    mkdirSync(ffRoot, { recursive: true });
+    mkdirSync(feRoot, { recursive: true });
+    writeFileSync(join(ffRoot, 'tone.wav'), Buffer.from([0xff, 0x0d, 0x0a]));
+    writeFileSync(join(feRoot, 'tone.wav'), Buffer.from([0xfe, 0x0a]));
+    assert.notEqual(hashFiles(ffRoot).hash, hashFiles(feRoot).hash);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

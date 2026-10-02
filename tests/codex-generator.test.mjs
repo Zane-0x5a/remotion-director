@@ -10,6 +10,7 @@ import {
   SOURCE,
   compareTrees,
   generatePackage,
+  sha,
   validateOutput,
 } from '../tools/generate-codex-plugin.mjs';
 
@@ -220,6 +221,69 @@ test('generator check detects changed, missing, and extra output files', () => {
 
     writeFileSync(join(actual, 'unexpected.txt'), 'drift', 'utf8');
     assert.throws(() => compareTrees(actual, expected), /extra.*unexpected\.txt/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+const wavFiles = (pack) => readdirSync(pack).filter((name) => /\.wav$/i.test(name)).sort();
+
+test('the sound pack ships byte-identical and the builder role names it under <PLUGIN_ROOT>', () => {
+  const root = temporaryRoot();
+  try {
+    const output = join(root, 'package');
+    generatePackage(output);
+    validateOutput(output);
+    const pack = join(output, 'assets', 'sfx');
+    const sourceFiles = readdirSync(SOURCE.sfx).sort();
+    assert.deepEqual(readdirSync(pack).sort(), sourceFiles);
+    for (const name of sourceFiles) assert.deepEqual(readFileSync(join(pack, name)), readFileSync(join(SOURCE.sfx, name)), name);
+    // Every listed file exists and no WAV is unlisted.
+    const listed = JSON.parse(readFileSync(join(pack, 'index.json'), 'utf8')).sounds.map((sound) => sound.file).sort();
+    assert.deepEqual(listed, wavFiles(pack));
+    const builder = readFileSync(join(output, 'internal', 'roles', 'builder.md'), 'utf8');
+    assert.match(builder, /`<PLUGIN_ROOT>\/assets\/sfx\/`/);
+    assert.doesNotMatch(builder, /CLAUDE_PLUGIN_ROOT/);
+    // <PLUGIN_ROOT> is the installed package root, so every assets path the role names is real.
+    const named = [...builder.matchAll(/<PLUGIN_ROOT>\/(assets\/[^`(\s]*)/g)].map((match) => match[1]);
+    assert.ok(named.length > 0);
+    for (const path of named) assert.ok(existsSync(join(output, path)), path);
+    const provenance = JSON.parse(readFileSync(join(output, 'SOURCE-PROVENANCE.json'), 'utf8'));
+    assert.deepEqual(provenance.source.sfx, sha(SOURCE.sfx));
+    assert.equal(provenance.source.sfx.count, sourceFiles.length);
+    assert.equal(provenance.output.sfx, 'assets/sfx/');
+    assert.ok(JSON.parse(readFileSync(join(output, 'package.json'), 'utf8')).files.includes('assets'));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('generator check detects a changed WAV byte, a missing sound and an extra sound', () => {
+  const root = temporaryRoot();
+  try {
+    const expected = join(root, 'expected');
+    const actual = join(root, 'actual');
+    generatePackage(expected);
+    generatePackage(actual);
+    const pack = join(actual, 'assets', 'sfx');
+    const name = wavFiles(pack)[0];
+    const pattern = (kind) => new RegExp(`${kind}: .*assets/sfx/${name.replaceAll('.', '\\.')}`);
+    const wav = join(pack, name);
+    const bytes = readFileSync(wav);
+    // 0xFF and 0xFE both decode to U+FFFD as UTF-8, so only a byte compare sees this edit.
+    const at = bytes.indexOf(0xff, bytes.length >> 1);
+    assert.ok(at > -1, `${name} has no 0xFF sample byte to corrupt`);
+    bytes[at] = 0xfe;
+    writeFileSync(wav, bytes);
+    assert.throws(() => compareTrees(actual, expected), pattern('changed'));
+    generatePackage(actual);
+
+    rmSync(wav);
+    assert.throws(() => compareTrees(actual, expected), pattern('missing'));
+    generatePackage(actual);
+
+    writeFileSync(join(pack, 'unlisted.wav'), Buffer.from('RIFF'));
+    assert.throws(() => compareTrees(actual, expected), /extra: .*assets\/sfx\/unlisted\.wav/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

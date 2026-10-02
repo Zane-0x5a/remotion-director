@@ -101,7 +101,7 @@ remotion-director 就是去长尾里把那一支捞出来的工作流。你给�
 /plugin install remotion-director@remotion-director
 ```
 
-本仓库自己就是 marketplace：`.claude-plugin/marketplace.json` 指向生成的 `./claude-plugin` 发布包。装好后调用 `create` 技能。安装的包里只有 Claude 的技能、agent、运行时工具和依赖默认值，不含 Codex 包、测试、研究文档和宣传素材。
+本仓库自己就是 marketplace：`.claude-plugin/marketplace.json` 指向生成的 `./claude-plugin` 发布包。装好后调用 `create` 技能。安装的包里只有 Claude 的技能、agent、运行时工具、音效包和依赖默认值，不含 Codex 包、测试、研究文档和宣传素材。
 
 想同时限制 marketplace 检出的内容，就在终端里添加：
 
@@ -158,7 +158,7 @@ node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir>
 
 批评环没有轮数旋钮：它一直跑到评审收敛，然后由你的眼睛决定。
 
-> **声音：**默认开，是乙自己做或自己找的简单音效。完整配乐和旁白不会主动加，你提了，乙会想办法做到。评审和盲选都**只看画面**，整条管线里只有你自己的耳朵评判声音。
+> **声音：**默认开，是乙自己做或自己找的简单音效。插件自带 15 条逐条听选过的 CC0 录音音效（挥扫、拟音、水滴、房间底噪），乙可以直接用，其余它自己合成。完整配乐和旁白不会主动加，你提了，乙会想办法做到。评审和盲选都**只看画面**，整条管线里只有你自己的耳朵评判声音。
 > **已验证的画幅：**1080×1920 和 1920×1080。方形用同一套渲染工具，但还没做过冒烟测试。
 
 ### 你的片子放在哪里

@@ -15,7 +15,7 @@ npm run check:plugins
 npm test
 ```
 
-The Claude generator includes the plugin manifest, skill/reference files, agent definitions, five runtime tools, dependency defaults, TypeScript configuration, source receipt and license. Neither generated package depends on files above its installed root. The dependency defaults have no lockfile: Claude's automatic plugin dependency installer requires both `package.json` and a supported lockfile, while this plugin deliberately installs its engine into the user's production workspace through environment preparation. Claude `0.3.2` marks the packaging change so existing versioned installs can update from `0.3.1`; Remotion and RBP still follow upstream through environment preparation.
+The Claude generator includes the plugin manifest, skill/reference files, agent definitions, five runtime tools, the sound-effect pack (`assets/sfx/`, copied byte-for-byte), dependency defaults, TypeScript configuration, source receipt and license. Neither generated package depends on files above its installed root. The dependency defaults have no lockfile: Claude's automatic plugin dependency installer requires both `package.json` and a supported lockfile, while this plugin deliberately installs its engine into the user's production workspace through environment preparation. Claude `0.3.2` marks the packaging change so existing versioned installs can update from `0.3.1`; Remotion and RBP still follow upstream through environment preparation.
 
 ## Install with a sparse marketplace checkout
 

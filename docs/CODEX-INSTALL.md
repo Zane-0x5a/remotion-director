@@ -11,7 +11,7 @@ node tools/generate-codex-plugin.mjs
 node tools/generate-codex-plugin.mjs --check
 ```
 
-The generated folder contains a portable root manifest, a Codex compatibility manifest, one public `remotion-director` skill, internal role/design references and runtime tools. The bundle does not need its own `node_modules`. Changes belong in the source files and generator, followed by regeneration.
+The generated folder contains a portable root manifest, a Codex compatibility manifest, one public `remotion-director` skill, internal role/design references, runtime tools and the sound-effect pack (`assets/sfx/`). The bundle does not need its own `node_modules`. Changes belong in the source files and generator, followed by regeneration.
 
 ## Install from this GitHub repository
 

@@ -3,9 +3,10 @@
  * Generate the self-contained Codex package from the Claude source of truth.
  * Only host seams are transformed: package-root paths, shell invocation syntax,
  * and lifecycle/tool names. Design, critic, selection and protocol prose
- * remains byte-for-byte identical in the generated internal sources.
+ * remains byte-for-byte identical in the generated internal sources; the
+ * sound-effect pack is copied byte-for-byte.
  */
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -13,11 +14,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'codex-plugin');
-const SOURCE = { skills: join(ROOT, 'skills'), agents: join(ROOT, 'agents'), tools: join(ROOT, 'tools') };
+const SOURCE = { skills: join(ROOT, 'skills'), agents: join(ROOT, 'agents'), tools: join(ROOT, 'tools'), sfx: join(ROOT, 'assets', 'sfx') };
 const INTERNAL = join(OUT, 'internal');
 const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'time-overview.ts', 'codex-runtime.mjs', 'codex-launcher.mjs'];
 // Internal (non-discoverable) skills bundled beside the one public entry skill.
 const DESIGN_SKILLS = ['critic-loop'];
+// Recorded sounds are binary: hashed and compared as exact bytes. Every other
+// source file (index.json included) is text.
+const BINARY_FILE = /\.wav$/i;
 
 const HOST_SEAMS = [
   'CLAUDE_PLUGIN_ROOT -> <PLUGIN_ROOT> (the orchestrator resolves this from the installed skill path)',
@@ -95,7 +99,7 @@ function files(root) {
 }
 function sha(root, filter = () => true) {
   const hash = createHash('sha256'); let count = 0;
-  for (const path of files(root).filter(filter)) { count++; hash.update(relative(root, path).replaceAll('\\', '/')).update('\0').update(normalizeText(readFileSync(path, 'utf8'))).update('\0'); }
+  for (const path of files(root).filter(filter)) { count++; hash.update(relative(root, path).replaceAll('\\', '/')).update('\0').update(BINARY_FILE.test(path) ? readFileSync(path) : normalizeText(readFileSync(path, 'utf8'))).update('\0'); }
   return { hash: hash.digest('hex'), count };
 }
 function normalizeText(text) { return text.replace(/\r\n?/g, '\n'); }
@@ -191,11 +195,19 @@ function copyTree(source, target, transform) {
   }
 }
 
+// The sound pack has no host seam: every file, binary or text, ships as its source bytes.
+function copyBytes(source, target) {
+  for (const path of files(source)) {
+    const dest = join(target, relative(source, path)); mkdirSync(dirname(dest), { recursive: true }); copyFileSync(path, dest);
+  }
+}
+
 function sourceSnapshot() {
   return {
     skills: sha(SOURCE.skills),
     agents: sha(SOURCE.agents),
     tools: sha(SOURCE.tools, (path) => RUNTIME_TOOLS.includes(path.split(/[\\/]/).pop())),
+    sfx: sha(SOURCE.sfx),
   };
 }
 
@@ -211,7 +223,7 @@ function seamManifest() {
 }
 
 function generatePackage(target = OUT) {
-  if (!existsSync(SOURCE.skills) || !existsSync(SOURCE.agents)) throw new Error('Source skills/agents are missing; generation cannot proceed.');
+  if (!existsSync(SOURCE.skills) || !existsSync(SOURCE.agents) || !existsSync(SOURCE.sfx)) throw new Error('Source skills/agents/assets/sfx are missing; generation cannot proceed.');
   rmSync(target, { recursive: true, force: true });
   mkdirSync(target, { recursive: true });
   const internal = join(target, 'internal');
@@ -228,6 +240,7 @@ function generatePackage(target = OUT) {
     mkdirSync(join(target, 'tools'), { recursive: true });
     writeFileSync(join(target, 'tools', name), transformRuntime(normalizeText(readFileSync(from, 'utf8'))), 'utf8');
   }
+  copyBytes(SOURCE.sfx, join(target, 'assets', 'sfx'));
   writeFileSync(join(target, 'plugin.json'), JSON.stringify(PORTABLE_MANIFEST, null, 2) + '\n', 'utf8');
   mkdirSync(join(target, '.codex-plugin'), { recursive: true });
   writeFileSync(join(target, '.codex-plugin', 'plugin.json'), JSON.stringify(COMPAT_MANIFEST, null, 2) + '\n', 'utf8');
@@ -235,20 +248,23 @@ function generatePackage(target = OUT) {
   const packageJson = {
     name: 'remotion-director-codex', version: '0.4.0', private: true, type: 'module', license: 'MIT',
     description: 'Runtime dependency snapshot used by the remotion-director Codex launcher; dependencies install into each user workspace.',
-    files: ['plugin.json', '.codex-plugin', 'skills', 'internal', 'tools', 'SOURCE-PROVENANCE.json', 'CODEX-HOST-SEAMS.json'],
+    files: ['plugin.json', '.codex-plugin', 'skills', 'internal', 'tools', 'assets', 'SOURCE-PROVENANCE.json', 'CODEX-HOST-SEAMS.json'],
     dependencies: rootPackage.dependencies, devDependencies: rootPackage.devDependencies,
   };
   writeFileSync(join(target, 'package.json'), JSON.stringify(packageJson, null, 2) + '\n', 'utf8');
   const source = sourceSnapshot();
   writeFileSync(join(target, 'SOURCE-PROVENANCE.json'), JSON.stringify({
-    generatedAt: new Date().toISOString(), sourceRoot: 'skills/, agents/, tools/', source,
-    output: { publicSkills: ['remotion-director'], internalSkills: DESIGN_SKILLS, internalRoles: internalRoles(), runtimeTools: RUNTIME_TOOLS },
+    generatedAt: new Date().toISOString(), sourceRoot: 'skills/, agents/, tools/, assets/sfx/', source,
+    output: { publicSkills: ['remotion-director'], internalSkills: DESIGN_SKILLS, internalRoles: internalRoles(), runtimeTools: RUNTIME_TOOLS, sfx: 'assets/sfx/' },
   }, null, 2) + '\n', 'utf8');
   writeFileSync(join(target, 'CODEX-HOST-SEAMS.json'), JSON.stringify(seamManifest(), null, 2) + '\n', 'utf8');
   return { package: target, publicSkill, source };
 }
 
 function comparableContent(path) {
+  // A UTF-8 decode would fold distinct invalid bytes into U+FFFD, so binary
+  // files compare as an exact byte encoding.
+  if (BINARY_FILE.test(path)) return readFileSync(path).toString('base64');
   const data = normalizeText(readFileSync(path, 'utf8'));
   if (path.endsWith('SOURCE-PROVENANCE.json')) {
     const value = JSON.parse(data);
