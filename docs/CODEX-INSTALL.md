@@ -24,7 +24,7 @@ codex plugin add remotion-director@remotion-director-codex
 
 Start a new task, or restart the host, after installing or updating so skill discovery reloads. The installed plugin exposes one public skill, `remotion-director`; its internal role and design files are bundled references. Do not register the repository root as the Codex plugin or install the internal references as separate public skills.
 
-The Claude marketplace remains independent. `.claude-plugin/marketplace.json` selects `./claude-plugin`, version `0.3.2`. Its installed package excludes Codex files, tests and migration documents. Claude's separate marketplace repository cache may still contain other directories unless registered with a sparse checkout; see [distribution and update details](PLUGIN-DISTRIBUTION.md). The additive `file` field in the shared `render-strip` manifest is the common runtime change. Shared global RBP updates can affect both hosts by the existing intended policy.
+The Claude marketplace remains independent. `.claude-plugin/marketplace.json` selects `./claude-plugin`, version `1.0.0`. Its installed package excludes Codex files, tests and migration documents. Claude's separate marketplace repository cache may still contain other directories unless registered with a sparse checkout; see [distribution and update details](PLUGIN-DISTRIBUTION.md). Both packages ship the same rendering and review tools. Shared global RBP updates can affect both hosts by the existing intended policy.
 
 ## Install in a local Codex host
 
@@ -37,7 +37,7 @@ codex plugin add remotion-director@<your-marketplace-name>
 codex plugin list --marketplace <your-marketplace-name> --json
 ```
 
-Start a new task after installing or updating so the host reloads the skill. Invoke `remotion-director` with your brief. Discovery should expose only `remotion-director:remotion-director` from this plugin; `design-brain` and `critic-loop` are internal references.
+Start a new task after installing or updating so the host reloads the skill. Invoke `remotion-director` with your brief. Discovery should expose only `remotion-director:remotion-director` from this plugin; `critic-loop` and the four roles are internal references.
 
 The host must support fresh child contexts, continuation of the same child, explicit result collection, local commands, image inspection and permitted crop writes. The skill maps these roles to the actual host tools; installing Markdown does not automatically register Claude agent definitions or create filesystem isolation.
 

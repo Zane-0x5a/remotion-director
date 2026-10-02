@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T14:21:22.936Z",
+  "generatedAt": "2026-10-02T14:27:09.799Z",
   "sourceRoot": ".claude-plugin/plugin.json, skills/, agents/, tools/, assets/sfx/, package.json, LICENSE, tsconfig.json",
   "runtimeTools": [
     "check-env.mjs",
@@ -10,7 +10,7 @@
   ],
   "source": {
     "manifest": {
-      "hash": "892cb631344ad36460d01bb9177edae85f88b117d9cca19ca5596804b5d2de3e",
+      "hash": "df160132a12dcdee08c6b4401a3031f2323c9c19e23119aab16c245d1c4cf6a9",
       "count": 1
     },
     "skills": {
@@ -30,7 +30,7 @@
       "count": 16
     },
     "package": {
-      "hash": "f0ccaf6af7de90629edbfbb21ddee4aaf3507c993764c5c3bcd29e8a9fa53e1c",
+      "hash": "b7f5a6c99b18447b3b1934fd7e8960e7042f1be24fd8e3023f608a124267cf77",
       "count": 1
     },
     "license": {

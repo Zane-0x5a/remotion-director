@@ -1,6 +1,6 @@
 {
   "name": "remotion-director",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "description": "Design and build a finished motion piece (vertical 1080×1920 by default; landscape/square supported) from a brief. A fresh-context concept step lists N directions that differ at the idea level and each of N independent draws is dealt one; a unified design+build agent (乙) designs the piece and writes the Remotion code in one continuous context and renders a first full cut (the r1 preview); the most promising base is picked from those previews — by the user by default, or by a blind selector; only the picked draw self-checks. Polishing is the 甲乙环 critic loop by default — a design-blind aesthetic critic (甲) judges the rendered video, its time overview and settle frames round after round until it converges: hands-off, safe, not ceiling-breaking — or, when the user chooses 亲自打磨, the user's own comments ferried verbatim to 乙. The user's own eyes are the final gate.",
   "author": {
     "name": "Zane"
