@@ -43,11 +43,33 @@ const help = `remotion-director Codex launcher\n\n` +
   `  record-redraw --run-dir DIR [--reason TEXT] [--brief-hash HEX]   the user rejected every preview; their comment as given, the updated brief's hash\n` +
   `  recover-role --run-dir DIR --role ROLE --previous-agent-id ID --replacement-agent-id ID --replacement-continuation-id ID --reason TEXT\n` +
   `  verify-artifacts --out DIR [--source DIR] [--allow-unbound]\n` +
-  `  status --run-dir DIR\n\n` +
+  `  status --run-dir DIR [--full]\n\n` +
   `All state mutations fail loudly on duplicate reports, identity changes, stale artifacts,\n` +
-  `or completion without a verified output. Use --json for machine-readable output.`;
+  `or completion without a verified output. Ledger commands print a summary of the run;\n` +
+  `status --full prints the whole ledger. Use --json for machine-readable output.`;
 
-function print(valueToPrint) { console.log(has('--json') ? JSON.stringify(valueToPrint, null, 2) : typeof valueToPrint === 'string' ? valueToPrint : JSON.stringify(valueToPrint, null, 2)); }
+// Every ledger command returns the whole run state. Printed in full it cost the
+// orchestrator thousands of tokens per call in a real run, so it gets a summary.
+function summary(state) {
+  const role = (entry) => (entry ? { agentId: entry.agentId, status: entry.status } : null);
+  const verdict = state.verdicts?.at(-1);
+  return {
+    runId: state.runId, status: state.status, polish: state.polishMode,
+    builders: Object.fromEntries(Object.entries(state.roles?.builders ?? {}).map(([key, entry]) => [key, role(entry)])),
+    lister: role(state.roles?.lister), selector: role(state.roles?.selector), critic: role(state.roles?.critic),
+    previews: Object.fromEntries(Object.entries(state.previews ?? {}).map(([key, preview]) => [key, preview.outDir])),
+    selection: state.selection ? { by: state.selection.by, winnerKey: state.selection.winnerKey, kept: state.selection.kept ?? [] } : null,
+    canonical: state.canonical ? { key: state.canonical.key, stage: state.canonical.stage, outDir: state.canonical.outDir } : null,
+    lastVerdict: verdict ? { id: verdict.id, round: verdict.round, converged: /^CONVERGED:\s*YES\b/m.test(verdict.text ?? '') } : null,
+    finished: (state.finished ?? []).map((piece) => piece.key),
+    updatedAt: state.updatedAt,
+  };
+}
+const isState = (shown) => shown !== null && typeof shown === 'object' && 'schemaVersion' in shown && 'runId' in shown;
+function print(valueToPrint) {
+  const shown = isState(valueToPrint) && !has('--full') ? summary(valueToPrint) : valueToPrint;
+  console.log(typeof shown === 'string' && !has('--json') ? shown : JSON.stringify(shown, null, 2));
+}
 function die(error) { console.error(`[codex] FAILED ${error.code ?? 'ERROR'}: ${error.message}`); process.exitCode = 1; }
 function coded(message, code) { const error = new Error(message); error.code = code; return error; }
 function workspaceRoot() { return resolve(value('--workspace', process.cwd())); }

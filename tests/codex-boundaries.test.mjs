@@ -846,12 +846,25 @@ test('also-keep and next-kept are reachable through the launcher, and status sho
   settle(run, 'draw-1');
   result = cli('next-kept', '--run-dir', run.dir, '--key', 'draw-3');
   assert.equal(result.status, 0, result.stderr);
-  const shown = JSON.parse(cli('status', '--run-dir', run.dir, '--json').stdout);
+  const shown = JSON.parse(cli('status', '--run-dir', run.dir, '--full', '--json').stdout);
   assert.equal(shown.finished[0].key, 'draw-1');
   assert.equal(shown.finished[0].canonical.stage, 'settled');
   assert.equal(shown.selection.winnerKey, 'draw-3');
   assert.deepEqual(shown.selection.kept, ['draw-2']);
   assert.match(cli('--help').stdout, /--also-keep draw-M[\s\S]*next-kept --run-dir DIR --key draw-M/);
+});
+
+test('ledger commands print a summary of the run; status --full prints the whole ledger', (t) => {
+  const run = createRun(t, 2); previewAll(run);
+  const result = cli('record-user-selection', '--run-dir', run.dir, '--winner-key', 'draw-1', '--also-keep', 'draw-2');
+  assert.equal(result.status, 0, result.stderr);
+  const shown = JSON.parse(result.stdout);
+  assert.deepEqual(shown.selection, { by: 'user', winnerKey: 'draw-1', kept: ['draw-2'] });
+  assert.equal(shown.builders['draw-1'].status, 'running');
+  assert.equal(shown.reports, undefined);
+  const full = cli('status', '--run-dir', run.dir, '--full');
+  assert.ok(JSON.parse(full.stdout).reports.length >= 2);
+  assert.ok(result.stdout.length * 3 < full.stdout.length, 'the summary is a fraction of the ledger');
 });
 
 test('a schema-4 ledger written before kept draws reads as none kept and none finished', (t) => {
