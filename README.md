@@ -1,6 +1,6 @@
 # remotion-director
 
-> **Codex adaptation (draft):** the generated package is in `codex-plugin/`. See [installation and usage](docs/CODEX-INSTALL.md), the [migration plan](docs/CODEX-MIGRATION-PLAN.md), and [validation status](docs/CODEX-VALIDATION.md). Installed rendering has been exercised; complete creative acceptance on Codex remains a release blocker.
+> **Codex adaptation:** the generated package is in `codex-plugin/`. See [installation and usage](docs/CODEX-INSTALL.md), the [migration plan](docs/CODEX-MIGRATION-PLAN.md), and [validation status](docs/CODEX-VALIDATION.md). A complete creative run on Codex passed on 2026-10-02: commission, three directions and previews, a blind pick, self-check, the critic loop, and the user's final look.
 
 <div align="center">
 

@@ -2,9 +2,9 @@
 
 Date: 2026-09-25. Source baseline: `28fb82cc437f7bf3b231e2694ace0f65d031b9bd`.
 
-This record separates engineering checks from acceptance of the creative product. The migration is implemented for review; full creative acceptance remains blocked.
+This record separates engineering checks from acceptance of the creative product. The engineering checks below date from 2026-09-25; the creative acceptance passed end to end on 2026-10-02 (see [End-to-end creative acceptance](#end-to-end-creative-acceptance-2026-10-02)).
 
-> **Update 2026-10-02.** The checks below were run before the source pipeline was rebuilt on Claude Opus 5.5. Stills, strip frames, `render-strip.ts`, the tempo pass and post-tempo review no longer exist: every render now writes `video.mp4` and a `review/` directory (time overview pages, settle frames, `overview.json`), which the ledger (schema 4) verifies. The automated suite now covers the rebuilt runtime (dealt directions, the pick at the previews, redraws, both polish modes, `duration blocked`). Entries below that mention stills, strips or tempo describe that earlier state. Full creative acceptance on Codex remains blocked.
+> **Update 2026-10-02.** The checks below were run before the source pipeline was rebuilt on Claude Opus 5.5. Stills, strip frames, `render-strip.ts`, the tempo pass and post-tempo review no longer exist: every render now writes `video.mp4` and a `review/` directory (time overview pages, settle frames, `overview.json`), which the ledger (schema 4) verifies. The automated suite now covers the rebuilt runtime (dealt directions, the pick at the previews, redraws, both polish modes, `duration blocked`). Entries below that mention stills, strips or tempo describe that earlier state.
 
 ## Reproducible engineering checks
 
@@ -92,16 +92,48 @@ The primary boundary tests exercise the actual verdict CLI and a synthetic multi
 
 The ledger validates actions submitted through its commands. It does not intercept arbitrary host tool calls or enforce a filesystem sandbox. Fresh context, same-agent continuation, forbidden reads, native crops and faithful relay remain protocol requirements that need actual host trace evidence.
 
-## Creative acceptance and release blockers
+## End-to-end creative acceptance, 2026-10-02
+
+Host: Codex CLI `0.160.0` app-server on Windows, held open by a test driver so that the user's messages could be relayed between turns. The model was `gpt-6.1-sol` at `xhigh`, reached through a third-party Responses API relay. The approval policy was `never` with full access, because nobody was present to approve commands. The plugin was installed from the local repository with `codex plugin marketplace add` and `plugin add`; the installed files matched the generated package byte for byte. The brief was a late-night study room at a public library ("The Reading Room — open until 2am."). The commission was the user's own: full auto, the designer picks the length, simple sound effects.
+
+**Run 4 passed** at plugin commit `6dcac44`:
+
+1. The commission questions came first. Then came a separate confirm-back, which the user answered in person.
+2. Environment preparation resolved Remotion 4.0.532.
+3. One direction lister returned three directions, recorded verbatim. Each of three builders was dealt one direction.
+4. The three r1 previews (16 s, 24 s and 26 s, each with sound) were accepted through `accept-preview`.
+5. `prepare-selection` made anonymous candidates. A fresh blind selector picked C, which was draw-3, and `record-selection` recorded it.
+6. The picked builder self-checked and settled on `r3`, which `accept-canonical` verified.
+7. A fresh critic saw only the role, the brief, `review/` and the video. Round 1 returned three low-severity items and `CONVERGED: YES`.
+8. The orchestrator's closing claim matched the ledger: an accepted canonical whose last verdict converged.
+9. The finished film is 26.0 s, 1080×1920 at 30 fps, with a stereo AAC track (mean −22.7 dB). The user accepted it at the final gate.
+
+Deviations in run 4. Each is recorded, and the plugin changes that answer them are listed.
+
+- The orchestrator spawned four direction listers. It interrupted the first, then spawned three more at once, registered one and used only that one's list. The ledger cannot see unregistered children; the host guide allows one lister per batch.
+- It registered all three builders before spawning them, and never spawned draw-3's. It waited on draw-3 for about an hour before noticing, then replaced it with a fresh builder. That builder had no preview yet, so nothing was lost.
+- The test driver ran the app-server under a two-hour job limit, which killed it during the picked builder's self-check. After the restart, `list_agents` showed no children. The orchestrator replaced the picked builder with a fresh one instead of continuing it. So the self-check and the critic round were done by a builder that read the piece back rather than designed it: the degraded form, which the skill reserves for the user's choice. Commit `29622ed` makes `recover-role` refuse that without the user's words. A probe verified that `followup_task` to a child's original handle reloads it with its context, even after a machine reboot, and the host guide now says so.
+- Token use for the whole run was 41.7 M input tokens (34.5 M of them cached) and 124 k output tokens. The orchestrator accounts for 28.4 M of the input, mostly from repeated `wait_agent` polls during the hour it waited.
+
+Earlier runs were void:
+
+- **Run 1** found that `render-arm` served the workspace's `public/` instead of each draw's, so sound effects returned 404. It also found that the orchestrator added an audience to the brief and guessed model IDs.
+- **Run 2** lost the host's inter-agent messages partway through: tasks arrived as opaque tokens. The orchestrator then spawned helpers and claimed a finished film that the ledger did not show.
+- **Run 3** registered builders that it never spawned, and reported a host capability block that did not exist.
+
+Every finding that belongs to the plugin was fixed and unit-tested before the next run. Fixes for what only Codex showed live in the Codex adapter, not in the shared sources the Claude plugin reads.
+
+Not established by these runs: other Codex hosts and models, hard read isolation (prompt blindness remains a protocol constraint), the 亲自打磨 polish mode, the user's own pick at the previews, and a critic loop that runs beyond one round on Codex.
+
+## Earlier creative attempt, 2026-09-25
 
 The real test brief was a 12-second, 1080×1920, 30fps, silent night-bus service piece with required Chinese copy, using two independent draws.
 
 - Draw 2 delivered its explicit settled report, rendered video and strip, and inspected native text and door crops.
 - Draw 1 saved its staged design and source, but sandboxed rendering failed with `uv_os_get_passwd ENOMEM`. Automatic approval review rejected its elevated render retry. It has no settled render and was not promoted to canonical.
 - Because the commissioned two draws have not both settled, no blind selection was made. The run was not silently reduced to one draw.
-- Persistent multi-round critic behavior, read-access blindness, pixel rebuttal, post-tempo validation, locked/free creative cases and user visual approval are not yet accepted end to end.
 
-These are release blockers, not optional future enhancements. The review PR must remain draft until the intended creative flow is demonstrated under an authorized execution path. The current evidence does not establish public-directory approval, all Codex hosts, Bash execution, audio quality, nonvertical punctuation geometry, restart-persistent agent memory or hard read isolation.
+At the time these were release blockers; the 2026-10-02 runs above answer them.
 
 ## Unrelated work
 

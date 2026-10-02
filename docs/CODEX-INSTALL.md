@@ -1,6 +1,6 @@
 # Codex installation and usage
 
-The Codex distribution is `codex-plugin/`; Claude installs the separate generated `claude-plugin/` distribution. Shared authoring sources remain at the repository root. This adaptation is a draft: read [validation status](CODEX-VALIDATION.md) before relying on it for production delivery.
+The Codex distribution is `codex-plugin/`; Claude installs the separate generated `claude-plugin/` distribution. Shared authoring sources remain at the repository root. [Validation status](CODEX-VALIDATION.md) records what a complete creative run on Codex has established, and what it hasn't.
 
 ## Build the distribution
 

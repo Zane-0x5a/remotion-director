@@ -1,6 +1,6 @@
 # remotion-director
 
-> **Codex 适配（待验收）：**生成包在 `codex-plugin/`。参见[安装与使用](docs/CODEX-INSTALL.md)、[移植计划](docs/CODEX-MIGRATION-PLAN.md)和[验收记录](docs/CODEX-VALIDATION.md)。安装后的渲染已经跑通；Codex 上完整的创作验收还没做，它仍是发版前提。
+> **Codex 适配：**生成包在 `codex-plugin/`。参见[安装与使用](docs/CODEX-INSTALL.md)、[移植计划](docs/CODEX-MIGRATION-PLAN.md)和[验收记录](docs/CODEX-VALIDATION.md)。2026-10-02，Codex 上完整的创作流程验收通过：委托、三个方向和预览、盲选、自检、评论环，最后由用户亲眼过目。
 
 <div align="center">
 
