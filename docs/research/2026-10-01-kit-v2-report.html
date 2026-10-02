@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>套件改版：两种打磨</title>
+<style>
+  :root {
+    --ground: #f5f6f8; --paper: #ffffff; --ink: #12141a; --ink-2: #474c59; --ink-3: #868c9b;
+    --rule: #dcdfe6; --rule-2: #eceef2; --accent: #3140d4; --accent-weak: #e9ebfb; --accent-ink: #1f2aa0;
+    --warm: #b4541c; --warm-weak: #fbeee6; --ok: #1f7a4a; --ok-weak: #e6f4ec;
+    --sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.65; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 52px 28px 96px; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  code { font-family: var(--mono); font-size: 13px; background: var(--rule-2); padding: 1px 5px; border-radius: 4px; }
+  header.top { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 26px; border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font-size: clamp(38px, 5.5vw, 66px); line-height: 1.05; font-weight: 800; letter-spacing: -0.02em; }
+  h1 .second { color: var(--accent); }
+  .sub { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; max-width: 780px; }
+  .status { text-align: right; font-size: 13px; color: var(--ink-2); }
+  .pill { display: inline-block; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  section { margin-top: 56px; }
+  h2 { font-size: 25px; line-height: 1.25; margin: 0 0 6px; font-weight: 800; }
+  .lede { margin: 0 0 22px; color: var(--ink-2); max-width: 820px; }
+
+  .heads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-top: 30px; }
+  .head { background: var(--paper); padding: 18px 20px 20px; }
+  .head .big { font-family: var(--mono); font-size: 40px; font-weight: 700; line-height: 1; }
+  .head .big.acc { color: var(--accent); }
+  .head .big.ok { color: var(--ok); }
+  .head .big.warm { color: var(--warm); }
+  .head b { display: block; margin-top: 10px; font-size: 15px; }
+  .head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; align-items: stretch; }
+  .step { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 16px; position: relative; }
+  .step .n { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+  .step b { display: block; font-size: 16px; margin: 2px 0 6px; }
+  .step p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .step.pol { grid-column: span 2; background: var(--accent-weak); border-color: #c7ccf5; }
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .mode { background: var(--paper); border: 1px solid #c7ccf5; border-radius: 10px; padding: 10px 12px 12px; }
+  .mode b { font-size: 15px; margin: 0 0 4px; }
+  .mode .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: #fff; margin-bottom: 6px; }
+  .mode .tag.opt { background: var(--paper); color: var(--accent-ink); border: 1.5px solid var(--accent); }
+  .gate { margin-top: 10px; background: var(--ink); color: #fff; border-radius: 12px; padding: 14px 18px; display: flex; gap: 14px; align-items: baseline; }
+  .gate b { font-size: 16px; white-space: nowrap; }
+  .gate span { color: #c9ccd6; font-size: 14px; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; vertical-align: top; padding: 12px 16px; border-bottom: 1px solid var(--rule-2); font-size: 14px; }
+  th { background: #fafbfc; font-size: 12.5px; color: var(--ink-3); font-weight: 700; letter-spacing: 0.02em; }
+  tr:last-child td { border-bottom: none; }
+  td.role { font-weight: 800; white-space: nowrap; width: 120px; }
+  td ul { margin: 0; padding-left: 18px; }
+  td li { margin: 2px 0; }
+
+  .figs { display: grid; grid-template-columns: 1.65fr 1fr; gap: 14px; align-items: start; }
+  figure { margin: 0; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px; }
+  figure img { width: 100%; display: block; border-radius: 6px; border: 1px solid var(--rule-2); }
+  figcaption { font-size: 13px; color: var(--ink-2); margin-top: 8px; line-height: 1.55; }
+
+  .checks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .check { background: var(--paper); border: 1px solid var(--rule); border-left: 4px solid var(--ok); border-radius: 10px; padding: 12px 16px; }
+  .check b { display: block; font-size: 15px; }
+  .check p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); }
+
+  .todo { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 6px 20px; }
+  .todo .row { display: grid; grid-template-columns: 170px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--rule-2); }
+  .todo .row:last-child { border-bottom: none; }
+  .todo .row b { font-size: 14.5px; }
+  .todo .row p { margin: 0; font-size: 14px; color: var(--ink-2); }
+  .ask { margin-top: 14px; background: var(--warm-weak); border: 1px solid #efcdb8; border-radius: 12px; padding: 16px 20px; }
+  .ask b { color: var(--warm); }
+  .ask p { margin: 6px 0 0; }
+  @media (max-width: 860px) {
+    .heads, .flow, .figs, .checks, .modes { grid-template-columns: 1fr; }
+    .step.pol { grid-column: auto; }
+    header.top { grid-template-columns: 1fr; }
+    .status { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>套件改版<br><span class="second">两种打磨</span></h1>
+      <p class="sub">票 14 第 3 步：提示词按重判结论重写完毕，两个发布包已重新生成，测试全部通过。票 12、票 14 已关闭。</p>
+    </div>
+    <div class="status">
+      <div class="pill">已本地提交</div>
+      <div class="mono">d23c317 · 未推送</div>
+      <div>2026-10-01</div>
+    </div>
+  </header>
+
+  <div class="heads">
+    <div class="head"><div class="big ok">95/95</div><b>测试全过</b><p>另外 typecheck、check:plugins 都通过；Claude 和 Codex 两个发布包都已重新生成。</p></div>
+    <div class="head"><div class="big acc">273/273</div><b>和 Python 原型对齐</b><p>TypeScript 版时间总览在 5 支片上的全部数值；定态帧的文件名和像素也一致。</p></div>
+    <div class="head"><div class="big acc">2</div><b>种打磨方式</b><p>批评环（默认，全自动）或亲自打磨（你看片说的话原样转给乙）。委托时选。</p></div>
+    <div class="head"><div class="big warm">0</div><b>装备、节奏刀</b><p>整份删除，归档在 <code>docs/archive/kit-2026-09/</code>，附删除理由。</p></div>
+  </div>
+
+  <section>
+    <h2>现在的流程</h2>
+    <p class="lede">节奏刀那一步没了。锁定时长改成乙的承诺：内容放不下时，乙报 <code>duration blocked</code>，由你决定放宽还是保留。</p>
+    <div class="flow">
+      <div class="step"><div class="n">0</div><b>委托</b><p>比例、时长、文案；新增一问"谁来打磨"，默认批评环。</p></div>
+      <div class="step"><div class="n">1.5 – 2</div><b>分方向 · 抽卡</b><p>列 N 个想法不同的方向，每支 draw 领一个，各自渲出 r1 预览。</p></div>
+      <div class="step"><div class="n">3 – 3.5</div><b>挑选 · 自检</b><p>默认你看视频挑，可选 AI 盲选。只有被选中的那支自检定稿。</p></div>
+      <div class="step pol"><div class="n">4 / 4b</div><b>打磨</b>
+        <div class="modes">
+          <div class="mode"><span class="tag">默认</span><b>批评环</b><p>甲只看像素、报现象，乙决定改不改，直到甲收敛。不突破上限，但安全、省心。</p></div>
+          <div class="mode"><span class="tag opt">可选</span><b>亲自打磨</b><p>不派甲。你看片后主动说的话原样转给乙，乙改完报 <code>revision K done</code>。从不问你缺什么、怎么改。</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="gate"><b>5 · 你的最终关</b><span>只看视频。批评环之后你若说出不满意的地方，这支片就转入亲自打磨，从你这句话接着改。</span></div>
+  </section>
+
+  <section>
+    <h2>每个环节改了什么</h2>
+    <table>
+      <tr><th>环节</th><th>改动</th></tr>
+      <tr><td class="role">甲</td><td><ul>
+        <li>用 §6.2 预测试过的版本：顶级动态设计师的立场，看审美和叙事效果，每轮先写第一眼清单。</li>
+        <li>材料换成时间总览、定态帧和视频本身，需要时可从视频里自己抽帧、裁切。</li>
+      </ul></td></tr>
+      <tr><td class="role">盲选</td><td><ul>
+        <li>恢复"先给第一眼整体判断"，和两根判断轴：设计/叙事、质感。</li>
+        <li>看潜力不看现有瑕疵；材料同甲。</li>
+      </ul></td></tr>
+      <tr><td class="role">乙</td><td><ul>
+        <li>以 N0 原文为底：方向是种子，整支片的设计由它定。</li>
+        <li>锁定时长是对你的承诺，总时长不许改，放不下时报 <code>duration blocked</code>。</li>
+        <li>两种打磨各自怎么接：批评环里按甲的现象自己判断；亲自打磨里按你的原话改，不反问你。</li>
+      </ul></td></tr>
+      <tr><td class="role">create</td><td><ul>
+        <li>新增"谁来打磨"一问和 Step 4b 亲自打磨；删掉 Step 4.5 节奏刀。</li>
+        <li>你在任何一步都只看视频。</li>
+      </ul></td></tr>
+      <tr><td class="role">工具</td><td><ul>
+        <li>新增 <code>tools/time-overview.ts</code>。</li>
+        <li>render-arm 渲完视频后自动生成 <code>review/</code>，不再出 6 张均匀静帧；<code>render-strip.ts</code> 已删除。</li>
+      </ul></td></tr>
+      <tr><td class="role">Codex 端</td><td><ul>
+        <li>运行时账本升到 schema 4，校验 <code>video.mp4</code> 加 <code>review/</code>。</li>
+        <li>新增两种打磨的命令和守卫：批评环模式下不能记你的意见，亲自打磨模式下不能派甲。</li>
+        <li><code>duration blocked</code> 记录在案，等你的决定。</li>
+      </ul></td></tr>
+      <tr><td class="role">其他</td><td><ul>
+        <li>CONTEXT.md 新增"打磨""批评环""亲自打磨"。</li>
+        <li>插件描述改成新流程；重判文档 §5 记下了你的决定。</li>
+      </ul></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>实渲一支真片：评审现在看到的材料</h2>
+    <p class="lede">用 Claude 发布包里的 render-arm 重渲 run-kiv（15 秒，1920×1080）。渲完自动生成 2 页时间总览和 8 张定态帧，分析用时约 2.5 秒。</p>
+    <div class="figs">
+      <figure>
+        <img src="assets/2026-10-01-kit-v2-kiv-overview-1.jpg" alt="run-kiv 时间总览第 1 页">
+        <figcaption><b>时间总览</b> <code>overview-1.png</code>：每 0.25 秒一格，一行 3 秒。蓝线是逐帧变化，橙线是 0.5 秒窗口；色带表示整幅静止、慢动、运动。黑场、闪烁、定态里的抖动、短命内容都标在同一条时间轴上。</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/2026-10-01-kit-v2-kiv-settle-02.jpg" alt="run-kiv 定态帧 3.50 秒">
+        <figcaption><b>定态帧</b> <code>settle-02_t03.50s.png</code>：每个定态最平稳处一张原分辨率帧，用来判构图、排印和质感。本图为展示缩小过，评审拿到的是原尺寸。</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>验证</h2>
+    <div class="checks">
+      <div class="check"><b>测试 95/95</b><p>新增：甲和盲选的 agent 文本必须与协议逐字一致；不得残留装备、节奏刀、条带；打磨两种模式的顺序和守卫；时间总览在合成片上读对黑场、定格和运动。</p></div>
+      <div class="check"><b>和原型逐个数字对齐</b><p>v01、v02、γM、V9 片段、V6 共 273 个数值全部一致；V9 全长额外 264/264。定态帧逐字节一致。</p></div>
+      <div class="check"><b>发布包一致</b><p><code>check:plugins</code> 确认两个发布包和源文件一致；类型检查无错误。</p></div>
+      <div class="check"><b>真片端到端</b><p>插件目录里的 render-arm 能找到同目录的 time-overview，并在 workspace 依赖下跑通。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>还没做的</h2>
+    <div class="todo">
+      <div class="row"><b>叙事重写</b><p>README、WHY、DEVELOPMENT-JOURNEY 还写着装备和节奏刀；<code>docs/CODEX-*.md</code> 也有约 30 处过时段落，行号已记进票 14。建议等套件定版后一起重写，免得再改一遍。</p></div>
+      <div class="row"><b>发行验收规则</b><p>票 07 还开着："过"的标准、什么时候算套件定版，都还没定。</p></div>
+      <div class="row"><b>推送 / PR</b><p>都还在本地分支 <code>feat/equipment-baseline-m</code> 上，需要你同意才推。</p></div>
+    </div>
+    <div class="ask">
+      <b>需要你定：R1 之后往哪走</b>
+      <p>执行诊断的结论是：好想法交给默认执行就能到 5 分，瓶颈在上游。两条路：回概念阶段（研究为什么想法很少到 5 分），或直接进发行验收。</p>
+      <p>我建议先定票 07 的验收规则。规则定了，才知道现在的套件离"过"还差多少，再决定要不要回概念阶段。</p>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>时间总览 · T1 结果</title>
+<style>
+  :root {
+    --ground: #f5f6f8; --paper: #ffffff; --ink: #12141a; --ink-2: #474c59; --ink-3: #868c9b;
+    --rule: #dcdfe6; --rule-2: #eceef2; --accent: #3140d4; --accent-weak: #e9ebfb; --accent-ink: #1f2aa0;
+    --warm: #b4541c; --warm-weak: #fbeee6;
+    --sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.65; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 52px 28px 96px; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  header.top { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 26px; border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; }
+  h1 .second { color: var(--accent); }
+  .sub { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; max-width: 760px; }
+  .status { text-align: right; font-size: 13px; color: var(--ink-2); }
+  .pill { display: inline-block; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  section { margin-top: 60px; }
+  h2 { font-size: 25px; line-height: 1.25; margin: 0 0 6px; font-weight: 800; }
+  .lede { margin: 0 0 22px; color: var(--ink-2); max-width: 800px; }
+
+  .heads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-top: 30px; }
+  .head { background: var(--paper); padding: 18px 20px 20px; }
+  .head .big { font-family: var(--mono); font-size: 40px; font-weight: 700; line-height: 1; }
+  .head .big.acc { color: var(--accent); }
+  .head .big.warm { color: var(--warm); }
+  .head b { display: block; margin-top: 10px; font-size: 15px; }
+  .head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  .matrix { display: grid; grid-template-columns: 1.45fr 1fr 1.55fr; gap: 12px; align-items: start; }
+  .stack { display: grid; gap: 12px; }
+  .col { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 16px; }
+  .col h3 { margin: 0; font-size: 15px; }
+  .col .q { margin: 2px 0 12px; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+  .col.think { background: #fbfbfc; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { border: 1.5px solid var(--ink); border-radius: 8px; padding: 5px 9px 6px; font-size: 13px; line-height: 1.3; background: var(--paper); max-width: 100%; }
+  .chip .c { font-family: var(--mono); font-weight: 700; font-size: 11.5px; margin-right: 5px; }
+  .chip.test { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.test .to { font-family: var(--mono); font-size: 11px; font-weight: 700; margin-left: 5px; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,.22); }
+  .chip.dedup { border-style: dashed; }
+  .chip.recheck::after { content: "换代重审"; font-size: 10.5px; color: var(--warm); margin-left: 6px; font-weight: 700; }
+  .chip.dedup::after { content: "去重"; font-size: 10.5px; color: var(--ink-2); margin-left: 6px; font-weight: 700; }
+  .col.think .chip:not(.test) { border-color: var(--ink-3); color: var(--ink-2); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 14px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .legend i { display: inline-block; width: 22px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); vertical-align: -2px; margin-right: 6px; }
+  .legend i.t { background: var(--accent); border-color: var(--accent); }
+  .legend i.g { border-color: var(--ink-3); }
+  .legend i.d { border-style: dashed; }
+  .nodelete { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: var(--ink); color: #fff; border-radius: 12px; padding: 18px 22px; }
+  .nodelete .z { font-family: var(--mono); font-size: 44px; font-weight: 700; line-height: 1; }
+  .nodelete p { margin: 0; font-size: 14px; color: #dfe1e8; line-height: 1.65; }
+  .nodelete b { color: #fff; }
+
+  .gaps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gap { background: var(--paper); border: 1px solid var(--rule); border-top: 4px solid var(--warm); border-radius: 10px; padding: 14px 16px 16px; }
+  .gap .k { font-family: var(--mono); font-weight: 700; color: var(--warm); font-size: 13px; }
+  .gap h3 { margin: 2px 0 2px; font-size: 16px; }
+  .gap .cat { font-size: 12px; color: var(--ink-3); }
+  .gap p { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .gap .goes { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--accent-ink); }
+
+  .pipe { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 22px 22px 18px; }
+  .stages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; position: relative; }
+  .stage { text-align: center; position: relative; padding: 0 4px; }
+  .stage .box { border: 1.5px solid var(--ink); border-radius: 8px; padding: 9px 4px; font-size: 13.5px; font-weight: 700; background: var(--paper); position: relative; z-index: 1; }
+  .stages::before { content: ""; position: absolute; left: 6%; right: 6%; top: 21px; height: 2px; background: var(--ink); }
+  .pins { margin-top: 10px; display: grid; gap: 6px; justify-items: center; }
+  .pin { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; white-space: nowrap; }
+  .pin.q { background: var(--warm); }
+  .pipe .foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule-2); display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .pipe .foot span.d { display: inline-block; width: 12px; height: 12px; border-radius: 999px; vertical-align: -1px; margin-right: 6px; }
+
+  .cands { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .cand { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px 16px; display: flex; flex-direction: column; }
+  .cand .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .cand .k { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--accent); }
+  .cand h3 { margin: 2px 0 6px; font-size: 17px; }
+  .cand .what { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--ink); }
+  .tag.m { background: var(--accent-weak); border-color: #b9bff1; color: var(--accent-ink); }
+  .tag.q { background: var(--warm-weak); border-color: #ecc3a6; color: var(--warm); }
+  .tag.render { background: var(--ink); color: #fff; }
+  .tag.norender { border-style: dashed; color: var(--ink-2); border-color: var(--ink-3); }
+  .outs { margin-top: 12px; display: grid; gap: 6px; font-size: 13px; line-height: 1.5; }
+  .outs div { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+  .outs .ab { font-family: var(--mono); font-weight: 700; color: var(--ink-3); }
+  .pre { margin-top: auto; padding-top: 12px; }
+  .pre .box { margin-top: 12px; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; line-height: 1.5; background: var(--ground); color: var(--ink-2); }
+  .pre .box.yes { background: #e8f3ec; color: #1d5a35; }
+  .pre .box b { color: inherit; }
+  .src { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; }
+  .costnote { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+
+  .limits { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 22px; }
+  .limits ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
+  .limits li { margin: 4px 0; }
+  .next { margin-top: 14px; font-size: 13.5px; color: var(--ink-2); }
+  .next b { color: var(--ink); }
+  .revise { margin-top: 26px; border: 1.5px solid var(--warm); background: var(--warm-weak); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink-2); }
+  .revise b { color: var(--warm); }
+  .withdrawn { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .wd { background: transparent; border: 1px dashed var(--ink-3); border-radius: 10px; padding: 12px 16px 14px; }
+  .wd .k { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink-3); text-decoration: line-through; }
+  .wd h3 { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); }
+  .wd p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .wd p b { color: var(--ink); }
+  .cands.two { grid-template-columns: repeat(2, 1fr); }
+  footer { margin-top: 56px; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 14px; }
+  @media (max-width: 900px) {
+    .heads, .gaps, .cands { grid-template-columns: 1fr 1fr; }
+    .matrix { grid-template-columns: 1fr 1fr; }
+    .stages { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
+    .stages::before { display: none; }
+  }
+</style>
+<style>
+  .vers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .vs { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 16px; font-size: 13.2px; color: var(--ink-2); line-height: 1.55; }
+  .vs b { display: block; color: var(--ink); }
+  .vs.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .quote { margin-top: 12px; padding: 12px 16px; border-left: 4px solid var(--accent); background: var(--accent-weak); border-radius: 0 10px 10px 0; font-size: 14px; color: var(--accent-ink); }
+  .chk { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .cr { display: grid; grid-template-columns: 120px 1.2fr 1fr 1.3fr; border-top: 1px solid var(--rule-2); }
+  .cr:first-child { border-top: 0; background: var(--ground); font-size: 12px; font-weight: 700; color: var(--ink-3); }
+  .cr > div { padding: 10px 14px; font-size: 13.2px; line-height: 1.5; color: var(--ink-2); }
+  .cr .nm { font-weight: 700; color: var(--ink); }
+  .bad { color: var(--warm); font-weight: 700; }
+  .ok { color: var(--accent-ink); font-weight: 700; }
+  .shot { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px; margin-top: 14px; }
+  .shot img { width: 100%; display: block; border-radius: 6px; }
+  .shot p { margin: 8px 4px 2px; font-size: 13px; color: var(--ink-2); }
+  table.t1 { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; font-size: 13.5px; }
+  .t1 th, .t1 td { padding: 9px 10px; text-align: center; border-top: 1px solid var(--rule-2); font-family: var(--mono); }
+  .t1 thead th { background: var(--ground); font-family: var(--sans); font-size: 12px; color: var(--ink-3); }
+  .t1 td.up { background: var(--warm-weak); color: var(--warm); font-weight: 800; }
+  .t1 td.dn { background: var(--accent-weak); color: var(--accent-ink); font-weight: 800; }
+  .t1 td.um { color: var(--ink); font-weight: 700; }
+  .finds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+  .fd { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; font-size: 13.2px; color: var(--ink-2); line-height: 1.55; }
+  .fd .k { font-family: var(--mono); font-size: 26px; font-weight: 800; line-height: 1.1; }
+  .fd b { display: block; color: var(--ink); margin: 4px 0; }
+  .concl { background: var(--ink); color: #e6e8ef; border-radius: 12px; padding: 18px 22px; font-size: 15px; line-height: 1.7; margin-top: 16px; }
+  .concl b { color: #aeb5ff; }
+  .rec2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .rc { border-radius: 12px; padding: 16px 18px; font-size: 13.5px; line-height: 1.6; }
+  .rc b { display: block; font-size: 16px; margin-bottom: 6px; }
+  .rc.yes { background: var(--accent); color: #fff; }
+  .rc.no { background: var(--paper); border: 1.5px dashed var(--ink-3); color: var(--ink-2); }
+  .rc.how { background: var(--paper); border: 1px solid var(--rule); color: var(--ink-2); }
+  .qs { display: grid; gap: 12px; }
+  .qq { background: var(--paper); border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 18px; }
+  .qq b { font-size: 15.5px; }
+  .qq p { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-2); }
+  .qq .rec { color: var(--accent-ink); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1>时间总览<br><span class="second">读得准，但判断没更像你</span></h1>
+    <p class="sub">给每支片做一份从像素算出的时间总览。我先自己读已知缺陷的案例，核对图上读不读得出；再花约 $3.3 跑 T1：描述员加上总览，重判本轮 6 支，和你的评分对照。</p>
+  </div>
+  <div class="status"><div class="pill">第三版 · T1 已跑完</div><br>地图票 12<br>接不接进管线待你定</div>
+</header>
+
+<section>
+  <div class="vers">
+    <div class="vs"><b>第一版</b>只有局部像素检测</div>
+    <div class="vs"><b>第二版</b>整体的时间总览；验证要跑 T1–T3，约 $60</div>
+    <div class="vs now"><b>第三版</b>"读不读得出"由我直接读图核对，只花钱跑 T1；T2、T3、合成片、连续帧和代码叠加都不做</div>
+  </div>
+  <div class="quote">"盲审跟你是同一个模型，只要不依赖上下文，你能看得懂的他也能看懂。不要在低价值的地方烧钱。"</div>
+</section>
+
+<section>
+  <h2>自读核对：图上读不读得出已知的缺陷</h2>
+  <p class="lede">每例都只看图上画出来的东西判断。第一版原型有两例读不出，改了工具之后都读得出了。</p>
+  <div class="chk">
+    <div class="cr"><div>案例</div><div>当年记录的缺陷</div><div>第一版原型</div><div>改进后</div></div>
+    <div class="cr"><div class="nm">V6 d3 r1</div><div>payoff 前约 1.2 秒黑场</div><div class="ok">读得出：连续 4 格全黑</div><div>顶部写明"黑场 9.0–9.83 秒"</div></div>
+    <div class="cr"><div class="nm">V9 d1 r3</div><div>收束句、印章、签名同一帧全部出现</div><div class="ok">读得出：一格之内全部出齐</div><div>同左</div></div>
+    <div class="cr"><div class="nm">V9 d1 r3</div><div>两条小注只停 0.67、0.47 秒</div><div class="bad">读不出：缩略图里约 2 像素</div><div class="ok">橙框，"只停 0.63 秒；只停 0.43 秒"</div></div>
+    <div class="cr"><div class="nm">γ M r3</div><div>收尾定镜里两个字一直在抽搐</div><div class="bad">读不出：曲线上的微小起伏</div><div class="ok">红框，"100% 的帧在变，中位 2212 像素"</div></div>
+  </div>
+  <div class="shot"><img src="assets/2026-10-01-time-overview/V9-r3-B8.jpg" alt=""><p>V9 收束段：44.42–44.67 秒两格里，橙框框住刚出现的小注，44.92 秒那格整页就被翻掉了。</p></div>
+  <div class="shot"><img src="assets/2026-10-01-time-overview/gammaM-r3.jpg" alt="" style="max-width:760px"><p>γ M：最后一行灰底是 1.9 秒的定镜，红框标出那一行字在定镜里一直在变。</p></div>
+</section>
+
+<section>
+  <h2>T1：描述员加上时间总览，重判本轮 6 支</h2>
+  <p class="lede">严重度从"只看静帧和条带"变成"再加时间总览"。橙 = 升高，蓝 = 降低。合计 39 → 39。</p>
+  <table class="t1"><thead><tr><th>视频</th><th>你：质量/成熟度</th><th>主体</th><th>构图</th><th>排印</th><th>色彩</th><th>质感</th><th>运动</th><th>节奏</th><th>结尾</th><th>缺陷</th></tr></thead><tbody><tr><th>v01</th><td class="um">5/4</td><td class="">1→1</td><td class="">1→1</td><td class="">1→1</td><td class="dn">1→0</td><td class="">1→1</td><td class="">0→0</td><td class="">1→1</td><td class="up">1→2</td><td class="dn">2→1</td></tr><tr><th>v02</th><td class="um">5/4</td><td class="dn">1→0</td><td class="">1→1</td><td class="">1→1</td><td class="">0→0</td><td class="">1→1</td><td class="">0→0</td><td class="">1→1</td><td class="up">0→1</td><td class="">1→1</td></tr><tr><th>v03</th><td class="um">5/5</td><td class="">2→2</td><td class="">1→1</td><td class="">1→1</td><td class="">1→1</td><td class="dn">1→0</td><td class="">0→0</td><td class="">2→2</td><td class="up">0→1</td><td class="">1→1</td></tr><tr><th>v04</th><td class="um">5/5</td><td class="">0→0</td><td class="">1→1</td><td class="">1→1</td><td class="">0→0</td><td class="">1→1</td><td class="">0→0</td><td class="">1→1</td><td class="up">0→1</td><td class="">1→1</td></tr><tr><th>v05</th><td class="um">4/5</td><td class="dn">1→0</td><td class="">1→1</td><td class="up">0→1</td><td class="">0→0</td><td class="dn">1→0</td><td class="up">0→1</td><td class="">1→1</td><td class="up">0→1</td><td class="">2→2</td></tr><tr><th>v06</th><td class="um">5/5</td><td class="">0→0</td><td class="">1→1</td><td class="">0→0</td><td class="">0→0</td><td class="">0→0</td><td class="">0→0</td><td class="">1→1</td><td class="">0→0</td><td class="dn">2→1</td></tr></tbody></table>
+  <div class="finds">
+    <div class="fd"><div class="k" style="color:var(--accent)">0</div><b>处时间误读</b>它引用的时长和测得的数字逐条对得上，例如 v06"色牌只完整停留 4.23–5.23 秒"。风险项没有发生。</div>
+    <div class="fd"><div class="k">2→1</div><b>粒子重组只是减轻了</b>v06 剩下两条都被你复看后否掉：粒子短暂盖住那行字，"注意力全在中心动画上，静止的未遮蔽状态才是主体"；"青石桥"前的青绿色块"明显是特意设计"，而它正是被总览的橙框引过去的。</div>
+    <div class="fd"><div class="k">6/6</div><b>节奏判断一条没变</b>时长读准了，还是认为"开场铺得长、信息集中在最后"。这几支你打了 5/5，所以分歧在标准，不在看没看见。</div>
+    <div class="fd"><div class="k" style="color:var(--warm)">+5</div><b>新增"结尾还在动"</b>都依据顶部的"收尾定镜 0.0 秒"。其中 3 支你打了成熟度 5：数字把它往"这是问题"的方向带了。</div>
+  </div>
+  <div class="concl"><b>结论：</b>时间总览把事实交到了它手里，它也读准了，但判断没有因此更接近你。剩下的差距主要在"什么算问题"的标准上。给一个找问题的盲评更多时间事实，它会找出更多问题，其中一部分是你不认为是问题的，这正是 V8 因为条带误报白跑 3 轮渲染的那种风险。</div>
+  <div class="concl" style="background:var(--warm-weak);color:var(--ink-2);border:1px solid #f0d2bf"><b style="color:var(--warm)">更正（你指出）：</b>T1 的评审是本轮的描述员，不是管线里的甲和盲选。套件里它们的提示词一直有"mid 帧绝不当持定缺陷判"这条规则，没被删过；但描述员的提示词是我新写的，没带上这条，视觉包又把条带文件名上的 held/mid 标签抹掉了。所以 T1 只能说明总览读得准、这个描述员的标准和你不同，不能推断甲和盲选；"暂不交给盲选和甲"已撤回。</div>
+</section>
+
+<section>
+  <h2>建议</h2>
+  <div class="rec2">
+    <div class="rc yes"><b>接进乙的自检和节奏刀</b>它们知道设计意图，拿到的是测得的事实：黑场多长、哪段字只停了 0.43 秒、哪个定镜里还在抖。和意图符不符，由它们自己判断。对应的正是成熟度研究里最常见的那类缺陷。每次自检多读 1–2 张图，不增加渲染。</div>
+    <div class="rc no"><b>盲选和甲：先不定</b>T1 回答不了这个问题（见上方更正）。要提前知道，就用它们自己的提示词重跑本轮 6 支，约 $3；默认是你在 r1 视频上挑，所以不急。</div>
+    <div class="rc how"><b>不单独做实验</b>接进去之后在发行验收里一并看：成熟度有没有因为时间类缺陷丢分，自检有没有因为总览多跑无谓的轮次。</div>
+  </div>
+</section>
+
+<section>
+  <h2>待你决定</h2>
+  <div class="qs">
+    <div class="qq"><b>Q1 按上面的建议接</b><p>时间总览进乙的自检和节奏刀；盲选和甲先不定。</p><p class="rec">推荐：接。</p></div>
+    <div class="qq"><b>Q2 工具进套件</b><p>把原型从 Python 改写成和 render-strip.ts 同一套的 TypeScript 工具，由 render 流程顺带生成。</p><p class="rec">推荐：改写，因为插件不依赖 Python。</p></div>
+  </div>
+</section>
+</div>
+</body>
+</html>

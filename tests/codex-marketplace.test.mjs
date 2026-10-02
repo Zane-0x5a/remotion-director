@@ -48,8 +48,9 @@ test('Codex and Claude marketplaces route their isolated packages', () => {
   assert.equal(claudeEntry.name, claudeManifest.name);
   assert.equal(claudeEntry.version, claudeManifest.version);
 
-  assert.deepEqual(publicSkillDirs(join(claudeRoot, 'skills')), ['create', 'critic-loop', 'design-brain']);
-  for (const role of ['aesthetic-critic', 'blind-selector', 'builder', 'tempo-pass']) {
+  assert.deepEqual(publicSkillDirs(join(claudeRoot, 'skills')), ['create', 'critic-loop']);
+  for (const role of ['aesthetic-critic', 'blind-selector', 'builder', 'direction-lister']) {
     assert.ok(existsSync(join(claudeRoot, 'agents', `${role}.md`)), `missing Claude role ${role}`);
   }
+  assert.equal(existsSync(join(claudeRoot, 'agents', 'tempo-pass.md')), false, 'the tempo pass is archived');
 });

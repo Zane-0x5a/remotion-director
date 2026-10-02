@@ -5,8 +5,9 @@
  * The repository root is the authoring source for the Claude plugin.  A marketplace
  * installation points at claude-plugin/, so that directory must contain every file
  * Claude needs and none of the Codex adapter or development material.  Source
- * Markdown and agent bodies are copied byte-for-byte; this generator only composes
- * the small package manifest and provenance receipt around them.
+ * Markdown, agent bodies and the sound-effect pack are copied byte-for-byte; this
+ * generator only composes the small package manifest and provenance receipt
+ * around them.
  */
 import {
   copyFileSync,
@@ -32,6 +33,7 @@ const SOURCE = {
   skills: join(ROOT, 'skills'),
   agents: join(ROOT, 'agents'),
   tools: join(ROOT, 'tools'),
+  sfx: join(ROOT, 'assets', 'sfx'),
   package: join(ROOT, 'package.json'),
   license: join(ROOT, 'LICENSE'),
   tsconfig: join(ROOT, 'tsconfig.json'),
@@ -39,9 +41,12 @@ const SOURCE = {
 
 // These are the only runtime tools Claude's source skill invokes.  The Codex
 // launcher/runtime and their ledgers are deliberately outside this closure.
-const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'render-strip.ts'];
+const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'time-overview.ts'];
 const REQUIRED_ROOT_FILES = ['LICENSE', 'tsconfig.json'];
 const PROVENANCE_FILE = 'SOURCE-PROVENANCE.json';
+// Recorded sounds are binary: hashed and compared as exact bytes.  Every other
+// source file (index.json included) is text.
+const BINARY_FILE = /\.wav$/i;
 
 function walk(root) {
   if (!existsSync(root)) return [];
@@ -67,7 +72,8 @@ function hashFiles(root, paths = walk(root)) {
     hash.update(normalizePath(relative(root, path))).update('\0');
     // Git may check the same text out with LF or CRLF.  Provenance describes
     // source content rather than checkout plumbing, so normalize newlines here.
-    hash.update(normalizeText(readFileSync(path, 'utf8'))).update('\0');
+    // Binary files have no newlines to normalize and are hashed as raw bytes.
+    hash.update(BINARY_FILE.test(path) ? readFileSync(path) : normalizeText(readFileSync(path, 'utf8'))).update('\0');
   }
   return { hash: hash.digest('hex'), count: paths.length };
 }
@@ -84,6 +90,7 @@ function sourceSnapshot() {
     skills: hashFiles(SOURCE.skills),
     agents: hashFiles(SOURCE.agents),
     tools: hashFiles(SOURCE.tools, RUNTIME_TOOLS.map((name) => join(SOURCE.tools, name))),
+    sfx: hashFiles(SOURCE.sfx),
     package: { hash: hashFile(SOURCE.package), count: 1 },
   };
   for (const name of REQUIRED_ROOT_FILES) {
@@ -124,7 +131,7 @@ function packageDefaults() {
 function provenance() {
   return {
     generatedAt: new Date().toISOString(),
-    sourceRoot: '.claude-plugin/plugin.json, skills/, agents/, tools/, package.json, LICENSE, tsconfig.json',
+    sourceRoot: '.claude-plugin/plugin.json, skills/, agents/, tools/, assets/sfx/, package.json, LICENSE, tsconfig.json',
     runtimeTools: RUNTIME_TOOLS,
     source: sourceSnapshot(),
     output: {
@@ -132,6 +139,7 @@ function provenance() {
       skills: 'skills/',
       agents: 'agents/',
       tools: RUNTIME_TOOLS.map((name) => `tools/${name}`),
+      sfx: 'assets/sfx/',
       rootFiles: REQUIRED_ROOT_FILES,
       package: 'package.json',
     },
@@ -139,7 +147,7 @@ function provenance() {
 }
 
 function assertSourceReady() {
-  for (const path of [SOURCE.manifest, SOURCE.skills, SOURCE.agents, SOURCE.package, SOURCE.license, SOURCE.tsconfig]) {
+  for (const path of [SOURCE.manifest, SOURCE.skills, SOURCE.agents, SOURCE.sfx, SOURCE.package, SOURCE.license, SOURCE.tsconfig]) {
     if (!existsSync(path)) throw new Error(`Claude source is missing: ${path}`);
   }
   for (const name of RUNTIME_TOOLS) {
@@ -173,7 +181,7 @@ function assertSafeOutput(target) {
     throw new Error(`Refusing to replace an in-repository path other than ${OUT}: ${destination}`);
   }
   const protectedSources = [SOURCE.manifest, SOURCE.skills, SOURCE.agents, SOURCE.tools,
-    SOURCE.package, SOURCE.license, SOURCE.tsconfig];
+    SOURCE.sfx, SOURCE.package, SOURCE.license, SOURCE.tsconfig];
   // Reject both directions: an output below a source directory could delete
   // authoring files, while an output above one would delete the source tree as
   // part of its recursive replacement.
@@ -224,6 +232,7 @@ function generatePackage(target = OUT) {
   copyFileSync(SOURCE.manifest, join(destination, '.claude-plugin', 'plugin.json'));
   copyTree(SOURCE.skills, join(destination, 'skills'));
   copyTree(SOURCE.agents, join(destination, 'agents'));
+  copyTree(SOURCE.sfx, join(destination, 'assets', 'sfx'));
   mkdirSync(join(destination, 'tools'), { recursive: true });
   for (const name of RUNTIME_TOOLS) copyFileSync(join(SOURCE.tools, name), join(destination, 'tools', name));
   for (const name of REQUIRED_ROOT_FILES) copyFileSync(join(ROOT, name), join(destination, name));
@@ -233,6 +242,9 @@ function generatePackage(target = OUT) {
 }
 
 function comparableContent(path) {
+  // A UTF-8 decode would fold distinct invalid bytes into U+FFFD, so binary
+  // files compare as an exact byte encoding.
+  if (BINARY_FILE.test(path)) return readFileSync(path).toString('base64');
   const text = normalizeText(readFileSync(path, 'utf8'));
   if (path.endsWith(PROVENANCE_FILE)) {
     const value = JSON.parse(text);

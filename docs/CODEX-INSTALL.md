@@ -1,6 +1,6 @@
 # Codex installation and usage
 
-The Codex distribution is `codex-plugin/`; Claude installs the separate generated `claude-plugin/` distribution. Shared authoring sources remain at the repository root. This adaptation is a draft: read [validation status](CODEX-VALIDATION.md) before relying on it for production delivery.
+The Codex distribution is `codex-plugin/`; Claude installs the separate generated `claude-plugin/` distribution. Shared authoring sources remain at the repository root. [Validation status](CODEX-VALIDATION.md) records what a complete creative run on Codex has established, and what it hasn't.
 
 ## Build the distribution
 
@@ -11,18 +11,11 @@ node tools/generate-codex-plugin.mjs
 node tools/generate-codex-plugin.mjs --check
 ```
 
-The generated folder contains a portable root manifest, a Codex compatibility manifest, one public `remotion-director` skill, internal role/design references and runtime tools. The bundle does not need its own `node_modules`. Changes belong in the source files and generator, followed by regeneration.
+The generated folder contains a portable root manifest, a Codex compatibility manifest, one public `remotion-director` skill, internal role/design references, runtime tools and the sound-effect pack (`assets/sfx/`). The bundle does not need its own `node_modules`. Changes belong in the source files and generator, followed by regeneration.
 
 ## Install from this GitHub repository
 
-The repository has a separate Codex marketplace whose entry points at `./codex-plugin`. For the current preview branch, add that marketplace and install the `remotion-director` plugin with:
-
-```text
-codex plugin marketplace add Zane-0x5a/remotion-director --ref codex/codex-plugin-migration
-codex plugin add remotion-director@remotion-director-codex
-```
-
-After the change is merged, run the same commands without `--ref`; the default branch will contain the marketplace entry:
+The repository has a separate Codex marketplace whose entry points at `./codex-plugin`. Add that marketplace and install the `remotion-director` plugin with:
 
 ```text
 codex plugin marketplace add Zane-0x5a/remotion-director
@@ -31,7 +24,7 @@ codex plugin add remotion-director@remotion-director-codex
 
 Start a new task, or restart the host, after installing or updating so skill discovery reloads. The installed plugin exposes one public skill, `remotion-director`; its internal role and design files are bundled references. Do not register the repository root as the Codex plugin or install the internal references as separate public skills.
 
-The Claude marketplace remains independent. `.claude-plugin/marketplace.json` selects `./claude-plugin`, version `0.3.2`. Its installed package excludes Codex files, tests and migration documents. Claude's separate marketplace repository cache may still contain other directories unless registered with a sparse checkout; see [distribution and update details](PLUGIN-DISTRIBUTION.md). The additive `file` field in the shared `render-strip` manifest is the common runtime change. Shared global RBP updates can affect both hosts by the existing intended policy.
+The Claude marketplace remains independent. `.claude-plugin/marketplace.json` selects `./claude-plugin`, version `1.0.0`. Its installed package excludes Codex files, tests and migration documents. Claude's separate marketplace repository cache may still contain other directories unless registered with a sparse checkout; see [distribution and update details](PLUGIN-DISTRIBUTION.md). Both packages ship the same rendering and review tools. Shared global RBP updates can affect both hosts by the existing intended policy.
 
 ## Install in a local Codex host
 
@@ -44,7 +37,7 @@ codex plugin add remotion-director@<your-marketplace-name>
 codex plugin list --marketplace <your-marketplace-name> --json
 ```
 
-Start a new task after installing or updating so the host reloads the skill. Invoke `remotion-director` with your brief. Discovery should expose only `remotion-director:remotion-director` from this plugin; `design-brain` and `critic-loop` are internal references.
+Start a new task after installing or updating so the host reloads the skill. Invoke `remotion-director` with your brief. Discovery should expose only `remotion-director:remotion-director` from this plugin; `critic-loop` and the four roles are internal references.
 
 The host must support fresh child contexts, continuation of the same child, explicit result collection, local commands, image inspection and permitted crop writes. The skill maps these roles to the actual host tools; installing Markdown does not automatically register Claude agent definitions or create filesystem isolation.
 

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>执行诊断 · 结果</title>
+<style>
+  :root {
+    --ground: #f5f6f8; --paper: #ffffff; --ink: #12141a; --ink-2: #474c59; --ink-3: #868c9b;
+    --rule: #dcdfe6; --rule-2: #eceef2; --accent: #3140d4; --accent-weak: #e9ebfb; --accent-ink: #1f2aa0;
+    --warm: #b4541c; --warm-weak: #fbeee6;
+    --sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.65; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 52px 28px 96px; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  header.top { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 26px; border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; }
+  h1 .second { color: var(--accent); }
+  .sub { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; max-width: 760px; }
+  .status { text-align: right; font-size: 13px; color: var(--ink-2); }
+  .pill { display: inline-block; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  section { margin-top: 60px; }
+  h2 { font-size: 25px; line-height: 1.25; margin: 0 0 6px; font-weight: 800; }
+  .lede { margin: 0 0 22px; color: var(--ink-2); max-width: 800px; }
+
+  .heads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-top: 30px; }
+  .head { background: var(--paper); padding: 18px 20px 20px; }
+  .head .big { font-family: var(--mono); font-size: 40px; font-weight: 700; line-height: 1; }
+  .head .big.acc { color: var(--accent); }
+  .head .big.warm { color: var(--warm); }
+  .head b { display: block; margin-top: 10px; font-size: 15px; }
+  .head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  .matrix { display: grid; grid-template-columns: 1.45fr 1fr 1.55fr; gap: 12px; align-items: start; }
+  .stack { display: grid; gap: 12px; }
+  .col { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 16px; }
+  .col h3 { margin: 0; font-size: 15px; }
+  .col .q { margin: 2px 0 12px; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+  .col.think { background: #fbfbfc; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { border: 1.5px solid var(--ink); border-radius: 8px; padding: 5px 9px 6px; font-size: 13px; line-height: 1.3; background: var(--paper); max-width: 100%; }
+  .chip .c { font-family: var(--mono); font-weight: 700; font-size: 11.5px; margin-right: 5px; }
+  .chip.test { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.test .to { font-family: var(--mono); font-size: 11px; font-weight: 700; margin-left: 5px; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,.22); }
+  .chip.dedup { border-style: dashed; }
+  .chip.recheck::after { content: "换代重审"; font-size: 10.5px; color: var(--warm); margin-left: 6px; font-weight: 700; }
+  .chip.dedup::after { content: "去重"; font-size: 10.5px; color: var(--ink-2); margin-left: 6px; font-weight: 700; }
+  .col.think .chip:not(.test) { border-color: var(--ink-3); color: var(--ink-2); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 14px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .legend i { display: inline-block; width: 22px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); vertical-align: -2px; margin-right: 6px; }
+  .legend i.t { background: var(--accent); border-color: var(--accent); }
+  .legend i.g { border-color: var(--ink-3); }
+  .legend i.d { border-style: dashed; }
+  .nodelete { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: var(--ink); color: #fff; border-radius: 12px; padding: 18px 22px; }
+  .nodelete .z { font-family: var(--mono); font-size: 44px; font-weight: 700; line-height: 1; }
+  .nodelete p { margin: 0; font-size: 14px; color: #dfe1e8; line-height: 1.65; }
+  .nodelete b { color: #fff; }
+
+  .gaps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gap { background: var(--paper); border: 1px solid var(--rule); border-top: 4px solid var(--warm); border-radius: 10px; padding: 14px 16px 16px; }
+  .gap .k { font-family: var(--mono); font-weight: 700; color: var(--warm); font-size: 13px; }
+  .gap h3 { margin: 2px 0 2px; font-size: 16px; }
+  .gap .cat { font-size: 12px; color: var(--ink-3); }
+  .gap p { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .gap .goes { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--accent-ink); }
+
+  .pipe { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 22px 22px 18px; }
+  .stages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; position: relative; }
+  .stage { text-align: center; position: relative; padding: 0 4px; }
+  .stage .box { border: 1.5px solid var(--ink); border-radius: 8px; padding: 9px 4px; font-size: 13.5px; font-weight: 700; background: var(--paper); position: relative; z-index: 1; }
+  .stages::before { content: ""; position: absolute; left: 6%; right: 6%; top: 21px; height: 2px; background: var(--ink); }
+  .pins { margin-top: 10px; display: grid; gap: 6px; justify-items: center; }
+  .pin { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; white-space: nowrap; }
+  .pin.q { background: var(--warm); }
+  .pipe .foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule-2); display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .pipe .foot span.d { display: inline-block; width: 12px; height: 12px; border-radius: 999px; vertical-align: -1px; margin-right: 6px; }
+
+  .cands { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .cand { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px 16px; display: flex; flex-direction: column; }
+  .cand .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .cand .k { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--accent); }
+  .cand h3 { margin: 2px 0 6px; font-size: 17px; }
+  .cand .what { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--ink); }
+  .tag.m { background: var(--accent-weak); border-color: #b9bff1; color: var(--accent-ink); }
+  .tag.q { background: var(--warm-weak); border-color: #ecc3a6; color: var(--warm); }
+  .tag.render { background: var(--ink); color: #fff; }
+  .tag.norender { border-style: dashed; color: var(--ink-2); border-color: var(--ink-3); }
+  .outs { margin-top: 12px; display: grid; gap: 6px; font-size: 13px; line-height: 1.5; }
+  .outs div { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+  .outs .ab { font-family: var(--mono); font-weight: 700; color: var(--ink-3); }
+  .pre { margin-top: auto; padding-top: 12px; }
+  .pre .box { margin-top: 12px; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; line-height: 1.5; background: var(--ground); color: var(--ink-2); }
+  .pre .box.yes { background: #e8f3ec; color: #1d5a35; }
+  .pre .box b { color: inherit; }
+  .src { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; }
+  .costnote { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+
+  .limits { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 22px; }
+  .limits ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
+  .limits li { margin: 4px 0; }
+  .next { margin-top: 14px; font-size: 13.5px; color: var(--ink-2); }
+  .next b { color: var(--ink); }
+  .revise { margin-top: 26px; border: 1.5px solid var(--warm); background: var(--warm-weak); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink-2); }
+  .revise b { color: var(--warm); }
+  .withdrawn { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .wd { background: transparent; border: 1px dashed var(--ink-3); border-radius: 10px; padding: 12px 16px 14px; }
+  .wd .k { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink-3); text-decoration: line-through; }
+  .wd h3 { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); }
+  .wd p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .wd p b { color: var(--ink); }
+  .cands.two { grid-template-columns: repeat(2, 1fr); }
+  footer { margin-top: 56px; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 14px; }
+  @media (max-width: 900px) {
+    .heads, .gaps, .cands { grid-template-columns: 1fr 1fr; }
+    .matrix { grid-template-columns: 1fr 1fr; }
+    .stages { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
+    .stages::before { display: none; }
+  }
+</style>
+<style>
+  .brief { margin-top: 18px; }
+  .bh { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-bottom: 12px; }
+  .bh h3 { margin: 0; font-size: 17px; }
+  .bh span { font-size: 13px; color: var(--accent-ink); font-weight: 700; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .pc { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px 14px; }
+  .pc.fav { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .thumbs img { width: 100%; display: block; border-radius: 6px; background: #ddd; }
+  .thumbs.por { grid-template-columns: auto auto; justify-content: start; }
+  .thumbs.por img { width: auto; height: 220px; }
+  .row1 { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .vid { font-family: var(--mono); font-weight: 800; font-size: 15px; }
+  .slot { font-family: var(--mono); font-size: 12.5px; color: var(--ink-3); }
+  .lay { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+  .lay.def { background: var(--ink); color: #fff; }
+  .lay.rnd { border: 1px solid var(--ink-3); color: var(--ink-2); }
+  .favtag { margin-left: auto; font-size: 11.5px; font-weight: 800; color: #fff; background: var(--accent); padding: 1px 8px; border-radius: 999px; }
+  .conceit { margin: 6px 0 10px; font-size: 13.5px; line-height: 1.55; }
+  .scores { display: grid; grid-template-columns: 70px 70px 1fr; gap: 8px; align-items: stretch; }
+  .s { border-radius: 8px; padding: 6px 8px; background: var(--ground); }
+  .s span { display: block; font-size: 11px; color: var(--ink-3); font-weight: 700; }
+  .s b { font-family: var(--mono); font-size: 26px; line-height: 1.1; }
+  .s.q5, .s.m5 { background: var(--accent); color: #fff; }
+  .s.q5 span, .s.m5 span { color: #cfd3ff; }
+  .s.q4, .s.m4 { background: var(--warm-weak); color: var(--warm); }
+  .meta { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; align-self: center; }
+  .note { margin-top: 8px; font-size: 13px; line-height: 1.55; color: var(--ink-2); padding-left: 10px; border-left: 3px solid var(--rule); }
+  .note b { display: block; font-size: 11.5px; color: var(--ink-3); }
+  .note.why { border-color: var(--accent); }
+  .note.iss { border-color: var(--warm); }
+  .verdict { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+  .vbox { background: var(--ink); color: #fff; border-radius: 12px; padding: 18px 20px; }
+  .vbox .big { font-family: var(--mono); font-size: 46px; font-weight: 800; color: #aeb5ff; line-height: 1; }
+  .vbox p { margin: 8px 0 0; color: #d7d9e2; font-size: 14px; }
+  .src { display: grid; gap: 10px; }
+  .sr { background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 11px 14px; font-size: 13.2px; color: var(--ink-2); line-height: 1.55; }
+  .sr b { color: var(--ink); }
+  .sr .res { float: right; font-size: 11.5px; font-weight: 800; color: var(--ink-3); }
+  .dt { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .drow { display: grid; grid-template-columns: 130px 110px 120px 1fr 110px; border-top: 1px solid var(--rule-2); }
+  .drow:first-child { border-top: 0; background: var(--ground); font-size: 12px; font-weight: 700; color: var(--ink-3); }
+  .drow > div { padding: 9px 14px; font-size: 13.2px; }
+  .nm { font-weight: 700; }
+  .mut { color: var(--ink-3); font-weight: 400; font-size: 12px; }
+  .obs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .ob { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  .ob b { color: var(--ink); }
+  .sparks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .sp { background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; }
+  .sp .nm { font-size: 13px; margin-bottom: 6px; }
+  .spark rect { fill: var(--accent); }
+  .next { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .nx { background: var(--paper); border: 1.5px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
+  .nx h3 { margin: 0 0 6px; font-size: 16px; }
+  .nx p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  .nx .k { font-size: 11.5px; font-weight: 800; color: var(--accent-ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1>执行诊断<br><span class="second">好想法 5/6 做到惊艳</span></h1>
+    <p class="sub">6 张你认为"视觉到位能到惊艳"的卡，交给无装备的 N0 builder，各做一次：只做设计、施工、自检，不进批评环，不过节奏刀。你看视频盲评，评审 agent 的输出在你锁定之后才打开。</p>
+  </div>
+  <div class="status"><div class="pill">判定 R1 · 已揭盲</div><br>18:16 锁定评分<br>预注册第二版 · 已冻结</div>
+</header>
+
+<div class="heads">
+  <div class="head"><div class="big acc">5/6</div><b>质量 5 分</b><p>只有 v05（D 收敛默认）是 4 分。执行差距：5 支为 0，1 支为 1。</p></div>
+  <div class="head"><div class="big acc">6/6</div><b>核心机制保留</b><p>兑现核对员逐张判定，主角和机制都没换。</p></div>
+  <div class="head"><div class="big">0</div><b>达到门槛的共同不足</b><p>低分片只有 1 支，三类来源都达不到"2 支低分片、跨 2 条 brief"。</p></div>
+  <div class="head"><div class="big warm">$17.7</div><b>6 支合计费用</b><p>每支 9.6–34.9 分钟，明显低于预估的 33–64 分钟。</p></div>
+</div>
+
+<section>
+  <h2>六支片</h2>
+  <p class="lede">每支两张图：中段的一帧和最后一帧。蓝框是你在这条 brief 上更喜欢的那支。</p>
+  <div class="brief"><div class="bh"><h3>B 港口开放日 · 横屏 15 秒</h3><span>你觉得一样</span></div><div class="pair"><div class="pc">
+  <div class="thumbs"><img src="assets/2026-10-01-exec-diag/v01-mid.jpg" alt=""><img src="assets/2026-10-01-exec-diag/v01-end.jpg" alt=""></div>
+  <div class="row1"><span class="vid">v01</span><span class="slot">L1-4</span><span class="lay rnd">随机</span></div>
+  <p class="conceit">站在五十米高的桥吊观察平台上往下看，一只箱子在脚下被自动抓起，然后被送走。</p>
+  <div class="scores"><div class="s q5"><span>质量</span><b>5</b></div><div class="s m4"><span>成熟度</span><b>4</b></div><div class="meta">核心机制 <b>保留</b><br>卡上各拍 出现 3 / 走样 3</div></div>
+  <div class="note why"><b>为什么惊艳</b>场景完整、动作逻辑合理连贯，运镜也优</div><div class="note iss"><b>看到的问题</b>“玻璃”地面过于透明，有悬空感；hero页文字设计粗糙，光影和水体缺少打磨，有塑料感，视觉震撼感较缺</div>
+</div><div class="pc">
+  <div class="thumbs"><img src="assets/2026-10-01-exec-diag/v02-mid.jpg" alt=""><img src="assets/2026-10-01-exec-diag/v02-end.jpg" alt=""></div>
+  <div class="row1"><span class="vid">v02</span><span class="slot">L2-3</span><span class="lay rnd">随机</span></div>
+  <p class="conceit">开场像桌上的玩具：小桥吊夹起一只小箱子。镜头一路拉远才揭示桥吊有四十米高，人才是那个小点。</p>
+  <div class="scores"><div class="s q5"><span>质量</span><b>5</b></div><div class="s m4"><span>成熟度</span><b>4</b></div><div class="meta">核心机制 <b>保留</b><br>卡上各拍 出现 4 / 走样 1</div></div>
+  <div class="note why"><b>为什么惊艳</b>微缩氛围设计较好，景深运用恰当；提示线条和文字的卡通感传达到位。</div><div class="note iss"><b>看到的问题</b>Hero页字体设计粗糙</div>
+</div></div></div><div class="brief"><div class="bh"><h3>F 盐湖镜面 · 横屏 12 秒</h3><span>你更喜欢 v04</span></div><div class="pair"><div class="pc">
+  <div class="thumbs"><img src="assets/2026-10-01-exec-diag/v03-mid.jpg" alt=""><img src="assets/2026-10-01-exec-diag/v03-end.jpg" alt=""></div>
+  <div class="row1"><span class="vid">v03</span><span class="slot">S1</span><span class="lay def">收敛默认</span></div>
+  <p class="conceit">一条看不见的地平线把画面对折成两片天空，只有一滴雨落下的涟漪能证明，下半边其实是地面。</p>
+  <div class="scores"><div class="s q5"><span>质量</span><b>5</b></div><div class="s m5"><span>成熟度</span><b>5</b></div><div class="meta">核心机制 <b>保留</b><br>卡上各拍 出现 6</div></div>
+  
+</div><div class="pc fav">
+  <div class="thumbs"><img src="assets/2026-10-01-exec-diag/v04-mid.jpg" alt=""><img src="assets/2026-10-01-exec-diag/v04-end.jpg" alt=""></div>
+  <div class="row1"><span class="vid">v04</span><span class="slot">L3-3</span><span class="lay rnd">随机</span><span class="favtag">更喜欢</span></div>
+  <p class="conceit">一朵孤云从天上缓缓下沉，倒影从湖里升起迎接，两者在地平线相触合一，云真的落到了地上。</p>
+  <div class="scores"><div class="s q5"><span>质量</span><b>5</b></div><div class="s m5"><span>成熟度</span><b>5</b></div><div class="meta">核心机制 <b>保留</b><br>卡上各拍 出现 5 / 走样 1</div></div>
+  
+</div></div></div><div class="brief"><div class="bh"><h3>D 地铁换乘 · 竖屏 12 秒</h3><span>你更喜欢 v06</span></div><div class="pair"><div class="pc">
+  <div class="thumbs por"><img src="assets/2026-10-01-exec-diag/v05-mid.jpg" alt=""><img src="assets/2026-10-01-exec-diag/v05-end.jpg" alt=""></div>
+  <div class="row1"><span class="vid">v05</span><span class="slot">L1-1</span><span class="lay def">收敛默认</span></div>
+  <p class="conceit">把原来 6 分钟的绕行换乘路线画成一根松垮弯线，再像拉绳一样把它拉直，最后只剩一个站台宽。</p>
+  <div class="scores"><div class="s q4"><span>质量</span><b>4</b></div><div class="s m5"><span>成熟度</span><b>5</b></div><div class="meta">核心机制 <b>保留</b><br>卡上各拍 出现 6</div></div>
+  
+</div><div class="pc fav">
+  <div class="thumbs por"><img src="assets/2026-10-01-exec-diag/v06-mid.jpg" alt=""><img src="assets/2026-10-01-exec-diag/v06-end.jpg" alt=""></div>
+  <div class="row1"><span class="vid">v06</span><span class="slot">L2-4</span><span class="lay rnd">随机</span><span class="favtag">更喜欢</span></div>
+  <p class="conceit">屏上巨大的「6分钟」被一串脚印笔直踩过，字一路碎开又重组，脚印走到对面时它已变成「40秒」。</p>
+  <div class="scores"><div class="s q5"><span>质量</span><b>5</b></div><div class="s m5"><span>成熟度</span><b>5</b></div><div class="meta">核心机制 <b>保留</b><br>卡上各拍 出现 5</div></div>
+  <div class="note why"><b>为什么惊艳</b>粒子碎裂重组效果惊艳</div>
+</div></div></div>
+</section>
+
+<section>
+  <h2>判定</h2>
+  <div class="verdict">
+    <div class="vbox"><div class="big">R1</div><p>6 支里有 5 支质量 5 分（要求至少 4 支），这 5 支的核心机制都保留。在这 6 张卡上，默认执行已经能做到惊艳。成片分不等于想法分：这几张卡的想法分都是 4，执行把你在纸面上估的上限兑现了 5/6。</p></div>
+    <div class="src">
+      <div class="sr"><span class="res">未达门槛</span><b>A 描述员的维度</b>：低分片只有 sel 一支；而且这些维度在高分片里也普遍被标了 ≥1，对照条件不成立。</div>
+      <div class="sr"><span class="res">未达门槛</span><b>B 兑现核对员</b>：sel 6 拍全部出现。走样只在高分片里，三支各不相同：kiv 3 拍、ruf 1 拍、mod 1 拍。</div>
+      <div class="sr"><span class="res">只描述</span><b>C 你的说明</b>："Hero 页字体设计粗糙"出现在 v01、v02，但两支都是 B，又都是质量 5、成熟度 4，记为同 brief 重复观察。</div>
+      <div class="sr"><span class="res">不触发</span><b>成熟度</b>：没有 3 分以下的片。两支 4 分的都是 B，是 3D 场景，你点名的都是 hero 页的字。也没有出现停留时长一类的问题。</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>预注册之外：只看帧的读者读错了运动和时间</h2>
+  <p class="lede">不进判定，但和票 12 的"时间总览"直接相关。描述员只看 6 张静帧加条带，它的标记和你看视频的打分对不上。</p><p class="lede" style="color:var(--warm)"><b>更正（你指出）：</b>这是本轮的描述员，不是管线里的甲和盲选。它们的提示词一直有"mid 帧绝不当持定缺陷判"的规则；描述员的提示词是我新写的，没带上，视觉包又抹掉了条带的 held/mid 标签。下面的误判有很大一部分出自这套设置。</p>
+  <div class="dt">
+    <div class="drow"><div>视频</div><div>你：质量 / 成熟度</div><div>描述员标 ≥1 的维度</div><div>描述员标为"重"（2）的维度</div><div>节奏维度</div></div>
+    <div class="drow"><div class="nm">v01 <span class="mut">L1-4</span></div><div class="mono">5 / 4</div><div class="mono">8 / 9</div><div>维度 9</div><div class="mut">节奏 1</div></div><div class="drow"><div class="nm">v02 <span class="mut">L2-3</span></div><div class="mono">5 / 4</div><div class="mono">6 / 9</div><div>—</div><div class="mut">节奏 1</div></div><div class="drow"><div class="nm">v03 <span class="mut">S1</span></div><div class="mono">5 / 5</div><div class="mono">7 / 9</div><div>维度 1；维度 7</div><div class="mut">节奏 2</div></div><div class="drow"><div class="nm">v04 <span class="mut">L3-3</span></div><div class="mono">5 / 5</div><div class="mono">5 / 9</div><div>—</div><div class="mut">节奏 1</div></div><div class="drow"><div class="nm">v05 <span class="mut">L1-1</span></div><div class="mono">4 / 5</div><div class="mono">5 / 9</div><div>维度 9</div><div class="mut">节奏 1</div></div><div class="drow"><div class="nm">v06 <span class="mut">L2-4</span></div><div class="mono">5 / 5</div><div class="mono">3 / 9</div><div>维度 9</div><div class="mut">节奏 1</div></div>
+  </div>
+  <div class="obs">
+    <div class="ob"><b>把运动中途读成缺陷。</b>pax 维度 9 被标为"重"："粒子云直接盖在字上，字迹被方块打散"。这正是你写的"粒子碎裂重组效果惊艳"。tob 维度 1 被标为"重"："前半段没有任何主体"。可"先只有天空"正是这张卡的 conceit。</div>
+    <div class="ob"><b>把条带帧数读成时长。</b>节奏维度 6 支全被标 ≥1，其中 5 支说的是"开场拖长"。依据是条带帧数，比如"7 张条带停在同一个画面"，但条带帧数和时长不成正比。这 5 支里 4 支你打了质量 5。成熟度研究里，V8、V9 也被条带误判过。<br><b style="color:var(--warm)">T1 之后的更正：</b>加上时间总览重判，它把时长读准了，节奏标记却一条没变，又多出 5 条"结尾还在动"。所以主因不是读错时长，而是它"什么算问题"的标准和你不同。</div>
+  </div>
+</section>
+
+<section>
+  <h2>预注册之外：逐帧阈值测不出慢运动</h2>
+  <p class="lede">每秒运动量：相邻帧之间灰度变化超过 24 的像素占比，6 支共用同一个刻度（开方刻度，小运动也看得见）。v03 整支 12 秒都量成 0，实际上画面一直在缓慢下摇、云在流动；v04 中段有 4.4 秒量成静止。整体时间视觉化需要更长时间窗的差分。</p>
+  <div class="sparks"><div class="sp"><div class="nm">v01 <span class="mut">L1-4 · 质量 5</span></div><svg class="spark" viewBox="0 0 260 46" width="260" height="46"><rect x="1.0" y="40.9" width="15.3" height="5.1" rx="1.5"/><rect x="18.3" y="38.7" width="15.3" height="7.3" rx="1.5"/><rect x="35.7" y="35.9" width="15.3" height="10.1" rx="1.5"/><rect x="53.0" y="40.3" width="15.3" height="5.7" rx="1.5"/><rect x="70.3" y="33.7" width="15.3" height="12.3" rx="1.5"/><rect x="87.7" y="37.6" width="15.3" height="8.4" rx="1.5"/><rect x="105.0" y="33.6" width="15.3" height="12.4" rx="1.5"/><rect x="122.3" y="31.4" width="15.3" height="14.6" rx="1.5"/><rect x="139.7" y="9.1" width="15.3" height="36.9" rx="1.5"/><rect x="157.0" y="22.1" width="15.3" height="23.9" rx="1.5"/><rect x="174.3" y="2.0" width="15.3" height="44.0" rx="1.5"/><rect x="191.7" y="11.1" width="15.3" height="34.9" rx="1.5"/><rect x="209.0" y="30.7" width="15.3" height="15.3" rx="1.5"/><rect x="226.3" y="40.6" width="15.3" height="5.4" rx="1.5"/><rect x="243.7" y="34.5" width="15.3" height="11.5" rx="1.5"/></svg></div><div class="sp"><div class="nm">v02 <span class="mut">L2-3 · 质量 5</span></div><svg class="spark" viewBox="0 0 260 46" width="260" height="46"><rect x="1.0" y="42.2" width="15.3" height="3.8" rx="1.5"/><rect x="18.3" y="33.3" width="15.3" height="12.7" rx="1.5"/><rect x="35.7" y="30.4" width="15.3" height="15.6" rx="1.5"/><rect x="53.0" y="24.8" width="15.3" height="21.2" rx="1.5"/><rect x="70.3" y="26.6" width="15.3" height="19.4" rx="1.5"/><rect x="87.7" y="33.8" width="15.3" height="12.2" rx="1.5"/><rect x="105.0" y="30.6" width="15.3" height="15.4" rx="1.5"/><rect x="122.3" y="30.3" width="15.3" height="15.7" rx="1.5"/><rect x="139.7" y="21.4" width="15.3" height="24.6" rx="1.5"/><rect x="157.0" y="19.8" width="15.3" height="26.2" rx="1.5"/><rect x="174.3" y="24.2" width="15.3" height="21.8" rx="1.5"/><rect x="191.7" y="29.8" width="15.3" height="16.2" rx="1.5"/><rect x="209.0" y="32.6" width="15.3" height="13.4" rx="1.5"/><rect x="226.3" y="37.4" width="15.3" height="8.6" rx="1.5"/><rect x="243.7" y="41.5" width="15.3" height="4.5" rx="1.5"/></svg></div><div class="sp"><div class="nm">v03 <span class="mut">S1 · 质量 5</span></div><svg class="spark" viewBox="0 0 260 46" width="260" height="46"><rect x="1.0" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="22.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="44.3" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="66.0" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="87.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="109.3" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="131.0" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="152.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="174.3" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="196.0" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="217.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="239.3" y="44.5" width="19.7" height="1.5" rx="1.5"/></svg></div><div class="sp"><div class="nm">v04 <span class="mut">L3-3 · 质量 5</span></div><svg class="spark" viewBox="0 0 260 46" width="260" height="46"><rect x="1.0" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="22.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="44.3" y="43.5" width="19.7" height="2.5" rx="1.5"/><rect x="66.0" y="44.0" width="19.7" height="2.0" rx="1.5"/><rect x="87.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="109.3" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="131.0" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="152.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="174.3" y="42.5" width="19.7" height="3.5" rx="1.5"/><rect x="196.0" y="43.1" width="19.7" height="2.9" rx="1.5"/><rect x="217.7" y="44.3" width="19.7" height="1.7" rx="1.5"/><rect x="239.3" y="44.5" width="19.7" height="1.5" rx="1.5"/></svg></div><div class="sp"><div class="nm">v05 <span class="mut">L1-1 · 质量 4</span></div><svg class="spark" viewBox="0 0 260 46" width="260" height="46"><rect x="1.0" y="43.8" width="19.7" height="2.2" rx="1.5"/><rect x="22.7" y="41.2" width="19.7" height="4.8" rx="1.5"/><rect x="44.3" y="41.0" width="19.7" height="5.0" rx="1.5"/><rect x="66.0" y="40.4" width="19.7" height="5.6" rx="1.5"/><rect x="87.7" y="40.1" width="19.7" height="5.9" rx="1.5"/><rect x="109.3" y="38.7" width="19.7" height="7.3" rx="1.5"/><rect x="131.0" y="38.2" width="19.7" height="7.8" rx="1.5"/><rect x="152.7" y="39.1" width="19.7" height="6.9" rx="1.5"/><rect x="174.3" y="42.2" width="19.7" height="3.8" rx="1.5"/><rect x="196.0" y="39.0" width="19.7" height="7.0" rx="1.5"/><rect x="217.7" y="42.0" width="19.7" height="4.0" rx="1.5"/><rect x="239.3" y="43.0" width="19.7" height="3.0" rx="1.5"/></svg></div><div class="sp"><div class="nm">v06 <span class="mut">L2-4 · 质量 5</span></div><svg class="spark" viewBox="0 0 260 46" width="260" height="46"><rect x="1.0" y="36.5" width="19.7" height="9.5" rx="1.5"/><rect x="22.7" y="39.9" width="19.7" height="6.1" rx="1.5"/><rect x="44.3" y="38.7" width="19.7" height="7.3" rx="1.5"/><rect x="66.0" y="31.6" width="19.7" height="14.4" rx="1.5"/><rect x="87.7" y="41.9" width="19.7" height="4.1" rx="1.5"/><rect x="109.3" y="33.3" width="19.7" height="12.7" rx="1.5"/><rect x="131.0" y="31.2" width="19.7" height="14.8" rx="1.5"/><rect x="152.7" y="42.4" width="19.7" height="3.6" rx="1.5"/><rect x="174.3" y="43.6" width="19.7" height="2.4" rx="1.5"/><rect x="196.0" y="44.3" width="19.7" height="1.7" rx="1.5"/><rect x="217.7" y="44.5" width="19.7" height="1.5" rx="1.5"/><rect x="239.3" y="44.5" width="19.7" height="1.5" rx="1.5"/></svg></div></div>
+</section>
+
+<section>
+  <h2>交回地图</h2>
+  <div class="next">
+    <div class="nx"><div class="k">R1 去向 · 由你选</div><h3>回到概念阶段</h3><p>为什么想法很少到 5 分？本轮说明，好想法交到默认执行手里就能做到惊艳，瓶颈在上游。管线里已经有分方向和 r1 挑选。</p></div>
+    <div class="nx"><div class="k">R1 去向 · 由你选</div><h3>直接进发行验收</h3><p>验收时可以留意 3D 场景里 hero 页的字。这是同 brief 重复观察，不是候选。</p></div>
+    <div class="nx"><div class="k">待你决定</div><h3>票 12 改成"时间总览"？</h3><p>上面两节是新证据：只看帧的读者会把运动中途读成缺陷、把帧数读成时长，逐帧阈值又测不出慢运动。改不改由你定。</p></div>
+  </div>
+  <p class="lede" style="margin-top:16px">本轮只有 6 支片、一位评分者，卡是事先按"第二问 5 分"挑的，结论只适用于这 6 张卡。隔离审计：builder 和评审 agent 都是 LEAK 0。运维处理和偏离都记在结果文档 §7。</p>
+</section>
+</div>
+</body>
+</html>

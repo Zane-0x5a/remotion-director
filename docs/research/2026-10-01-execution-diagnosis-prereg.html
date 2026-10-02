@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>执行诊断 · 预注册</title>
+<style>
+  :root {
+    --ground: #f5f6f8; --paper: #ffffff; --ink: #12141a; --ink-2: #474c59; --ink-3: #868c9b;
+    --rule: #dcdfe6; --rule-2: #eceef2; --accent: #3140d4; --accent-weak: #e9ebfb; --accent-ink: #1f2aa0;
+    --warm: #b4541c; --warm-weak: #fbeee6;
+    --sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.65; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 52px 28px 96px; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  header.top { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 26px; border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; }
+  h1 .second { color: var(--accent); }
+  .sub { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; max-width: 760px; }
+  .status { text-align: right; font-size: 13px; color: var(--ink-2); }
+  .pill { display: inline-block; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  section { margin-top: 60px; }
+  h2 { font-size: 25px; line-height: 1.25; margin: 0 0 6px; font-weight: 800; }
+  .lede { margin: 0 0 22px; color: var(--ink-2); max-width: 800px; }
+
+  .heads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-top: 30px; }
+  .head { background: var(--paper); padding: 18px 20px 20px; }
+  .head .big { font-family: var(--mono); font-size: 40px; font-weight: 700; line-height: 1; }
+  .head .big.acc { color: var(--accent); }
+  .head .big.warm { color: var(--warm); }
+  .head b { display: block; margin-top: 10px; font-size: 15px; }
+  .head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  .matrix { display: grid; grid-template-columns: 1.45fr 1fr 1.55fr; gap: 12px; align-items: start; }
+  .stack { display: grid; gap: 12px; }
+  .col { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 16px; }
+  .col h3 { margin: 0; font-size: 15px; }
+  .col .q { margin: 2px 0 12px; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+  .col.think { background: #fbfbfc; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { border: 1.5px solid var(--ink); border-radius: 8px; padding: 5px 9px 6px; font-size: 13px; line-height: 1.3; background: var(--paper); max-width: 100%; }
+  .chip .c { font-family: var(--mono); font-weight: 700; font-size: 11.5px; margin-right: 5px; }
+  .chip.test { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.test .to { font-family: var(--mono); font-size: 11px; font-weight: 700; margin-left: 5px; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,.22); }
+  .chip.dedup { border-style: dashed; }
+  .chip.recheck::after { content: "换代重审"; font-size: 10.5px; color: var(--warm); margin-left: 6px; font-weight: 700; }
+  .chip.dedup::after { content: "去重"; font-size: 10.5px; color: var(--ink-2); margin-left: 6px; font-weight: 700; }
+  .col.think .chip:not(.test) { border-color: var(--ink-3); color: var(--ink-2); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 14px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .legend i { display: inline-block; width: 22px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); vertical-align: -2px; margin-right: 6px; }
+  .legend i.t { background: var(--accent); border-color: var(--accent); }
+  .legend i.g { border-color: var(--ink-3); }
+  .legend i.d { border-style: dashed; }
+  .nodelete { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: var(--ink); color: #fff; border-radius: 12px; padding: 18px 22px; }
+  .nodelete .z { font-family: var(--mono); font-size: 44px; font-weight: 700; line-height: 1; }
+  .nodelete p { margin: 0; font-size: 14px; color: #dfe1e8; line-height: 1.65; }
+  .nodelete b { color: #fff; }
+
+  .gaps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gap { background: var(--paper); border: 1px solid var(--rule); border-top: 4px solid var(--warm); border-radius: 10px; padding: 14px 16px 16px; }
+  .gap .k { font-family: var(--mono); font-weight: 700; color: var(--warm); font-size: 13px; }
+  .gap h3 { margin: 2px 0 2px; font-size: 16px; }
+  .gap .cat { font-size: 12px; color: var(--ink-3); }
+  .gap p { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .gap .goes { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--accent-ink); }
+
+  .pipe { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 22px 22px 18px; }
+  .stages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; position: relative; }
+  .stage { text-align: center; position: relative; padding: 0 4px; }
+  .stage .box { border: 1.5px solid var(--ink); border-radius: 8px; padding: 9px 4px; font-size: 13.5px; font-weight: 700; background: var(--paper); position: relative; z-index: 1; }
+  .stages::before { content: ""; position: absolute; left: 6%; right: 6%; top: 21px; height: 2px; background: var(--ink); }
+  .pins { margin-top: 10px; display: grid; gap: 6px; justify-items: center; }
+  .pin { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; white-space: nowrap; }
+  .pin.q { background: var(--warm); }
+  .pipe .foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule-2); display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .pipe .foot span.d { display: inline-block; width: 12px; height: 12px; border-radius: 999px; vertical-align: -1px; margin-right: 6px; }
+
+  .cands { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .cand { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px 16px; display: flex; flex-direction: column; }
+  .cand .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .cand .k { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--accent); }
+  .cand h3 { margin: 2px 0 6px; font-size: 17px; }
+  .cand .what { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--ink); }
+  .tag.m { background: var(--accent-weak); border-color: #b9bff1; color: var(--accent-ink); }
+  .tag.q { background: var(--warm-weak); border-color: #ecc3a6; color: var(--warm); }
+  .tag.render { background: var(--ink); color: #fff; }
+  .tag.norender { border-style: dashed; color: var(--ink-2); border-color: var(--ink-3); }
+  .outs { margin-top: 12px; display: grid; gap: 6px; font-size: 13px; line-height: 1.5; }
+  .outs div { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+  .outs .ab { font-family: var(--mono); font-weight: 700; color: var(--ink-3); }
+  .pre { margin-top: auto; padding-top: 12px; }
+  .pre .box { margin-top: 12px; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; line-height: 1.5; background: var(--ground); color: var(--ink-2); }
+  .pre .box.yes { background: #e8f3ec; color: #1d5a35; }
+  .pre .box b { color: inherit; }
+  .src { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; }
+  .costnote { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+
+  .limits { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 22px; }
+  .limits ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
+  .limits li { margin: 4px 0; }
+  .next { margin-top: 14px; font-size: 13.5px; color: var(--ink-2); }
+  .next b { color: var(--ink); }
+  .revise { margin-top: 26px; border: 1.5px solid var(--warm); background: var(--warm-weak); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink-2); }
+  .revise b { color: var(--warm); }
+  .withdrawn { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .wd { background: transparent; border: 1px dashed var(--ink-3); border-radius: 10px; padding: 12px 16px 14px; }
+  .wd .k { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink-3); text-decoration: line-through; }
+  .wd h3 { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); }
+  .wd p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .wd p b { color: var(--ink); }
+  .cands.two { grid-template-columns: repeat(2, 1fr); }
+  footer { margin-top: 56px; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 14px; }
+  @media (max-width: 900px) {
+    .heads, .gaps, .cands { grid-template-columns: 1fr 1fr; }
+    .matrix { grid-template-columns: 1fr 1fr; }
+    .stages { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
+    .stages::before { display: none; }
+  }
+</style>
+<style>
+  .flow { display: grid; grid-template-columns: 1fr 26px 1fr 26px 1fr 26px 1.2fr; align-items: stretch; gap: 0; }
+  .fs { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
+  .fs.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .fs .n { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); }
+  .fs.dark .n { color: #aeb5ff; }
+  .fs h3 { margin: 3px 0 6px; font-size: 15.5px; }
+  .fs p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .fs.dark p { color: #d7d9e2; }
+  .arr { display: grid; place-items: center; color: var(--ink-3); font-size: 18px; }
+  .cards6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .cc { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
+  .cc .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .cc .id { font-family: var(--mono); font-weight: 700; font-size: 14px; }
+  .cc .lay { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+  .lay.def { background: var(--accent); color: #fff; }
+  .lay.rnd { border: 1px solid var(--ink-3); color: var(--ink-2); }
+  .cc p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; }
+  .cc .sc { margin-top: 8px; font-size: 12px; color: var(--ink-3); }
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .rule { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
+  .rule h3 { margin: 0 0 6px; font-size: 16px; }
+  .rule p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  .src3 { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-top: 14px; }
+  .srow { display: grid; grid-template-columns: 210px 1.3fr 1fr; border-top: 1px solid var(--rule-2); }
+  .srow:first-child { border-top: 0; background: var(--ground); font-size: 12px; font-weight: 700; color: var(--ink-3); }
+  .srow > div { padding: 10px 14px; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  .srow .nm { color: var(--ink); font-weight: 700; }
+  .edge { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .eg { border: 1px dashed var(--ink-3); border-radius: 10px; padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
+  .eg b { display: block; color: var(--ink); margin-bottom: 4px; }
+  .codex { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .cx { background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+  .cx b { color: var(--ink); }
+  .cx .st { font-size: 11px; font-weight: 800; padding: 0 7px; border-radius: 999px; margin-left: 4px; }
+  .st.ok { background: var(--accent); color: #fff; }
+  .st.part { background: var(--warm); color: #fff; }
+  .choice { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .opt { background: var(--paper); border: 1.5px solid var(--rule); border-radius: 12px; padding: 16px 18px; }
+  .opt.rec { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .opt h3 { margin: 0 0 6px; font-size: 16px; }
+  .opt p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  .opt .tag2 { font-size: 11.5px; font-weight: 800; color: var(--accent-ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1>执行诊断<br><span class="second">好想法能做到哪一档</span></h1>
+    <p class="sub">诊断回答了概念阶段的问题，执行阶段还从没测过。这一轮让无装备的模型把你认为"视觉到位能到惊艳"的想法真的做成片，看实际能到几分；没到的地方，再看各片有没有共同的不足。只诊断，不测干预。</p>
+  </div>
+  <div class="status"><div class="pill">预注册第二版 · 待你批准</div><br>已按 Codex 审查修订<br>还有一项待你选：隔离方式</div>
+</header>
+
+<section>
+  <h2>怎么跑</h2>
+  <p class="lede">模拟模型的默认状态：只做设计、施工、自检，不进批评环，不过节奏刀。</p>
+  <div class="flow">
+    <div class="fs"><div class="n">1</div><h3>6 张卡</h3><p>每条 brief 选 2 张第二问 5 分的卡，有收敛默认想法的先选它，其余按固定种子随机抽。</p></div>
+    <div class="arr">→</div>
+    <div class="fs"><div class="n">2</div><h3>N0 各做一次</h3><p>每张卡一个独立的无头进程，项目记忆为空，不带装备。要求保留卡上的核心机制，其余由它自己设计。</p></div>
+    <div class="arr">→</div>
+    <div class="fs"><div class="n">3</div><h3>AI 先描述，封存</h3><p>描述员只看帧，不知道卡和分数。兑现核对员对照卡，逐拍核对，并判定核心机制有没有保留。</p></div>
+    <div class="arr">→</div>
+    <div class="fs dark"><div class="n">4</div><h3>你只看定稿</h3><p>一次看完 6 支，按共用锚点打质量和成熟度，每条 brief 选一次"更喜欢哪支"。不混入 r1，约 15–25 分钟。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>6 张卡</h2>
+  <p class="lede">想法分都是 4，正好对准"从 4 到 5 靠执行"这个说法。结果按"收敛默认"和"随机"两层分开报告。</p>
+  <div class="cards6"><div class="cc"><div class="top"><span class="id">B · L1-4</span><span class="lay rnd">随机</span></div><p>站在五十米高的桥吊观察平台上往下看，一只箱子在脚下被自动抓起，然后被送走。</p><div class="sc">港口开放日 · 横屏 15 秒 · 想法 4 / 第二问 5</div></div><div class="cc"><div class="top"><span class="id">B · L2-3</span><span class="lay rnd">随机</span></div><p>开场像桌上的玩具：小桥吊夹起一只小箱子。镜头一路拉远才揭示桥吊有四十米高，人才是那个小点。</p><div class="sc">港口开放日 · 横屏 15 秒 · 想法 4 / 第二问 5</div></div><div class="cc"><div class="top"><span class="id">D · L1-1</span><span class="lay def">收敛默认</span></div><p>把原来 6 分钟的绕行换乘路线画成一根松垮弯线，再像拉绳一样把它拉直，最后只剩一个站台宽。</p><div class="sc">地铁换乘 · 竖屏 12 秒 · 想法 4 / 第二问 5 · 6 个默认样本里 5 个是它</div></div><div class="cc"><div class="top"><span class="id">D · L2-4</span><span class="lay rnd">随机</span></div><p>屏上巨大的「6分钟」被一串脚印笔直踩过，字一路碎开又重组，脚印走到对面时它已变成「40秒」。</p><div class="sc">地铁换乘 · 竖屏 12 秒 · 想法 4 / 第二问 5</div></div><div class="cc"><div class="top"><span class="id">F · S1</span><span class="lay def">收敛默认</span></div><p>一条看不见的地平线把画面对折成两片天空，只有一滴雨落下的涟漪能证明，下半边其实是地面。</p><div class="sc">盐湖镜面 · 横屏 12 秒 · 想法 4 / 第二问 5 · 3 个默认样本是它</div></div><div class="cc"><div class="top"><span class="id">F · L3-3</span><span class="lay rnd">随机</span></div><p>一朵孤云从天上缓缓下沉，倒影从湖里升起迎接，两者在地平线相触合一，云真的落到了地上。</p><div class="sc">盐湖镜面 · 横屏 12 秒 · 想法 4 / 第二问 5</div></div></div>
+</section>
+
+<section>
+  <h2>怎么判</h2>
+  <p class="lede">先看整体到了几分，再找共同不足。找共同不足这一步，不管分数怎么分布都要做。</p>
+  <div class="rules">
+    <div class="rule"><h3>R1 · 执行已经能兑现上限</h3><p>6 支里有 4 支以上质量 5 分，而且这几支都保留了核心机制。达到门槛的共同不足照样报告。下一步由你在地图上选：回到概念阶段，查想法为什么很少到 5 分；或者直接进发行验收。</p></div>
+    <div class="rule"><h3>R2 · 执行有差距</h3><p>其余情况都算 R2。每一项共同不足写成一个候选，写清楚对应哪支片的哪一帧、针对质量还是成熟度、结果 A 和 B 时套件分别怎么做、成本多少。候选由你来排序。只在一支片里出现的现象只描述，不提候选。</p></div>
+  </div>
+  <div class="src3">
+    <div class="srow"><div>共同不足的来源</div><div>拿什么作对照</div><div>能不能成为候选</div></div>
+    <div class="srow"><div class="nm">A · 描述员的 9 个维度</div><div>高分片（5 分）。现象在低分片里达到门槛，在高分片里都没有</div><div>有高分片时能；全是 4 分时只记为"无对照的重复观察"</div></div>
+    <div class="srow"><div class="nm">B · 卡上意图走样、没做出来</div><div>卡上写明的意图本身就是对照</div><div>能，只算保留了核心机制的片</div></div>
+    <div class="srow"><div class="nm">C · 你的选填说明</div><div>你看到的现象本身就是证据</div><div>能</div></div>
+  </div>
+  <p class="lede" style="margin-top:12px">门槛是"至少 2 支低分片、跨至少 2 条 brief"。它只用来生成假设，证明不了什么。</p>
+  <div class="edge">
+    <div class="eg"><b>全是 5 分</b>这 6 张卡上没有观察到执行差距。</div>
+    <div class="eg"><b>全是 4 分</b>没有高分片作对照，A 类不进候选，候选只来自 B、C 两类。</div>
+    <div class="eg"><b>低分片集中在一条 brief</b>构不成跨 brief 的发现，只描述。</div>
+    <div class="eg"><b>"无成片"</b>按不到 5 分计，单独列出，不重跑。</div>
+  </div>
+</section>
+
+<section>
+  <h2>Codex 审查：6 条阻塞，2 条非阻塞</h2>
+  <p class="lede">7 条采纳，1 条部分采纳、待你确认。原文已存档，处置见预注册 §9。</p>
+  <div class="codex">
+    <div class="cx"><b>1 失败重跑</b><span class="st ok">采纳</span><br>基础设施故障就续上原会话；模型自己没交出成片，就记"无成片"，不另抽一次。</div>
+    <div class="cx"><b>2 R1 不再找不足</b><span class="st ok">采纳</span><br>不论哪种分数分布，都要找共同不足。</div>
+    <div class="cx"><b>3 规则太松</b><span class="st ok">采纳</span><br>加严重度细则，明确高分和低分的界线，写明边界情况。</div>
+    <div class="cx"><b>4 想法可能被改</b><span class="st ok">采纳</span><br>独立判定核心机制有没有保留；"执行到了上限"只拿保留了核心机制的片来下结论。</div>
+    <div class="cx"><b>5 隔离与安全</b><span class="st part">待你确认</span><br>原生 Windows 没有 OS 级沙箱，见下方的选择。</div>
+    <div class="cx"><b>6 次终点输入</b><span class="st ok">采纳</span><br>视觉包固定为工具定位的帧，不放裁切；agent 只开 Read，事后审计。</div>
+    <div class="cx"><b>7 抽样复现</b><span class="st ok">采纳</span><br>写明随机方法和调用参数，按两层分开报告。</div>
+    <div class="cx"><b>8 措辞与协变量</b><span class="st ok">采纳</span><br>更正"没有设计师人格"的说法；另记墙钟、渲染版数、技术手段。</div>
+  </div>
+</section>
+
+<section>
+  <h2>要你决定的</h2>
+  <div class="choice">
+    <div class="opt rec"><div class="tag2">推荐</div><h3>A · 沿用消融的做法</h3><p>每个 draw 用一个私有目录，工作区里不放任何与实验身份有关的文件。事后逐条审计全部工具调用：读到别的 draw、运维目录或诊断文件的，那支结果单独列出，不进主分析。消融的 9 支就是这样跑的，审计结果零泄露。缺点是只能事后发现，不能事前阻止。</p></div>
+    <div class="opt"><h3>B · 在 WSL2 或容器里跑</h3><p>能得到 OS 级隔离。代价是要在 Linux 里重新搭 Remotion 和 Chrome 渲染环境，估计要花几个小时调通；而且渲染环境和平时生产用的不同，又多了一个变量。</p></div>
+  </div>
+  <p class="lede" style="margin-top:14px">隔离方式选定、预注册也批准之后，我会冻结提示词、评分细则和审计脚本，跑完探针再开跑。成本：6 个 draw 合计约 54–108 万输出 token，分两批并行，墙钟约 2–3 小时。</p>
+</section>
+
+<footer>原文：<span class="mono">docs/research/2026-10-01-execution-diagnosis-prereg.md</span>。本页只是原文的呈现，没有另加结论。</footer>
+</div>
+</body>
+</html>

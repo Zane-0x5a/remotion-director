@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>轨道 C：逐条审查装备 M</title>
+<style>
+  :root {
+    --ground: #f5f6f8; --paper: #ffffff; --ink: #12141a; --ink-2: #474c59; --ink-3: #868c9b;
+    --rule: #dcdfe6; --rule-2: #eceef2; --accent: #3140d4; --accent-weak: #e9ebfb; --accent-ink: #1f2aa0;
+    --warm: #b4541c; --warm-weak: #fbeee6;
+    --sans: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.65; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 52px 28px 96px; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  header.top { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 26px; border-bottom: 2px solid var(--ink); }
+  h1 { margin: 0; font-size: clamp(40px, 6vw, 72px); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; }
+  h1 .second { color: var(--accent); }
+  .sub { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; max-width: 760px; }
+  .status { text-align: right; font-size: 13px; color: var(--ink-2); }
+  .pill { display: inline-block; padding: 4px 10px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  section { margin-top: 60px; }
+  h2 { font-size: 25px; line-height: 1.25; margin: 0 0 6px; font-weight: 800; }
+  .lede { margin: 0 0 22px; color: var(--ink-2); max-width: 800px; }
+
+  .heads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; margin-top: 30px; }
+  .head { background: var(--paper); padding: 18px 20px 20px; }
+  .head .big { font-family: var(--mono); font-size: 40px; font-weight: 700; line-height: 1; }
+  .head .big.acc { color: var(--accent); }
+  .head .big.warm { color: var(--warm); }
+  .head b { display: block; margin-top: 10px; font-size: 15px; }
+  .head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+  .matrix { display: grid; grid-template-columns: 1.45fr 1fr 1.55fr; gap: 12px; align-items: start; }
+  .stack { display: grid; gap: 12px; }
+  .col { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 14px 16px; }
+  .col h3 { margin: 0; font-size: 15px; }
+  .col .q { margin: 2px 0 12px; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+  .col.think { background: #fbfbfc; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { border: 1.5px solid var(--ink); border-radius: 8px; padding: 5px 9px 6px; font-size: 13px; line-height: 1.3; background: var(--paper); max-width: 100%; }
+  .chip .c { font-family: var(--mono); font-weight: 700; font-size: 11.5px; margin-right: 5px; }
+  .chip.test { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.test .to { font-family: var(--mono); font-size: 11px; font-weight: 700; margin-left: 5px; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,.22); }
+  .chip.dedup { border-style: dashed; }
+  .chip.recheck::after { content: "换代重审"; font-size: 10.5px; color: var(--warm); margin-left: 6px; font-weight: 700; }
+  .chip.dedup::after { content: "去重"; font-size: 10.5px; color: var(--ink-2); margin-left: 6px; font-weight: 700; }
+  .col.think .chip:not(.test) { border-color: var(--ink-3); color: var(--ink-2); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 14px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .legend i { display: inline-block; width: 22px; height: 14px; border-radius: 4px; border: 1.5px solid var(--ink); vertical-align: -2px; margin-right: 6px; }
+  .legend i.t { background: var(--accent); border-color: var(--accent); }
+  .legend i.g { border-color: var(--ink-3); }
+  .legend i.d { border-style: dashed; }
+  .nodelete { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; background: var(--ink); color: #fff; border-radius: 12px; padding: 18px 22px; }
+  .nodelete .z { font-family: var(--mono); font-size: 44px; font-weight: 700; line-height: 1; }
+  .nodelete p { margin: 0; font-size: 14px; color: #dfe1e8; line-height: 1.65; }
+  .nodelete b { color: #fff; }
+
+  .gaps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .gap { background: var(--paper); border: 1px solid var(--rule); border-top: 4px solid var(--warm); border-radius: 10px; padding: 14px 16px 16px; }
+  .gap .k { font-family: var(--mono); font-weight: 700; color: var(--warm); font-size: 13px; }
+  .gap h3 { margin: 2px 0 2px; font-size: 16px; }
+  .gap .cat { font-size: 12px; color: var(--ink-3); }
+  .gap p { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+  .gap .goes { margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--accent-ink); }
+
+  .pipe { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 22px 22px 18px; }
+  .stages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; position: relative; }
+  .stage { text-align: center; position: relative; padding: 0 4px; }
+  .stage .box { border: 1.5px solid var(--ink); border-radius: 8px; padding: 9px 4px; font-size: 13.5px; font-weight: 700; background: var(--paper); position: relative; z-index: 1; }
+  .stages::before { content: ""; position: absolute; left: 6%; right: 6%; top: 21px; height: 2px; background: var(--ink); }
+  .pins { margin-top: 10px; display: grid; gap: 6px; justify-items: center; }
+  .pin { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: #fff; white-space: nowrap; }
+  .pin.q { background: var(--warm); }
+  .pipe .foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule-2); display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .pipe .foot span.d { display: inline-block; width: 12px; height: 12px; border-radius: 999px; vertical-align: -1px; margin-right: 6px; }
+
+  .cands { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .cand { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px 16px; display: flex; flex-direction: column; }
+  .cand .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .cand .k { font-family: var(--mono); font-weight: 700; font-size: 22px; color: var(--accent); }
+  .cand h3 { margin: 2px 0 6px; font-size: 17px; }
+  .cand .what { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--ink); }
+  .tag.m { background: var(--accent-weak); border-color: #b9bff1; color: var(--accent-ink); }
+  .tag.q { background: var(--warm-weak); border-color: #ecc3a6; color: var(--warm); }
+  .tag.render { background: var(--ink); color: #fff; }
+  .tag.norender { border-style: dashed; color: var(--ink-2); border-color: var(--ink-3); }
+  .outs { margin-top: 12px; display: grid; gap: 6px; font-size: 13px; line-height: 1.5; }
+  .outs div { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+  .outs .ab { font-family: var(--mono); font-weight: 700; color: var(--ink-3); }
+  .pre { margin-top: auto; padding-top: 12px; }
+  .pre .box { margin-top: 12px; border-radius: 8px; padding: 9px 11px; font-size: 12.5px; line-height: 1.5; background: var(--ground); color: var(--ink-2); }
+  .pre .box.yes { background: #e8f3ec; color: #1d5a35; }
+  .pre .box b { color: inherit; }
+  .src { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; }
+  .costnote { margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+
+  .limits { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 18px 22px; }
+  .limits ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
+  .limits li { margin: 4px 0; }
+  .next { margin-top: 14px; font-size: 13.5px; color: var(--ink-2); }
+  .next b { color: var(--ink); }
+  .revise { margin-top: 26px; border: 1.5px solid var(--warm); background: var(--warm-weak); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--ink-2); }
+  .revise b { color: var(--warm); }
+  .withdrawn { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .wd { background: transparent; border: 1px dashed var(--ink-3); border-radius: 10px; padding: 12px 16px 14px; }
+  .wd .k { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--ink-3); text-decoration: line-through; }
+  .wd h3 { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); }
+  .wd p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .wd p b { color: var(--ink); }
+  .cands.two { grid-template-columns: repeat(2, 1fr); }
+  footer { margin-top: 56px; font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 14px; }
+  @media (max-width: 900px) {
+    .heads, .gaps, .cands { grid-template-columns: 1fr 1fr; }
+    .matrix { grid-template-columns: 1fr 1fr; }
+    .stages { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
+    .stages::before { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <h1>轨道 C<br><span class="second">逐条审查装备 M</span></h1>
+    <p class="sub">对 M 的每一条都问同一个问题：这是模型自己不可能知道、或者看不到的东西吗？Impeccable 笔记 §5 里的可借机制，也按这个问题审了一遍。纯分析，不花生成成本。</p>
+  </div>
+  <div class="status">
+    <div class="pill">已完成 · 2026-10-01 · 已按用户指正修订</div><br>
+    地图票「轨道 C：逐条审查 M」<br>
+    产出交给「第二轮候选排序」
+  </div>
+</header>
+
+<div class="heads">
+  <div class="head"><div class="big">19</div><b>条留下</b><p>11 条属于管线约定、看见成片的手段、成片的物理条件；8 条是"怎么想"，没有证据说明它们有害。</p></div>
+  <div class="head"><div class="big acc">4</div><b>条待测</b><p>都和设计文档的长度有关，合成候选 C1。</p></div>
+  <div class="head"><div class="big">0</div><b>条直接删</b><p>删要有证据说明这一条有害或无用。现有证据拆不到单条上。唯一的清理是去重。</p></div>
+  <div class="head"><div class="big warm">1</div><b>个真缺口</b><p>时间维度：乙和甲都看不到。由此得到候选 C3，也就是第二只眼。</p></div>
+</div>
+
+<div class="revise"><b>同日修订。</b>按你的指正，撤回了缺口 G2–G4 和候选 C2、C4、C5、C6，M16 改判为"留"。撤回的理由写在页面最后，markdown 原文 §4.1 也有记录。</div>
+
+<section>
+  <h2>23 个条目，按类别和判断</h2>
+  <p class="lede">四类沿用诊断预注册 §6。前三类是模型事先不可能知道或看不到的，留下。"怎么想"那一类模型大多自己会做：没有证据说明有害的留下，和文档长度有关的并进 C1 去测。逐条理由见 markdown 原文的 §2。</p>
+  <div class="matrix">
+    <div class="col">
+      <h3>管线约定</h3>
+      <div class="q">分工、文件、交付规矩。模型事先不可能知道。</div>
+      <div class="chips">
+        <span class="chip"><span class="c">M2</span>全部带宽，不预设媒介</span>
+        <span class="chip"><span class="c">M4</span>判断用具体现象</span>
+        <span class="chip test"><span class="c">M8</span>§A 内容清单，先落盘<span class="to">C1</span></span>
+        <span class="chip test"><span class="c">M10</span>逐拍就地批注<span class="to">C1</span></span>
+        <span class="chip dedup"><span class="c">M11</span>读 RBP、版本、产物契约</span>
+        <span class="chip"><span class="c">M14</span>施工纪律；规格由任务给</span>
+        <span class="chip"><span class="c">M16</span>自检不设轮数上限</span>
+        <span class="chip"><span class="c">M21</span>FIXES.md 记账</span>
+        <span class="chip"><span class="c">M23</span>§5 现象归甲、修法归乙</span>
+      </div>
+    </div>
+    <div class="stack">
+    <div class="col">
+      <h3>看见成片的手段</h3>
+      <div class="q">模型怎样看到自己渲出来的东西，以及它看不到什么。</div>
+      <div class="chips">
+        <span class="chip"><span class="c">M15</span>设计师本人自检，不签"可接受"</span>
+        <span class="chip"><span class="c">M17</span>缩略图是降采样的</span>
+        <span class="chip"><span class="c">M19</span>分清实现还是设计</span>
+      </div>
+    </div>
+    <div class="col">
+      <h3>成片的物理条件</h3>
+      <div class="q">渲染、显示、压缩本身的特性。</div>
+      <div class="chips">
+        <span class="chip"><span class="c">M20</span>改采样会裂成台阶</span>
+      </div>
+    </div>
+    </div>
+    <div class="col think">
+      <h3>怎么想</h3>
+      <div class="q">设计的思考方式。当前模型大多自己会做。</div>
+      <div class="chips">
+        <span class="chip"><span class="c">M1</span>开篇人格</span>
+        <span class="chip"><span class="c">M3</span>§0 先问观众带走什么</span>
+        <span class="chip"><span class="c">M5</span>conceit 三条判准</span>
+        <span class="chip recheck"><span class="c">M6</span>主角不是光效</span>
+        <span class="chip test"><span class="c">M7</span>三步顺序是硬规则<span class="to">C1</span></span>
+        <span class="chip test"><span class="c">M9</span>§B 要能指认形体<span class="to">C1</span></span>
+        <span class="chip"><span class="c">M12</span>逐点想最佳实现</span>
+        <span class="chip"><span class="c">M13</span>渲染要演出 §A 主角</span>
+        <span class="chip recheck"><span class="c">M18</span>去帧里找翻车（旧案例）</span>
+        <span class="chip"><span class="c">M22</span>反松手：别把降级说成更好</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <span><i></i>留</span>
+    <span><i class="g"></i>留（"怎么想"，不单测）</span>
+    <span><i class="t"></i>待测，并入候选</span>
+    <span><i class="d"></i>留，但去重：同一段在三个文件里各写了一遍</span>
+    <span style="color:var(--warm);font-weight:700">换代重审</span><span style="margin-left:-14px">：案例来自旧模型</span>
+  </div>
+  <div class="nodelete">
+    <div class="z">0</div>
+    <p><b>为什么一条都没删。</b>现有证据只有消融里的一组整体对比：M 的潜力三条都胜无装备组，当前完成度三条都输。这个差别拆不到单条上。最可疑的消耗是设计文档的长度（γ：M 161 行，无装备组 47 行），所以把相关的 4 条并进 C1 一起测，而不是凭猜测逐条删。</p>
+  </div>
+</section>
+
+<section>
+  <h2>M 没写的那一样东西</h2>
+  <p class="lede">模型看不到、M 也没写的，只剩时间维度。"现有成片的成熟度差在哪"的研究从另一头印证了它：最常见的成熟度缺陷就在时间轴上。</p>
+  <div class="gaps" style="grid-template-columns:1fr">
+    <div class="gap"><div class="k">G1</div><h3>时间维度</h3><div class="cat">看见成片的手段</div><p>乙的自检和甲都只看静帧和条带，条带构造上就丢掉了时间轴。γ 的 M 有字在抽搐，熬过了自检和盲选，只有你看视频时才发现。生产语料里，停留太短、收尾被截断这类缺陷几乎都熬过了批评环，最后由你或节奏刀发现。</p><div class="goes">→ C3</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>两个候选作用在管线的哪一步</h2>
+  <p class="lede">候选要在默认的管线形态下估价值，所以先看清各自落在哪一步。</p>
+  <div class="pipe">
+    <div class="stages">
+      <div class="stage"><div class="box">委托</div><div class="pins"></div></div>
+      <div class="stage"><div class="box">概念与设计</div><div class="pins"><span class="pin">C1</span></div></div>
+      <div class="stage"><div class="box">写代码</div><div class="pins"></div></div>
+      <div class="stage"><div class="box">渲染与自检</div><div class="pins"><span class="pin">C3</span></div></div>
+      <div class="stage"><div class="box">挑选</div><div class="pins"></div></div>
+      <div class="stage"><div class="box">批评环</div><div class="pins"><span class="pin">C3</span></div></div>
+      <div class="stage"><div class="box">节奏刀</div><div class="pins"></div></div>
+    </div>
+    <div class="foot">
+      <span><span class="d" style="background:var(--accent)"></span>两个候选都主要针对成熟度</span>
+      <span>挑选和预览不属于轨道 C 的范围，在「默认挑选方式与预览形式」那张票里。批评协议本身的盲区（不判 mid 帧、不判时长）来自成熟度研究，排序时另列。</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>两个候选</h2>
+  <p class="lede">每个候选都写明两种结果下套件分别怎么做。绿色框表示有便宜的前置检验，不必先做成片。</p>
+  <div class="cands two">
+
+    <div class="cand">
+      <div class="top"><span class="k">C1</span></div>
+      <h3>短合同</h3>
+      <p class="what">动手前只写一份约 150 字的方向合同，代替长的 §A/§B 和逐拍批注；完整的设计文档在建完之后再写。</p>
+      <div class="tags"><span class="tag m">成熟度</span><span class="tag q">可能影响质量</span><span class="tag render">要成片</span></div>
+      <div class="outs">
+        <div><span class="ab">A</span><span>成熟度更好、质量不降 → §2 改成短合同</span></div>
+        <div><span class="ab">B</span><span>质量下降，或成熟度没有差别 → 保留现在的 §2</span></div>
+      </div>
+      <div class="pre"><div class="box">没有前置检验：成熟度只有在成片里才看得见。</div><div class="src">M7–M10 · Impeccable §2.4 · 消融 γ 的文档长度和 Q2</div></div>
+    </div>
+
+    <div class="cand">
+      <div class="top"><span class="k">C3</span></div>
+      <h3>让时间维度可见</h3>
+      <p class="what">也就是第二只眼：把从成片像素测出的时间现象（定镜里的像素变化、跳帧、阶梯纹、停顿时长）交给乙自检，其中 2a 类也给甲。停留时长从代码就能读出，可以提前到乙自检时核对。</p>
+      <div class="tags"><span class="tag m">成熟度</span><span class="tag norender">第一步不要成片</span></div>
+      <div class="outs">
+        <div><span class="ab">A</span><span>在合成片上命中率够、误报可控 → 接进自检和批评环</span></div>
+        <div><span class="ab">B</span><span>不够 → 不接，由你的终审兜底</span></div>
+      </div>
+      <div class="pre"><div class="box yes"><b>有前置检验：</b>轨道 B 在有真值的合成片上验证。合成片很短，渲染便宜。接进管线之后的效果才要成片。</div><div class="src">G1 · 第二只眼设计稿 · γ 的 M 抽搐 · 成熟度研究</div></div>
+    </div>
+
+  </div>
+  <p class="costnote">成本参照：消融里一次 draw 的墙钟 33–64 分钟，输出 9–18 万 token（据「成片流程各阶段的成本分布」重算，消融 §4.5 的 token 数有重复计数）。</p>
+</section>
+
+<section>
+  <h2>撤回的四个候选</h2>
+  <p class="lede">按你 2026-10-01 的指正撤回。原文 §4.1 有同样的记录。</p>
+  <div class="withdrawn">
+    <div class="wd"><div class="k">C2</div><h3>自检限定轮数</h3><p><b>前提没有证据。</b>消融 9 支的 FIXES.md 里，每一轮重渲之前都列了实际修复，没有空转的轮次。这一条是从 Impeccable 搬来的，没拿自己的运行核对过。条带假缺陷造成的多余渲染根源在条带，归 C3。</p></div>
+    <div class="wd"><div class="k">C6 · G4</div><h3>栅格素材</h3><p><b>前提不成立。</b>动画并不要求真实的栅格材质，矢量和风格化本来就是动态设计的常态。"模仿出来的材质是机器设计的标记"出自网页界面的语境。</p></div>
+    <div class="wd"><div class="k">C5 · G3</div><h3>委托问目的</h3><p><b>不该强制用户填清单。</b>用户尽量把自己想到的前提和背景写进 brief，上限取决于用户自己。委托步最多给出建议补充项，补不补由用户决定。这是交互上的选择，不是待测的干预。</p></div>
+    <div class="wd"><div class="k">C4 · G2</div><h3>观看和交付条件</h3><p><b>同上，问平台和场景也属于让用户填的清单。</b>"装备补一段显示物理"那一半，成熟度研究只找到两条弱证据，不单独立项。</p></div>
+  </div>
+  <p class="next"><b>教训：</b>从别的工具借机制之前，先用我们自己运行里的观察核对它的前提适不适用于短片。初稿的 C2 和 C6 都漏了这一步。</p>
+</section>
+
+<section>
+  <h2>局限</h2>
+  <div class="limits">
+    <ol>
+      <li>判断依据是 n=3 的消融和一次纸面诊断，评分者只有一位。"怎么想"那一类判了"留，不单测"，不等于证明了它有用，只是现有证据不足以删掉。</li>
+      <li>只审了装备和 Impeccable §5 列出的机制。create skill、批评协议、盲选协议和节奏刀都不在范围内。</li>
+      <li>C1 的依据是一个混杂的对比：消融里无装备组和 M 的差别不只是文档长度。C1 测的正是把长度单独拿出来看。</li>
+          </ol>
+    <p class="next"><b>接下来：</b>C1、C3，加上诊断提名的概念阶段分配，以及成熟度研究指出的批评协议盲区，一起交给「第二轮候选排序」。C3 就是第二只眼（轨道 B），不重复列。</p>
+  </div>
+</section>
+
+<footer>原文：<span class="mono">docs/research/2026-10-01-track-c-audit-m.md</span>，本页只是它的呈现，没有另加结论。审查对象：<span class="mono">skills/design-brain/reference/design-equipment.md</span>。</footer>
+</div>
+</body>
+</html>
