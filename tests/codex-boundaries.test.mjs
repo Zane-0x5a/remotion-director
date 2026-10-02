@@ -910,3 +910,27 @@ test('time-overview through the launcher stages the harnesses and completes an u
   assert.equal(json(join(partial, 'overview.json')).from_s, 1);
   assert.equal(existsSync(join(scratch, 'artifact-manifest.json')), false);
 });
+
+// A real bundle and render: the piece loads an image and a sound with
+// staticFile() from its own public/, which a missing asset would fail. The draw
+// sits under the ignored .remotion-director/ so it resolves the repository's
+// dependencies the way a draw resolves its workspace's.
+const BUNDLER = join(ROOT, 'node_modules', '@remotion', 'bundler', 'package.json');
+test('render-arm serves staticFile() assets from the draw\'s own public/', { skip: !(existsSync(TSX) && existsSync(BUNDLER)) && 'repository Remotion dependencies are not installed' }, (t) => {
+  mkdirSync(join(ROOT, '.remotion-director'), { recursive: true });
+  const scratch = mkdtempSync(join(ROOT, '.remotion-director', 'render-public-'));
+  t.after(() => rmSync(scratch, { recursive: true, force: true }));
+  const source = join(scratch, 'draw-1'); mkdirSync(join(source, 'public'), { recursive: true });
+  cpSync(join(ROOT, 'assets', 'sfx', 'whoosh-swish.wav'), join(source, 'public', 'whoosh-swish.wav'));
+  writeFileSync(join(source, 'public', 'dot.svg'), '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#fc6"/></svg>');
+  writeFileSync(join(source, 'index.tsx'), [
+    "import React from 'react';",
+    "import {AbsoluteFill, Audio, Composition, Img, registerRoot, staticFile} from 'remotion';",
+    "const Piece = () => <AbsoluteFill style={{background: '#123'}}><Img src={staticFile('dot.svg')} style={{width: 120}} /><Audio src={staticFile('whoosh-swish.wav')} /></AbsoluteFill>;",
+    "registerRoot(() => <Composition id=\"piece\" component={Piece} durationInFrames={15} fps={30} width={180} height={320} />);",
+  ].join('\n'));
+  const out = join(source, 'out', 'r1');
+  const result = cli('render-arm', '--workspace', ROOT, '--dir', source, '--out', out);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(runtime.verifyArtifacts(out, { sourceDir: source }).videoMetadata.height, 320);
+});

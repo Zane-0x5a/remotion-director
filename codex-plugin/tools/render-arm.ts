@@ -1,8 +1,9 @@
 /**
  * render-arm.ts — generic render harness.
  *
- * Bundles a self-contained Remotion entry (<armDir>/index.tsx, which registers a
- * Composition id "piece"), renders the mp4, then derives the review materials from
+ * Bundles a self-contained Remotion entry (<armDir>/index.tsx, which calls
+ * registerRoot() and registers a Composition id "piece"; staticFile() assets
+ * come from <armDir>/public), renders the mp4, then derives the review materials from
  * the rendered pixels into <out>/review/ (see time-overview.ts): the time overview
  * pages, the full-resolution settle frames and overview.json. The piece code is
  * arbitrary author-written Remotion; this harness does NOT touch the design — it
@@ -34,8 +35,11 @@ async function main() {
   const entry = path.join(dir, "index.tsx");
   fs.mkdirSync(out, { recursive: true });
 
+  // staticFile() resolves against the draw's own <armDir>/public, not the
+  // workspace's: every draw keeps its assets in its own directory.
+  const publicDir = path.resolve(dir, "public");
   console.error(`[harness] bundling ${entry} ...`);
-  const serveUrl = await bundle({ entryPoint: entry });
+  const serveUrl = await bundle({ entryPoint: entry, publicDir });
   const composition = await selectComposition({ serveUrl, id: "piece" });
   console.error(
     `[harness] comp ${composition.width}x${composition.height} ${composition.durationInFrames}f @${composition.fps}fps`,
