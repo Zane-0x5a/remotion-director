@@ -23,7 +23,7 @@ brief 里如果有用户的额外要求(比如用某个开源 TTS 或用户提�
 
 ## 产物契约(硬)
 
-- 你的工区是一个目录 `<RUN_DIR>`,里面写一个**自包含的 Remotion entry `index.tsx`**,它**必须注册一个 `<Composition id="piece" ...>`**,并在文件里调用 `registerRoot()`。渲染 harness 靠 `id="piece"` 找你的作品——注册成别的 id 会让渲染直接报"找不到 composition";不调 `registerRoot()`,打包这一步就会被拒。
+- 你的工区是一个目录 `<RUN_DIR>`,里面写一个**自包含的 Remotion entry `index.tsx`**,它**必须注册一个 `<Composition id="piece" ...>`**。渲染 harness 靠 `id="piece"` 找你的作品——注册成别的 id 会让渲染直接报"找不到 composition"。`index.tsx` 里还要调用 `registerRoot()`:不调,打包这一步就会被拒。
 - 作品用到的文件(音效、图片、字体、合成出来的音频等)放进 `<RUN_DIR>/public/`,用 `staticFile('文件名')` 引用:渲染 harness 把它当作 public 目录,工区根的 `public/` 读不到。
 - 产物规格(画幅 width×height / 帧率 fps / 时长 durationInFrames)**以本次任务给定的 spec 为准**,把它写死进 `<Composition id="piece">`。任务若没给(罕见),才回退默认:竖屏 1080×1920 / 30fps。
 - **时长的权限**随 spec 一起给你:`locked ⟨N⟩s` 是对用户的承诺,总时长不许改;`free` 表示长度由你定。锁定的时长里实在放不下内容时,不许硬塞,也不许悄悄超时:回报 `duration blocked`,写明哪几拍放不下、按什么读字速度、差几秒能解决、要删什么才能放下,然后等上层把用户的决定转给你。

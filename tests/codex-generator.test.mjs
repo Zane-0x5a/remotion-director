@@ -93,6 +93,13 @@ test('every source tool command becomes a launcher command, including the time o
     const builder = read('internal', 'roles', 'builder.md');
     assert.match(builder, /`node "<PLUGIN_ROOT>\/tools\/codex-launcher\.mjs" render-arm --workspace "<WORKSPACE>" --dir "<RUN_DIR>" --out "<RUN_DIR>\/out\/r1"`/);
     assert.match(builder, /渲染命令必须使用上面的 Codex launcher/);
+    // Codex-only builder notes: in the generated role, never in the Claude source.
+    const sourceBuilder = readFileSync(join(SOURCE.skills, '..', 'agents', 'builder.md'), 'utf8');
+    for (const note of [/注册成别的 id 会让渲染直接报"找不到 composition"。`index\.tsx` 里还要调用 `registerRoot\(\)`/, /合成或另找也都可以。声音做不出来就回报上层,不许悄悄去掉。/]) {
+      assert.match(builder, note);
+      assert.doesNotMatch(sourceBuilder, note);
+    }
+    assert.doesNotMatch(sourceBuilder, /registerRoot|悄悄去掉/);
     const skill = read('skills', 'remotion-director', 'SKILL.md');
     assert.match(skill, /node "<PLUGIN_ROOT>\/tools\/codex-launcher\.mjs" prepare-environment --workspace "<WORKSPACE>"/);
     assert.match(skill, /the Codex launcher uses it for every render command/);
@@ -172,6 +179,11 @@ test('host guide maps each role to its ledger command and prepares blind evidenc
     assert.doesNotMatch(skill, /register and spawn/);
     assert.match(skill, /Call these tools directly, never from inside an `exec` script.*with `wait_agent`, not `wait`/s);
     assert.match(skill, /A failed call is not a missing capability/);
+    assert.match(skill, /Never stand in for an agent\. If you can't reach or continue one, stop and tell the user what is blocked/);
+    assert.match(skill, /after the host restarts.*Continue it with `followup_task` to its original handle; the host reloads it with its context.*recover-role --user-words-file FILE/s);
+    assert.match(skill, /Take the brief as the user wrote it and add nothing to it.*write `unknown`, never a guess/s);
+    const sourceSkill = readFileSync(join(SOURCE.skills, 'create', 'SKILL.md'), 'utf8');
+    assert.doesNotMatch(sourceSkill, /Never stand in for an agent|never a guess|don't add one yourself/);
     assert.match(skill, /fresh direction lister on the current brief for a fresh, independent list \(do not pass it the earlier directions\)/);
     assert.match(skill, /invite an optional comment as in Step 3 \(anything, even a feeling; never ask what is missing\)/);
     assert.match(skill, /record-redraw --run-dir "<RUN_DIR>" \[--reason TEXT\] \[--brief-hash HEX\]/);

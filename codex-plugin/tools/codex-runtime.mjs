@@ -862,18 +862,26 @@ export function recordDurationDecision(runDir, { reportId, decision }) {
   return saveState(runDir, touch(state));
 }
 
-export function recoverRole(runDir, { role, key = role, previousAgentId, replacementAgentId, replacementContinuationId, reason }) {
+export function recoverRole(runDir, { role, key = role, previousAgentId, replacementAgentId, replacementContinuationId, reason, userWords = null }) {
   const state = loadState(runDir); const current = roleRecord(state, role, key);
   if (!current || current.agentId !== previousAgentId) fail('Recovery must identify the currently registered role identity.', 'IDENTITY_CHANGED');
   if (!replacementAgentId || !replacementContinuationId || !reason?.trim()) fail('Recovery requires a replacement identity and explicit reason.', 'INVALID_RECOVERY');
   if (current.status === 'recovered') fail('Role already recovered; recovery cannot silently chain.', 'DUPLICATE_RECOVERY');
   if (current.status === 'ended') fail('An ended role (a draw not picked or replaced by a redraw, the builder of a finished piece, or the critic after the switch to user polish) is not recovered.', 'INVALID_RECOVERY');
+  // A builder with a preview holds its piece's design in its context; a fresh
+  // replacement could only read the piece back. Only the user may choose that,
+  // and only the user may let a builder's recovery chain.
+  if (role === 'builder' && !userWords?.trim()) {
+    if (state.previews[key]) fail(`Builder ${key} has a preview, so its context holds the piece's design. Continue it with followup_task to its handle; the host reloads a saved child. If the host says it no longer exists, stop and tell the user. Recover it only if they choose that, with their words in --user-words-file.`, 'USER_DECISION_REQUIRED');
+    if (current.parentId) fail(`Builder ${key} was already recovered once; recovery cannot silently chain. Stop and tell the user. Recover it again only if they choose that, with their words in --user-words-file.`, 'DUPLICATE_RECOVERY');
+  }
   const otherRoles = [...liveRoles(state), ...endedRoles(state)].filter((item) => item !== current);
   if (otherRoles.some((item) => item.agentId === replacementAgentId || item.continuationId === replacementContinuationId)) fail('Replacement identity is already registered to another role.', 'IDENTITY_CHANGED');
   current.status = 'recovered';
-  const replacement = { ...current, agentId: replacementAgentId, continuationId: replacementContinuationId, parentId: previousAgentId, fresh: true, degraded: true, status: 'running', recoveredAt: new Date().toISOString(), recoveryReason: reason, continuations: 1 };
+  const userDecision = userWords?.trim() ? userWords : null;
+  const replacement = { ...current, agentId: replacementAgentId, continuationId: replacementContinuationId, parentId: previousAgentId, fresh: true, degraded: true, status: 'running', recoveredAt: new Date().toISOString(), recoveryReason: reason, userDecision, continuations: 1 };
   if (role === 'builder') state.roles.builders[key] = replacement; else state.roles[role] = replacement;
-  state.recoveries.push({ role, key, previousAgentId, replacementAgentId, replacementContinuationId, reason, degraded: true, recordedAt: new Date().toISOString() });
+  state.recoveries.push({ role, key, previousAgentId, replacementAgentId, replacementContinuationId, reason, userDecision, degraded: true, recordedAt: new Date().toISOString() });
   return saveState(runDir, touch(state));
 }
 

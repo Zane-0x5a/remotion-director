@@ -3,7 +3,8 @@
  * Generate the self-contained Codex package from the Claude source of truth.
  * Only host seams are transformed: package-root paths, shell invocation syntax,
  * and lifecycle/tool names. Design, critic, selection and protocol prose
- * remains byte-for-byte identical in the generated internal sources; the
+ * remains byte-for-byte identical in the generated internal sources, apart
+ * from the Codex-only builder notes listed in HOST_SEAMS; the
  * sound-effect pack is copied byte-for-byte.
  */
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -29,6 +30,14 @@ const HOST_SEAMS = [
   'SendMessage -> host continuation/follow-up operation; the final message is a report only when the host cannot send a continuation',
   'bash NODE_PATH=<workspace>/node_modules npx tsx <PLUGIN_ROOT>/tools/{render-arm,time-overview}.ts -> node <PLUGIN_ROOT>/tools/codex-launcher.mjs {render-arm,time-overview} --workspace <WORKSPACE>',
   'Claude agent frontmatter/tool lists -> native Codex role lifecycle guidance in internal/roles',
+  'Codex-only notes in internal/roles/builder.md (call registerRoot(); never drop the sound silently) for what only Codex builders have shown',
+];
+
+// Each note follows its anchor sentence in the builder role. They answer what
+// Codex builders did in end-to-end runs, so they stay out of the Claude source.
+const BUILDER_NOTES = [
+  ['注册成别的 id 会让渲染直接报"找不到 composition"。', '`index.tsx` 里还要调用 `registerRoot()`:不调,打包这一步就会被拒。'],
+  ['要用就复制进 `<RUN_DIR>/public/` 再引用,电平自己调;合成或另找也都可以。', '声音做不出来就回报上层,不许悄悄去掉。'],
 ];
 
 const SHARED_MANIFEST = {
@@ -75,6 +84,8 @@ This package exposes one public skill. Load the internal role texts from \`<PLUG
 - On the current Codex host, the child-agent tools are the host's own \`collaboration\` tool calls. \`spawn_agent({task_name, message, fork_turns:"none", model:<user-selected-or-host-default>, reasoning_effort:<user-selected-or-host-default>})\` creates a fresh child and returns its handle (the task name as a path, such as \`/root/builder_1\`). Resume that same child with \`followup_task({target, message})\`; use \`wait_agent({timeout_ms})\` only to wait for a boundary. Use \`send_message({target, message})\` only to ferry verbatim text and never to start work: it cannot create a child. Call these tools directly, never from inside an \`exec\` script (they are not there), and wait on a child with \`wait_agent\`, not \`wait\` (that one waits on \`exec\` cells). These names describe the current host contract; use its native equivalent or report a clear capability block on another host. The child's actual final message is its result; an idle boundary is not completion.
 - Start each builder with a new native child and a unique \`agentId\` plus \`continuationId\`. Keep every builder alive until the pick; afterwards continue only the picked builder with \`followup_task\` and end the others, except draws the user also kept, which wait idle for \`next-kept\`. Start the direction lister and the selector as fresh native children. When the critic loop polishes, start one persistent critic and continue its same \`agentId\`/\`continuationId\` for every review round. Keep the brief and artifact paths explicit; inject only the critic role body plus the brief, the review dir and the video, never the builder's design or code.
 - Record the real agent and continuation handles returned by the host (the same handle may serve both fields); never invent IDs in the orchestrator ledger. If the host cannot provide a fresh child or a persistent continuation handle, stop with a capability block instead of claiming the lifecycle is preserved. A failed call is not a missing capability: if a collaboration call errors (an unknown tool, a target not found, a bad argument), check its name and arguments against this guide and call it again; report a capability block only when the host has no such tool.
+- Never stand in for an agent. If you can't reach or continue one, stop and tell the user what is blocked. Don't skip its step, do its work, or record a report it didn't send.
+- A child that \`list_agents\` doesn't show is not necessarily gone: after the host restarts, it lists a child again only once that child is continued. Continue it with \`followup_task\` to its original handle; the host reloads it with its context. When \`wait_agent\` keeps timing out, compare \`list_agents\` with the roles \`status\` shows running and continue any it doesn't list. Only when the host says a target doesn't exist is the child gone, or it was never spawned. A builder without a preview is then replaced with \`recover-role\`. A builder that has a preview holds its piece's design in its context, and a fresh replacement could only read the piece back, so stop and tell the user; recover it only if they choose that, with their words in \`recover-role --user-words-file FILE\`. The same holds for a builder that was already recovered once.
 - Spawn only the roles this skill names: the direction lister, the builders, the selector and the critic. Never spawn a helper to do, check or recover their work. If a child's task or message arrives unreadable (an opaque token instead of text), the host's message channel is broken: stop and tell the user what is blocked; don't try to decode it or work around it.
 - Present a video as the finished piece only when \`status\` shows it is the accepted canonical and, in the critic loop, that its last verdict converged. Tell the user what the ledger shows, never what you believe happened; a preview or an unaccepted render is never the finished piece.
 - Register every initial role right after spawning it, with the handle \`spawn_agent\` returned and \`register-role --fresh\` (one direction lister per batch of draws, builder for each draw with \`--direction K\`, one selector when the pick goes to AI, and one critic when the critic loop polishes). A role is registered only once it exists: never register a handle you expect the host to return, and never register first and spawn later. Handles must be unique across roles and draws, including draws ended by a redraw; only the picked builder and the persistent critic may later use \`continue-role\` with their original handles.
@@ -89,6 +100,7 @@ This package exposes one public skill. Load the internal role texts from \`<PLUG
 - After either pick, follow up with the picked builder (it self-checks per its definition, then reports \`settled\` with its canonical output) and end every other builder the user did not keep, without self-check. Accept the settled report with \`accept-canonical\` before the critic's first round or, in user polish, before the user's first look.
 - Spawn the selector fresh with \`fork_turns:"none"\`; keep the label→draw mapping outside its message. For critic review, pass only the role body from \`internal/roles/aesthetic-critic.md\`, the brief, and the current canonical's review dir and video; the critic pulls its own frames and crops from the video into \`critic-crops/\`.
 - This host adapter dispatch rule takes precedence over the source Step 3 wording: prepare an anonymous, verified copy of each preview candidate before selector dispatch. Never expose draw keys, author identity, or the label mapping in the selector message; keep that mapping only in the orchestrator ledger.
+- Take the brief as the user wrote it and add nothing to it: no audience, takeaway or tone of your own. The brief reaches every role, so anything you add becomes a requirement the user never made. In \`COMMISSION.md\`, write each model ID as the host reports it; if you can't read one, write \`unknown\`, never a guess.
 - Initialize a run with \`init-run\` before dispatch. The record stores commission, duration authority and the user's duration decisions, polish mode, draw count, identities, continuations, directions, previews, the pick and the draws kept with it, redraws, handoffs, verdicts, user notes, canonical output and the finished pieces in \`<RUN_DIR>/.remotion-director/codex-run.json\`.
 
 The package's launcher is cross-platform Node. It resolves the installed package root from its own file location, uses dependencies from the explicit user workspace, and never reads this development checkout. Plugin hooks may expose \`PLUGIN_ROOT\`; ordinary skill commands must still use the \`<PLUGIN_ROOT>\` path supplied by this skill. Prompt blindness is a protocol constraint plus access evidence, not a filesystem sandbox.
@@ -167,6 +179,12 @@ function transformAgent(text, name) {
   out = replaceAll(out, 'AskUserQuestion', 'host request-user-input operation');
   out = transformDelivery(out);
   out = transformRenderCommands(out);
+  if (name === 'builder.md') {
+    for (const [anchor, note] of BUILDER_NOTES) {
+      if (!out.includes(anchor)) throw new Error(`agents/builder.md no longer has the anchor for a Codex note: ${anchor}`);
+      out = out.replace(anchor, anchor + note);
+    }
+  }
   // Claude role frontmatter (model, color and tool lists) is not a Codex role contract.
   // Keep the role body and dispatch it through the native lifecycle guide instead.
   const preamble = `<!-- Codex role adapter for ${name}; role body below is source-preserved outside host seams. -->\n\n`;

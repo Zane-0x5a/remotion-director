@@ -155,6 +155,30 @@ test('recorded completion from a recovered identity cannot be accepted', (t) => 
   assert.throws(() => runtime.acceptPreview(run.dir, { reportId: id, outDir: out }), /identity/i);
 });
 
+// Codex end-to-end run 4: a builder that was never spawned was replaced, which
+// needs nobody; after the host restarted, that replacement was replaced again
+// once its preview had been picked, which only the user may choose.
+test('a builder with a preview, or one already recovered, is recovered only with the user\'s words', (t) => {
+  const run = createRun(t, 2); const [a, b] = run.candidates;
+  const lost = (key, previous, next) => ({ role: 'builder', key, previousAgentId: previous, replacementAgentId: next, replacementContinuationId: `${next}-cont`, reason: 'not in list_agents' });
+  // No preview yet: the first recovery is the orchestrator's to make.
+  let state = runtime.recoverRole(run.dir, lost(a.key, a.key, 'draw-1-recovered'));
+  assert.equal(state.roles.builders[a.key].userDecision, null);
+  // A second one would chain.
+  assert.throws(() => runtime.recoverRole(run.dir, lost(a.key, 'draw-1-recovered', 'draw-1-restart')), (error) => error.code === 'DUPLICATE_RECOVERY' && /tell the user/.test(error.message));
+  state = runtime.recoverRole(run.dir, { ...lost(a.key, 'draw-1-recovered', 'draw-1-restart'), userWords: '换吧' });
+  assert.equal(state.recoveries.at(-1).userDecision, '换吧');
+  // A builder whose preview is accepted holds its design.
+  preview(run, b);
+  assert.throws(() => runtime.recoverRole(run.dir, lost(b.key, b.key, 'draw-2b')), (error) => error.code === 'USER_DECISION_REQUIRED');
+  assert.throws(() => runtime.recoverRole(run.dir, { ...lost(b.key, b.key, 'draw-2b'), userWords: '   ' }), (error) => error.code === 'USER_DECISION_REQUIRED');
+  // The launcher takes the user's words from a file.
+  const words = join(run.dir, 'user-words.txt'); writeFileSync(words, '可以，换一个');
+  const result = cli('recover-role', '--run-dir', run.dir, '--role', 'builder', '--key', b.key, '--previous-agent-id', b.key, '--replacement-agent-id', 'draw-2b', '--replacement-continuation-id', 'draw-2b-cont', '--reason', 'gone after a restart', '--user-words-file', words);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(runtime.loadState(run.dir).roles.builders[b.key].userDecision, '可以，换一个');
+});
+
 test('a completion recorded before a convergence amendment cannot advance afterward', (t) => {
   const run = createRun(t); previewAll(run); select(run); settle(run); critic(run); verdict(run, 1);
   const candidate = run.candidates[0]; const out = output(candidate.source, 'r3');
@@ -747,9 +771,13 @@ test('the user may keep more draws with the pick: kept keys are validated, kept 
   assert.throws(() => runtime.recordReport(run.dir, { id: 'c-blocked', role: 'builder', key: c.key, status: 'duration-blocked', ...builderIdentity(c), text: 'needs more time' }), /kept for a later piece/);
   assert.throws(() => runtime.continueRole(run.dir, { role: 'builder', key: c.key, ...builderIdentity(c) }), /kept for a later piece/);
   assert.throws(() => runtime.continueRole(run.dir, { role: 'builder', key: d.key, ...builderIdentity(d) }), /not picked/);
-  // A kept builder lost while it waits is recovered like any live role and stays kept.
-  const recovered = runtime.recoverRole(run.dir, { role: 'builder', key: b.key, previousAgentId: b.key, replacementAgentId: 'draw-2b', replacementContinuationId: 'draw-2b-cont', reason: 'unavailable child' });
+  // A kept builder lost while it waits holds its design, so only the user may
+  // replace it; recovered with their words, it stays kept.
+  const lost = { role: 'builder', key: b.key, previousAgentId: b.key, replacementAgentId: 'draw-2b', replacementContinuationId: 'draw-2b-cont', reason: 'unavailable child' };
+  assert.throws(() => runtime.recoverRole(run.dir, lost), (error) => error.code === 'USER_DECISION_REQUIRED' && /followup_task.*tell the user/s.test(error.message));
+  const recovered = runtime.recoverRole(run.dir, { ...lost, userWords: '那就换一个吧' });
   assert.deepEqual(recovered.selection.kept, [c.key, b.key]);
+  assert.equal(recovered.roles.builders[b.key].userDecision, '那就换一个吧');
   // Nor can a kept builder complete the picked builder's review round.
   settle(run, a.key); critic(run); verdict(run, 1);
   assert.throws(() => report(run, c, output(c.source, 'r3'), 1), /kept for a later piece/);

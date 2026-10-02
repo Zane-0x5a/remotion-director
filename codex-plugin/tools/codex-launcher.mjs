@@ -41,7 +41,8 @@ const help = `remotion-director Codex launcher\n\n` +
   `  record-user-selection --run-dir DIR --winner-key draw-N [--reason TEXT] [--also-keep draw-M]...   the user picked the base (default); --also-keep each other draw they keep\n` +
   `  next-kept --run-dir DIR --key draw-M   after the current piece's settled canonical: archive that piece, make a kept draw the current piece\n` +
   `  record-redraw --run-dir DIR [--reason TEXT] [--brief-hash HEX]   the user rejected every preview; their comment as given, the updated brief's hash\n` +
-  `  recover-role --run-dir DIR --role ROLE --previous-agent-id ID --replacement-agent-id ID --replacement-continuation-id ID --reason TEXT\n` +
+  `  recover-role --run-dir DIR --role ROLE [--key draw-N] --previous-agent-id ID --replacement-agent-id ID --replacement-continuation-id ID --reason TEXT [--user-words TEXT|--user-words-file FILE]\n` +
+  `      a builder with a preview, or one already recovered, needs the user's words choosing the fresh replacement\n` +
   `  verify-artifacts --out DIR [--source DIR] [--allow-unbound]\n` +
   `  status --run-dir DIR [--full]\n\n` +
   `All state mutations fail loudly on duplicate reports, identity changes, stale artifacts,\n` +
@@ -168,7 +169,7 @@ function command() {
     case 'record-user-selection': return print(recordUserSelection(value('--run-dir'), { winnerKey: value('--winner-key'), reason: value('--reason', ''), alsoKeep: values('--also-keep') }));
     case 'next-kept': return print(nextKept(value('--run-dir'), { key: value('--key') }));
     case 'record-redraw': return print(recordRedraw(value('--run-dir'), { reason: value('--reason', ''), briefHash: value('--brief-hash', null) }));
-    case 'recover-role': return print(recoverRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), previousAgentId: value('--previous-agent-id'), replacementAgentId: value('--replacement-agent-id'), replacementContinuationId: value('--replacement-continuation-id'), reason: value('--reason') }));
+    case 'recover-role': return print(recoverRole(value('--run-dir'), { role: value('--role'), key: value('--key', value('--role')), previousAgentId: value('--previous-agent-id'), replacementAgentId: value('--replacement-agent-id'), replacementContinuationId: value('--replacement-continuation-id'), reason: value('--reason'), userWords: textOption('--user-words', '--user-words-file', null) }));
     case 'verify-artifacts': return print(verifyArtifacts(value('--out'), { sourceDir: value('--source', null), requireProvenance: !has('--allow-unbound') }));
     case 'capture-provenance': return print(captureProvenance(value('--out'), value('--source', null)));
     case 'status': return print(status(value('--run-dir')));
