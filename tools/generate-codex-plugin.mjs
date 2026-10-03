@@ -17,7 +17,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'codex-plugin');
 const SOURCE = { skills: join(ROOT, 'skills'), agents: join(ROOT, 'agents'), tools: join(ROOT, 'tools'), sfx: join(ROOT, 'assets', 'sfx') };
 const INTERNAL = join(OUT, 'internal');
-const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'time-overview.ts', 'codex-runtime.mjs', 'codex-launcher.mjs'];
+const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'gpu-preference.ts', 'time-overview.ts', 'codex-runtime.mjs', 'codex-launcher.mjs'];
 // Internal (non-discoverable) skills bundled beside the one public entry skill.
 const DESIGN_SKILLS = ['critic-loop'];
 // Recorded sounds are binary: hashed and compared as exact bytes. Every other
@@ -42,7 +42,7 @@ const BUILDER_NOTES = [
 
 const SHARED_MANIFEST = {
   name: 'remotion-director',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'The remotion-director 甲乙环 pipeline for Codex: one public entry skill, native role lifecycle guidance, and cross-platform rendering and review tools.',
   interface: {
     displayName: 'Remotion Director',
@@ -266,7 +266,7 @@ function generatePackage(target = OUT) {
   writeFileSync(join(target, '.codex-plugin', 'plugin.json'), JSON.stringify(COMPAT_MANIFEST, null, 2) + '\n', 'utf8');
   const rootPackage = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
   const packageJson = {
-    name: 'remotion-director-codex', version: '1.0.0', private: true, type: 'module', license: 'MIT',
+    name: 'remotion-director-codex', version: '1.0.1', private: true, type: 'module', license: 'MIT',
     description: 'Runtime dependency snapshot used by the remotion-director Codex launcher; dependencies install into each user workspace.',
     files: ['plugin.json', '.codex-plugin', 'skills', 'internal', 'tools', 'assets', 'SOURCE-PROVENANCE.json', 'CODEX-HOST-SEAMS.json'],
     dependencies: rootPackage.dependencies, devDependencies: rootPackage.devDependencies,

@@ -41,7 +41,7 @@ const SOURCE = {
 
 // These are the only runtime tools Claude's source skill invokes.  The Codex
 // launcher/runtime and their ledgers are deliberately outside this closure.
-const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'time-overview.ts'];
+const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'gpu-preference.ts', 'time-overview.ts'];
 const REQUIRED_ROOT_FILES = ['LICENSE', 'tsconfig.json'];
 const PROVENANCE_FILE = 'SOURCE-PROVENANCE.json';
 // Recorded sounds are binary: hashed and compared as exact bytes.  Every other

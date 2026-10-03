@@ -97,4 +97,6 @@ node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir>
 
 管线在 **64 位 Windows 11** 上验证过。Node.js 把这个平台报告为 `"win32"`，这是它对*所有* Windows（32 位和 64 位都算）的历史叫法。渲染工具用 ANGLE GL 后端（`gl: "angle"`）和 ffmpeg；在 macOS 或 Linux 上可能需要换 GL 后端（`swangle` / `egl`）。跨平台目前未验证。
 
+在有核显和独显的 Windows 电脑上，Windows 会让 Remotion 私有的 `chrome-headless-shell.exe` 跑在省电的那块显卡上，`gl: "angle"` 和页面里的 `powerPreference: "high-performance"` 都改变不了。所以 `render-arm` 在启动 Chrome 前，为这个程序写入「设置 > 系统 > 屏幕 > 显示卡」写的那条按应用设置（`HKCU\Software\Microsoft\DirectX\UserGpuPreferences`，值 `GpuPreference=2;`，不需要管理员权限；见 `tools/gpu-preference.ts`）。已经带有显卡偏好的条目是用户自己的选择，保持不动；注册表出错只记一条警告。渲染日志里的 `[harness] GPU:` 一行报告结果。
+
 已验证的画幅：1080×1920 和 1920×1080。方形用同一套渲染工具，但还没做过冒烟测试。

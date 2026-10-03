@@ -15,9 +15,10 @@
  *   the launcher stages the helper under the workspace so its dependency tree is used.
  */
 import { bundle } from "@remotion/bundler";
-import { selectComposition, renderMedia } from "@remotion/renderer";
+import { ensureBrowser, selectComposition, renderMedia } from "@remotion/renderer";
 import * as path from "node:path";
 import * as fs from "node:fs";
+import { preferHighPerformanceGpu } from "./gpu-preference.ts";
 import { buildReview } from "./time-overview.ts";
 
 async function main() {
@@ -34,6 +35,15 @@ async function main() {
   const out = get("--out") ?? path.join(dir, "out");
   const entry = path.join(dir, "index.tsx");
   fs.mkdirSync(out, { recursive: true });
+
+  // On a two-GPU Windows machine the render's Chrome starts on the integrated GPU
+  // unless Windows is told otherwise (see gpu-preference.ts); tell it before the
+  // first Chrome of this render starts.
+  const browser = await ensureBrowser();
+  if ("path" in browser) {
+    const gpu = preferHighPerformanceGpu(browser.path);
+    if (gpu) console.error(`[harness] ${gpu}`);
+  }
 
   // staticFile() resolves against the draw's own <armDir>/public, not the
   // workspace's: every draw keeps its assets in its own directory.

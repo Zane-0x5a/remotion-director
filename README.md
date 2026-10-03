@@ -74,7 +74,7 @@ codex plugin marketplace add Zane-0x5a/remotion-director
 codex plugin add remotion-director@remotion-director-codex
 ```
 
-Start a new session afterwards. You need Node.js, npm, Git and a full ffmpeg build (5.1 or newer). Everything else, the Remotion engine included, is prepared automatically at the start of each piece. Tested on Windows 11; macOS and Linux are not yet verified.
+Start a new session afterwards. You need Node.js, npm, Git and a full ffmpeg build (5.1 or newer). Everything else, the Remotion engine included, is prepared automatically at the start of each piece. Tested on Windows 11; macOS and Linux are not yet verified. On a Windows computer with two GPUs, renders run on the more powerful one: the first render sets Remotion's Chrome to High performance under Settings > System > Display > Graphics, unless you have already chosen a setting for it there.
 
 To update later: [Claude Code](docs/PLUGIN-DISTRIBUTION.md#update-an-existing-claude-installation), or in Codex `codex plugin marketplace upgrade` and the `plugin add` line again.
 
