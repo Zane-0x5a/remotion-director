@@ -91,8 +91,8 @@ function runNodeTool(tool, args) {
   // source file lives outside the workspace. Stage the package-owned harnesses
   // under the prepared workspace so their nearest node_modules is the user's
   // dependency tree. All of them are staged together because render-arm.ts
-  // imports time-overview.ts relatively. The package stays read-only and
-  // dependency-free.
+  // imports time-overview.ts and gpu-preference.ts relatively. The package
+  // stays read-only and dependency-free.
   const cache = join(workspace, '.remotion-director', 'codex-tools');
   mkdirSync(cache, { recursive: true });
   for (const name of readdirSync(TOOL_ROOT).filter((file) => file.endsWith('.ts'))) cpSync(join(TOOL_ROOT, name), join(cache, name), { force: true });

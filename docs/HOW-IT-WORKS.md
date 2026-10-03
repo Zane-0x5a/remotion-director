@@ -97,4 +97,6 @@ The repo is its own marketplace. `.claude-plugin/marketplace.json` lists the gen
 
 The pipeline is validated on **64-bit Windows 11**. Node.js reports this platform as `"win32"`, its historical identifier for *all* Windows, 32- and 64-bit alike. The render harness uses the ANGLE GL backend (`gl: "angle"`) and ffmpeg; on macOS or Linux the GL backend may need adjusting (`swangle` / `egl`). Cross-platform use is currently unverified.
 
+On a Windows machine with an integrated and a discrete GPU, Windows starts Remotion's private `chrome-headless-shell.exe` on the power-saving GPU, and neither `gl: "angle"` nor a page's `powerPreference: "high-performance"` moves it. So before Chrome starts, `render-arm` writes the per-app entry that Settings > System > Display > Graphics writes for that executable (`HKCU\Software\Microsoft\DirectX\UserGpuPreferences`, value `GpuPreference=2;`, no admin rights; `tools/gpu-preference.ts`). An entry that already holds a GPU preference is the user's choice and stays as it is; a registry error only logs a warning. The render log reports the outcome in a `[harness] GPU:` line.
+
 Validated aspects: 1080×1920 and 1920×1080. Square uses the same harnesses but isn't yet smoke-tested.

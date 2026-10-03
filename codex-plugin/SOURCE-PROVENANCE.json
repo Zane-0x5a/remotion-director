@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T14:27:09.963Z",
+  "generatedAt": "2026-10-03T00:47:18.971Z",
   "sourceRoot": "skills/, agents/, tools/, assets/sfx/",
   "source": {
     "skills": {
@@ -11,8 +11,8 @@
       "count": 4
     },
     "tools": {
-      "hash": "56a24f3bde60cdfb93ea4bf30a4c028d5c0266145139a13b2acd5465c43f46d8",
-      "count": 7
+      "hash": "c56239d87fdfb345428f357ca3c8f9c15b32d6e8e4ac2d0e8ae253eee01f9da2",
+      "count": 8
     },
     "sfx": {
       "hash": "72c2fc797e590b72324a8e00d128625e949f2e2084d2d0cd8a9248f911cfdd70",
@@ -37,6 +37,7 @@
       "environment.mjs",
       "rbp.mjs",
       "render-arm.ts",
+      "gpu-preference.ts",
       "time-overview.ts",
       "codex-runtime.mjs",
       "codex-launcher.mjs"

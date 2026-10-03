@@ -17,7 +17,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'codex-plugin');
 const SOURCE = { skills: join(ROOT, 'skills'), agents: join(ROOT, 'agents'), tools: join(ROOT, 'tools'), sfx: join(ROOT, 'assets', 'sfx') };
 const INTERNAL = join(OUT, 'internal');
-const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'time-overview.ts', 'codex-runtime.mjs', 'codex-launcher.mjs'];
+const RUNTIME_TOOLS = ['check-env.mjs', 'environment.mjs', 'rbp.mjs', 'render-arm.ts', 'gpu-preference.ts', 'time-overview.ts', 'codex-runtime.mjs', 'codex-launcher.mjs'];
 // Internal (non-discoverable) skills bundled beside the one public entry skill.
 const DESIGN_SKILLS = ['critic-loop'];
 // Recorded sounds are binary: hashed and compared as exact bytes. Every other

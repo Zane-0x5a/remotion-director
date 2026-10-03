@@ -74,7 +74,7 @@ codex plugin marketplace add Zane-0x5a/remotion-director
 codex plugin add remotion-director@remotion-director-codex
 ```
 
-装好后开一个新会话。本机需要 Node.js、npm、Git 和完整版 ffmpeg（5.1 或更新）；其余的，包括 Remotion 引擎，每做一支片前都会自动准备好。已在 Windows 11 上测试；macOS 和 Linux 还没验证。
+装好后开一个新会话。本机需要 Node.js、npm、Git 和完整版 ffmpeg（5.1 或更新）；其余的，包括 Remotion 引擎，每做一支片前都会自动准备好。已在 Windows 11 上测试；macOS 和 Linux 还没验证。在有两块显卡的 Windows 电脑上，渲染走性能更强的那块：第一次渲染时会在「设置 > 系统 > 屏幕 > 显示卡」里把 Remotion 的 Chrome 设为「高性能」；你在那里已经给它选过设置的，保持不动。
 
 以后更新：[Claude Code](docs/PLUGIN-DISTRIBUTION.md#update-an-existing-claude-installation)；Codex 先跑 `codex plugin marketplace upgrade`，再跑一遍上面的 `plugin add`。
 
