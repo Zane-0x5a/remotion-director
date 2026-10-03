@@ -24,7 +24,7 @@ codex plugin add remotion-director@remotion-director-codex
 
 Start a new task, or restart the host, after installing or updating so skill discovery reloads. The installed plugin exposes one public skill, `remotion-director`; its internal role and design files are bundled references. Do not register the repository root as the Codex plugin or install the internal references as separate public skills.
 
-The Claude marketplace remains independent. `.claude-plugin/marketplace.json` selects `./claude-plugin`, version `1.0.0`. Its installed package excludes Codex files, tests and migration documents. Claude's separate marketplace repository cache may still contain other directories unless registered with a sparse checkout; see [distribution and update details](PLUGIN-DISTRIBUTION.md). Both packages ship the same rendering and review tools. Shared global RBP updates can affect both hosts by the existing intended policy.
+The Claude marketplace remains independent. `.claude-plugin/marketplace.json` selects `./claude-plugin`, version `1.0.1`. Its installed package excludes Codex files, tests and migration documents. Claude's separate marketplace repository cache may still contain other directories unless registered with a sparse checkout; see [distribution and update details](PLUGIN-DISTRIBUTION.md). Both packages ship the same rendering and review tools. Shared global RBP updates can affect both hosts by the existing intended policy.
 
 ## Install in a local Codex host
 

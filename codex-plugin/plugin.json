@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "remotion-director",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The remotion-director 甲乙环 pipeline for Codex: one public entry skill, native role lifecycle guidance, and cross-platform rendering and review tools.",
   "author": {
     "name": "Zane"
