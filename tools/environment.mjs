@@ -1,10 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, delimiter, dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { globalRbpPaths, inspectRbpPath, RBP_SOURCE, rbpPath, syncRbp } from './rbp.mjs';
 
 export { inspectRbpPath, rbpPath } from './rbp.mjs';
 
+const PLUGIN_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const SECTIONS = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 const isRemotion = (name) => name === 'remotion' || name.startsWith('@remotion/');
 const stableVersion = (version) => typeof version === 'string' && /^\d+\.\d+\.\d+$/.test(version);
@@ -53,6 +55,9 @@ export function planDependencies(current, defaults, version, studioDependencies)
       throw new Error(`Invalid ${section} in package.json`);
     }
   }
+  if (planned.overrides != null && (typeof planned.overrides !== 'object' || Array.isArray(planned.overrides))) {
+    throw new Error('Invalid overrides in package.json');
+  }
   // Existing packages stay in their original sections; add only absent toolchain dependencies.
   for (const section of ['dependencies', 'devDependencies']) {
     for (const [name, spec] of Object.entries(defaults[section] ?? {})) {
@@ -71,12 +76,25 @@ export function planDependencies(current, defaults, version, studioDependencies)
       }
     }
   }
+  // Enforce the plugin's own security constraints in the generated workspace, without discarding the workspace's overrides.
+  if (defaults.overrides) {
+    planned.overrides = { ...(planned.overrides ?? {}), ...defaults.overrides };
+  }
   return planned;
 }
 
 function installedVersion(workspace, name) {
   try { return readJson(join(workspace, 'node_modules', ...name.split('/'), 'package.json')).version; }
   catch { return null; }
+}
+
+// Only the plugin's own security-pinned overrides get strict exact-version enforcement.
+// A workspace's own overrides may legitimately be ranges, which npm already resolves and
+// validates during install — re-checking those against npm semver semantics would need a
+// dependency this repo doesn't have, and literal string comparison would reject them.
+function securityOverrides() {
+  const overrides = readJson(join(PLUGIN_ROOT, 'package.json')).overrides;
+  return overrides && typeof overrides === 'object' && !Array.isArray(overrides) ? overrides : {};
 }
 
 function engineErrors(workspace, manifest, expected) {
@@ -90,6 +108,11 @@ function engineErrors(workspace, manifest, expected) {
   }
   for (const name of ['remotion', '@remotion/bundler', '@remotion/renderer', '@remotion/cli', 'tsx', 'typescript', 'react', 'react-dom', 'three', '@react-three/fiber']) {
     if (!installedVersion(workspace, name)) errors.push(`Required dependency missing or unreadable: ${name}`);
+  }
+  for (const [name, pinned] of Object.entries(securityOverrides())) {
+    if (typeof pinned !== 'string') continue; // skip nested per-parent override shapes
+    const actual = installedVersion(workspace, name);
+    if (actual !== pinned) errors.push(`${name}: override ${pinned}, installed ${actual ?? 'missing'}`);
   }
   return errors;
 }
