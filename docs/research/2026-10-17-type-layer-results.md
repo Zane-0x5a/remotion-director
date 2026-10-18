@@ -42,11 +42,45 @@
 - 港口这对在声音上也不同：A0 有配乐，A1 只有配音。用户的偏好只针对字。
 - 盐湖这对没有矫枉过正：两支的字几乎一样。
 
-## 测试 1：甲 的评判标准（候选 B）——还没有结果
+## 测试 1：甲 的评判标准（候选 B）——两臂都没命中，删掉候选 B
 
-两次开跑都在 API 524 上断掉，两次都作废：
+### 运行
 
-1. 第一次（10-17 20:56 起）两臂都在读完约 30 张图后断开，续跑多次也一样。
+第三次开跑（10-18 07:42）完全按预注册条件，两臂都在 5 分钟左右交出第 1 轮判词，中途没有出错：B0 $1.54，B1 $1.32。前两次开跑都作废，原因见下面"基础设施"一节。
+
+### 编码（只看判词原文）
+
+判词全文：`D:/Projects/_studio-1017-ops/logs/critic-B0-verdict.md`、`critic-B1-verdict.md`。
+
+命中的定义：判词的任何一条、初看印象或 OVERALL，把标题或文案的字（字体、样式、排版）说成廉价、模板化、过时、粗糙，或者和画面不搭。只说看不清、太小、停留太短，不算命中。
+
+**B0（现行清单）：没命中。**
+
+- 初看只是描述，没有评价："serif headings, and particles as the single visual language"。
+- 和字有关的条目都是遮挡或可读性，不算命中：
+  - title-collision："Moving balls pass across settled titles and captions."
+  - quote-over-cell："It's still legible but competes with the background."
+  - ch-tag-lost："The small chapter tag sits on dense particles and mostly disappears"
+  - ending-caption："It's legible, but the caption isn't clearly separated from the scene."
+
+**B1（清单里加了 typography and layout）：没命中，而且夸了字。**
+
+- 初看："a black serif display face with a thin red rule, and a small "01 —— 秩序" section header"。
+- OVERALL："Typography and palette are disciplined and consistent"。
+- 和字有关的条目也都是遮挡或可读性：
+  - "Section header covered by geometry"
+  - "Body captions over busy fields … They are still legible"
+- 第 8 条提到 "The underline spans only the first half of the title"，但那一条说的是结尾不够有力，没有说字廉价或不搭。
+
+### 判定
+
+两臂都没命中，按预注册删掉候选 B，甲 的初看清单不改。
+
+在初看清单里点名字体与版式，也没有让 甲 说出用户说的"土"：B1 反而明确夸了字。作废那次的 B0（medium effort，只作旁证）也夸了字："The editorial typography is strong: a large serif heading, spaced sans subtitles"。这一处的差距在评判标准之外。可能是 甲 和用户对这套字的看法本来就不同，也可能这套字只是在用户眼里"土"。每臂只有一个样本，分不出是哪种。
+
+### 基础设施：为什么前两次作废
+
+1. 第一次（10-17 20:56 起）两臂都在读完约 30 张图后断在 API 524 上，续跑多次也一样。
 2. 第二次（23:33）按"思考时线路空着"的判断，加了 `--thinking-display summarized` 重跑，又在 B1 读到 22 张图、B0 读到 28 张图时断开。
 
 "思考时线路空着"这个判断后来被对照实验否定：小上下文下连续思考 280 秒，两种模式都没有出错；即使思考设成省略，API 也至少每 1.7 秒发一次数据。
@@ -56,8 +90,6 @@
 - 每个请求都把读过的所有图片以 base64 重新上传。甲 的单个请求耗时随之上涨：0 MB 时 6 秒，6 MB 时 85 秒，8–15 MB 时 110–140 秒。
 - 中转站的流量被代理软件的兜底规则转到了一个美国节点，上传 5 MB 实测每秒 0.17–1.86 MB。
 - 请求超过 120 秒还没得到响应，中转站前面的 Cloudflare 就返回 524。
-- 用户在代理软件里把中转站改成直连后，实测每秒 1.25–1.43 MB。
+- 用户在代理软件里把中转站改成直连后，实测每秒 1.25–1.43 MB。第三次开跑时，15–19 MB 的请求只要 13–17 秒。
 
-第三次开跑（10-18）完全按预注册条件。结果出来后补在这一节。
-
-作废那次的 B0 在初看里夸了字（"The editorial typography is strong: a large serif heading, spaced sans subtitles"）。这句只作旁证，不计分。
+测试 1 总共约 $9.6：计分的两次 $2.86，作废的四次 $3.91，探针和对照实验 $2.84。
