@@ -360,6 +360,16 @@ test('the kit has no equipment and no tempo pass; the builder keeps the duration
   assert.match(create, /the builder fits the piece inside it or reports `duration blocked`, and the user decides/);
 });
 
+test('after a session restart the orchestrator takes reports from the copies the agents write', () => {
+  const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8').replace(/\r\n/g, '\n');
+  const create = read('skills', 'create', 'SKILL.md');
+  assert.match(create, /\*\*After your session restarts\.\*\*[^\n]*background wait[^\n]*`<RUN_DIR>\/REPORTS\.md`[^\n]*`<RUN_DIR>\/critic-crops\/round-⟨R⟩-verdict\.md`/);
+  assert.match(read('agents', 'builder.md'), /每次回报,同时把同一段内容追加到 `<RUN_DIR>\/REPORTS\.md`/);
+  for (const file of [['agents', 'aesthetic-critic.md'], ['skills', 'critic-loop', 'CRITIC-PROTOCOL.md']]) {
+    assert.match(read(...file), /also save that verdict, verbatim, as `⟨RUN_DIR⟩\/critic-crops\/round-<N>-verdict\.md`/, file.join('/'));
+  }
+});
+
 test('sound is on by default, simple effects only, and judged by no one but the user', () => {
   const create = readFileSync(join(ROOT, 'skills', 'create', 'SKILL.md'), 'utf8');
   assert.match(create, /sound is \*\*on by default\*\* — simple sound effects the builder makes or sources itself; the user may turn it off/);

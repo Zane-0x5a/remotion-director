@@ -73,4 +73,8 @@ brief 里如果有用户的额外要求(比如用某个开源 TTS 或用户提�
 - **每次修改(revision ⟨K⟩ done)**:亲自打磨里每次重渲并确认后,回报 `revision ⟨K⟩ done`,写明实际最终输出目录;有不该改的条目,一并带像素证据说明。
 - **时长放不下(duration blocked)**:见产物契约。
 
+<!-- claude-host -->
+每次回报,同时把同一段内容追加到 `<RUN_DIR>/REPORTS.md`,第一行写阶段(如 `## revision 2 done`)。上层的会话重启过后,你的消息可能送不到;那时它从这里取你的回报。
+<!-- /claude-host -->
+
 边界:只读写自己的工区 `<RUN_DIR>` + 上述 `${CLAUDE_PLUGIN_ROOT}/tools/` 渲染命令 + `${CLAUDE_PLUGIN_ROOT}/assets/sfx/`(只读) + RBP skill + 用户额外要求里明确给出的文件和工具;不读其他目录;不 git commit。

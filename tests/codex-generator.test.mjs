@@ -116,6 +116,31 @@ test('every source tool command becomes a launcher command, including the time o
   }
 });
 
+// The restart fallback (report copies on disk, a background wait on them) answers
+// Claude Code's messaging; Codex continues its children through the ledger.
+test('Claude-host blocks are dropped from the Codex package, leaving the source text around them', () => {
+  const root = temporaryRoot();
+  try {
+    const output = join(root, 'package');
+    generatePackage(output);
+    const read = (...parts) => readFileSync(join(output, ...parts), 'utf8');
+    const source = (...parts) => readFileSync(join(SOURCE.skills, '..', ...parts), 'utf8');
+    const pairs = [
+      [['skills', 'create', 'SKILL.md'], read('skills', 'remotion-director', 'SKILL.md')],
+      [['agents', 'builder.md'], read('internal', 'roles', 'builder.md')],
+      [['agents', 'aesthetic-critic.md'], read('internal', 'roles', 'aesthetic-critic.md')],
+      [['skills', 'critic-loop', 'CRITIC-PROTOCOL.md'], read('internal', 'skills', 'critic-loop', 'CRITIC-PROTOCOL.md')],
+    ];
+    for (const [parts, generated] of pairs) {
+      assert.match(source(...parts), /<!-- claude-host -->/, `${parts.join('/')} carries a Claude-host block`);
+      assert.doesNotMatch(generated, /claude-host|REPORTS\.md|round-<N>-verdict|After your session restarts/, parts.join('/'));
+    }
+    assert.match(read('internal', 'roles', 'builder.md'), /见产物契约。\n\n边界:/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 // The kit change archived the equipment, the tempo pass and the still/strip
 // review materials; no generated document may still point at them.
 test('generated documents carry no stills, strips, tempo pass or equipment', () => {
