@@ -99,4 +99,6 @@ node "${CLAUDE_PLUGIN_ROOT}/tools/check-env.mjs" --workspace <your-project-dir>
 
 在有核显和独显的 Windows 电脑上，Windows 会让 Remotion 私有的 `chrome-headless-shell.exe` 跑在省电的那块显卡上，`gl: "angle"` 和页面里的 `powerPreference: "high-performance"` 都改变不了。所以 `render-arm` 在启动 Chrome 前，为这个程序写入「设置 > 系统 > 屏幕 > 显示卡」写的那条按应用设置（`HKCU\Software\Microsoft\DirectX\UserGpuPreferences`，值 `GpuPreference=2;`，不需要管理员权限；见 `tools/gpu-preference.ts`）。已经带有显卡偏好的条目是用户自己的选择，保持不动；注册表出错只记一条警告。渲染日志里的 `[harness] GPU:` 一行报告结果。
 
+渲染开的每个 Chrome 标签页都各自装着一份完整的片子，Remotion 默认最多开 8 个。几支 draw 同时渲染，或者旁边还有别的应用在渲染，就可能把内存用光，Chrome 或 FFmpeg 随之退出，在 Windows 上常见的报错是 `FFmpeg quit with code 3221225794`（0xC0000142）。`render-arm` 把这类错误当作机器的问题而不是片子的问题：标签页减半再渲一次，最少减到 2 个，每次重试都写进日志；还不行就带着提示失败（见 `tools/render-retry.ts`）。其他错误照常立即失败。
+
 已验证的画幅：1080×1920 和 1920×1080。方形用同一套渲染工具，但还没做过冒烟测试。
