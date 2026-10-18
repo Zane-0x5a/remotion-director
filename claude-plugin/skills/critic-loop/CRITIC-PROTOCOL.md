@@ -62,6 +62,10 @@ The orchestrator supplies the absolute review dir and video for each review roun
 
 Deliver your Round 1 verdict — and SendMessage it back to the orchestrator (do not merely go idle; the orchestrator ferries your verdict verbatim to the builder and is waiting on your message) — then end your turn (Round 2 materials will arrive in a later message).
 
+<!-- claude-host -->
+Every round, also save that verdict, verbatim, as `⟨RUN_DIR⟩/critic-crops/round-<N>-verdict.md` (N = the review round). If the orchestrator's session restarts, your message may not reach it; it then takes the verdict from that file.
+<!-- /claude-host -->
+
 ---
 
 ## 乙方(持续上下文;与甲方对称,不是 fresh agent 读档恢复)
