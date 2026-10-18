@@ -119,8 +119,15 @@ function sha(root, filter = () => true) {
 function normalizeText(text) { return text.replace(/\r\n?/g, '\n'); }
 function replaceAll(text, from, to) { return text.split(from).join(to); }
 
+// Source text between `<!-- claude-host -->` and `<!-- /claude-host -->` works around
+// Claude Code's own messaging (an agent resumed after a session restart reports into
+// an inbox nobody reads). Codex continues children through its ledger, so it is dropped.
+function dropClaudeHost(text) {
+  return text.replace(/(?:\r?\n)*<!-- claude-host -->[\s\S]*?<!-- \/claude-host -->/g, '');
+}
+
 function transformDelivery(text) {
-  return text
+  return dropClaudeHost(text)
     .replace(/SendMessage-ing you an explicit result/g, 'returning an explicit result to the orchestrator')
     .replace(/SendMessages an explicit/g, 'returns an explicit')
     .replace(/\bSendMessages\b/g, 'returns')
