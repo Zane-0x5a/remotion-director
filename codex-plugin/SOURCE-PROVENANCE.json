@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T00:49:03.519Z",
+  "generatedAt": "2026-10-17T23:44:18.691Z",
   "sourceRoot": "skills/, agents/, tools/, assets/sfx/",
   "source": {
     "skills": {
@@ -7,7 +7,7 @@
       "count": 4
     },
     "agents": {
-      "hash": "fe31b8eb49c013dcc790ae0ba80faaff6bad8bdee4475f8b36a26518793445c8",
+      "hash": "543f5b87fa64e7cd6165350ac89b35132374685c58c48833712b798c30a86e78",
       "count": 4
     },
     "tools": {
