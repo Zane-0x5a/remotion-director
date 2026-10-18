@@ -42,6 +42,22 @@ claude plugin details remotion-director
 
 Restart Claude Code to use the updated package. Its inventory is two skills (`create`, `critic-loop`) and four agents (`aesthetic-critic`, `blind-selector`, `builder`, `direction-lister`). Existing version caches and marketplace checkout settings are managed by Claude; a plugin update does not promise to purge historical copies or change an existing full checkout to sparse mode.
 
+## Releasing
+
+Every version bump ships as a GitHub Release.
+
+1. **Bump in one PR.** Set the new version in each of these:
+   - `.claude-plugin/marketplace.json` (two places) and `.claude-plugin/plugin.json`;
+   - the root entries of `package.json` and `package-lock.json`;
+   - the version sentence in `docs/CODEX-INSTALL.md`;
+   - the two version strings in `tools/generate-codex-plugin.mjs`.
+
+   Then run `npm run build:plugins`. `npm run check:plugins` and `npm test` must pass.
+2. **Release the merge commit.** Once the PR merges, tag its merge commit `vX.Y.Z` and publish a GitHub Release on that tag.
+   - The title is `vX.Y.Z — <one-line theme>`.
+   - The notes cover everything since the previous Release, not only the previous version, and link the PRs.
+   - The notes end with the upgrade commands for both hosts.
+
 ## Validation scope
 
 Generation checks compare the complete expected distribution against the checked-in package, including missing, changed and extra files. Tests check dependency closure, source fidelity and excluded development/Codex content. Actual remote-install and upgrade observations are recorded in [CODEX-VALIDATION.md](CODEX-VALIDATION.md). The existing incomplete Codex creative acceptance is a separate release blocker and is not resolved by this packaging change.
