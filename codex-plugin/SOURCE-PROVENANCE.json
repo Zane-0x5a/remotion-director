@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-18T00:51:31.796Z",
+  "generatedAt": "2026-10-24T11:11:00.235Z",
   "sourceRoot": "skills/, agents/, tools/, assets/sfx/",
   "source": {
     "skills": {
@@ -7,11 +7,11 @@
       "count": 4
     },
     "agents": {
-      "hash": "f1cec689da52816e0543537cc3144cdf972589d607256c6eae2260ff1bc77870",
+      "hash": "7457edfa65574b456fbd3c7412c145e0667f386fd60c08f091a5163c8652fcae",
       "count": 4
     },
     "tools": {
-      "hash": "3698a5a9d2640a9cdb2e0309711b8ddb18037926f79e7ef07d0b161a73508c65",
+      "hash": "63218da3e4414941b1b8f044fb0726d10b80edc8f74f9229684d6b098abbd2b0",
       "count": 9
     },
     "sfx": {

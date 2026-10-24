@@ -23,6 +23,15 @@ import { preferHighPerformanceGpu } from "./gpu-preference.ts";
 import { defaultTabs, fewerTabs, firstLine, looksOutOfMemory } from "./render-retry.ts";
 import { buildReview } from "./time-overview.ts";
 
+/** A bundle that cannot be deleted only wastes disk, so it warns rather than failing a finished render. */
+function removeBundle(dir: string) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch (e) {
+    console.error(`[harness] could not delete the bundle ${dir} (${firstLine(e)}); delete it by hand`);
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const get = (k: string) => {
@@ -51,34 +60,40 @@ async function main() {
   // workspace's: every draw keeps its assets in its own directory.
   const publicDir = path.resolve(dir, "public");
   console.error(`[harness] bundling ${entry} ...`);
+  // bundle() copies the whole public/ (soundtrack, fonts, …) into a new directory under the OS
+  // temp dir and never removes it: ~100 MB left behind per render. Remove it however the render ends.
   const serveUrl = await bundle({ entryPoint: entry, publicDir });
-  const composition = await selectComposition({ serveUrl, id: "piece" });
-  console.error(
-    `[harness] comp ${composition.width}x${composition.height} ${composition.durationInFrames}f @${composition.fps}fps`,
-  );
-
-  // A render that ran the machine out of memory runs again with fewer Chrome tabs
-  // (see render-retry.ts); any other error is the piece's and fails right away.
   const mp4 = path.join(out, "video.mp4");
-  let tabs = defaultTabs(os.availableParallelism());
-  for (;;) {
-    try {
-      await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: mp4, concurrency: tabs, chromiumOptions: { gl: "angle" } });
-      break;
-    } catch (e) {
-      if (!looksOutOfMemory(e)) throw e;
-      const fewer = fewerTabs(tabs);
-      if (fewer === null) {
-        console.error(
-          `[harness] the render ran out of memory even with ${tabs} Chrome tabs. Other renders running at the same time, ` +
-            `or a piece that keeps a lot in memory (every tab holds its own copy of the piece), can cause this.`,
-        );
-        throw e;
+  try {
+    const composition = await selectComposition({ serveUrl, id: "piece" });
+    console.error(
+      `[harness] comp ${composition.width}x${composition.height} ${composition.durationInFrames}f @${composition.fps}fps`,
+    );
+
+    // A render that ran the machine out of memory runs again with fewer Chrome tabs
+    // (see render-retry.ts); any other error is the piece's and fails right away.
+    let tabs = defaultTabs(os.availableParallelism());
+    for (;;) {
+      try {
+        await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: mp4, concurrency: tabs, chromiumOptions: { gl: "angle" } });
+        break;
+      } catch (e) {
+        if (!looksOutOfMemory(e)) throw e;
+        const fewer = fewerTabs(tabs);
+        if (fewer === null) {
+          console.error(
+            `[harness] the render ran out of memory even with ${tabs} Chrome tabs. Other renders running at the same time, ` +
+              `or a piece that keeps a lot in memory (every tab holds its own copy of the piece), can cause this.`,
+          );
+          throw e;
+        }
+        console.error(`[harness] the render ran out of memory (${firstLine(e)}); rendering again with ${fewer} Chrome tabs instead of ${tabs}`);
+        fs.rmSync(mp4, { force: true });
+        tabs = fewer;
       }
-      console.error(`[harness] the render ran out of memory (${firstLine(e)}); rendering again with ${fewer} Chrome tabs instead of ${tabs}`);
-      fs.rmSync(mp4, { force: true });
-      tabs = fewer;
     }
+  } finally {
+    removeBundle(serveUrl);
   }
   console.error(`[harness] video -> ${mp4}`);
 
